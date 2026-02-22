@@ -70,6 +70,24 @@ h1:focus {
 .status-bar-safe-area {
     display: none;
 }
+.nav-link i {
+    font-size: 18px;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.border {
+    border-radius: 6px;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+input, select {
+    font-size: 13px;
+}
 
 @supports (-webkit-touch-callout: none) {
     .status-bar-safe-area {
