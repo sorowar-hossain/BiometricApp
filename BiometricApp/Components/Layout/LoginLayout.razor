@@ -1,0 +1,26 @@
+﻿@inherits LayoutComponentBase
+
+<div class="login-layout">
+    <h3 class="login-title">eRegistration Toolkit</h3>
+    @Body
+</div>
+
+<style>
+    .login-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column; /* stack children vertically */
+        justify-content: center; /* vertical centering */
+        align-items: center; /* horizontal centering */
+        background: #f0f2f5;
+        font-family: Arial, sans-serif;
+    }
+
+    .login-title {
+        margin-top: 50px;
+        font-weight: bold; /* make it bold */
+        text-align: center; /* center text */
+        margin-bottom: 0px; /* optional spacing below heading */
+        color: #333; /* optional color */
+    }
+</style>

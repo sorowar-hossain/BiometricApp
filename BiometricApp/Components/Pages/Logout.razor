@@ -1,0 +1,164 @@
+﻿@page "/logout"
+@layout LoginLayout
+
+@using System.ComponentModel.DataAnnotations
+@using BiometricApp.Components.Layout
+@inject NavigationManager Navigation
+
+<div class="login-container">
+    <h2>Login</h2>
+    <p class="subtext">We're so excited to see you login</p>
+
+    <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <InputText @bind-Value="loginModel.Username" placeholder="Username" class="form-control" />
+            <ValidationMessage For="@(() => loginModel.Username)" />
+        </div>
+
+        <div class="form-group">
+            <InputText @bind-Value="loginModel.Password" type="password" placeholder="Password" class="form-control" />
+            <ValidationMessage For="@(() => loginModel.Password)" />
+        </div>
+        <!-- Instruction points -->
+        <div class="login-instructions">
+            <ul>
+                <li>Enter your correct username.</li>
+                <li>Enter your password carefully; it is case-sensitive.</li>
+                <li>Ensure your Caps Lock is off.</li>
+                <li>Click "Login" to access your account.</li>
+            </ul>
+        </div>
+
+        <button type="submit">Login</button>
+    </EditForm>
+
+    <a href="#" class="forgot-password">Forgot Password?</a>
+</div>
+<style>
+    .login-instructions {
+        text-align: left; /* align points to the left */
+        margin-bottom: 20px; /* space before button */
+        font-size: 14px;
+        color: #555;
+    }
+
+        .login-instructions ul {
+            padding-left: 20px; /* indent bullets */
+        }
+
+        .login-instructions li {
+            margin-bottom: 5px; /* space between points */
+        }
+    body {
+        background: #f0f2f5;
+        font-family: Arial, sans-serif;
+    }
+
+    .login-container h2 {
+        margin-bottom: 10px; /* less space below the h2 */
+    }
+
+    .subtext {
+        margin-top: 0; /* remove extra space above */
+        margin-bottom: 20px; /* add a little space below */
+        font-size: 14px; /* smaller than h2 */
+        font-weight: bold; /* optional color */
+    }
+
+    .login-container {
+        max-width: 400px;
+        margin: 60px auto;
+        padding: 40px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .logo {
+        width: 80px;
+        margin-bottom: 20px;
+    }
+
+    h2 {
+        margin-bottom: 30px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        outline: none;
+        transition: 0.3s;
+    }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background: #007bff;
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+    .forgot-password {
+        display: block;
+        margin-top: 15px;
+        font-size: 14px;
+        color: #555;
+        text-decoration: none;
+    }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+</style>
+
+@code {
+    private LoginModel loginModel = new();
+
+    private void HandleLogin()
+    {
+        // Example login logic
+        if (loginModel.Username == "admin" && loginModel.Password == "1")
+        {
+            Navigation.NavigateTo("/home");
+        }
+        else
+        {
+            Console.WriteLine("Invalid credentials");
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; }
+    }
+}
