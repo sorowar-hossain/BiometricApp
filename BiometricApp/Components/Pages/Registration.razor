@@ -42,8 +42,10 @@
                         <label>Civil Status *</label>
                         <InputSelect class="form-control" @bind-Value="model.CivilStatus">
                             <option value="">Select Civil Status</option>
-                            <option>Single</option>
-                            <option>Married</option>
+                            <option value="1">Single</option>
+                            <option value="2">Married</option>
+                            <option value="3">Divorced</option>
+                            <option value="4">Widowed</option>
                         </InputSelect>
                     </div>
 
@@ -56,8 +58,9 @@
                         <label>Gender *</label>
                         <InputSelect class="form-control" @bind-Value="model.Gender">
                             <option value="">Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
+                            <option value="1">Male</option>
+                            <option value="2">Female</option>
+                            <option value="3"> Other</option>
                         </InputSelect>
                     </div>
 
@@ -91,17 +94,36 @@
                     </ul>
                 </div>
 
-                <!-- Next Button -->
+               @*  <!-- Next Button -->
                 <div class="text-end mt-4">
                     <button class="btn btn-primary px-4" @onclick="NextStep">
                         Next
                     </button>
-                </div>
+                </div> *@
+
+                <!-- Navigation Buttons -->
+               
 
             </div>
 
         </div>
     </div>
+
+    <div class="row">
+        <div class="d-flex justify-content-between mt-4">
+            <!-- Previous Button -->
+            <button class="btn btn-secondary px-4" @onclick="PreviousStep">
+                Previous
+            </button>
+
+            <!-- Next Button -->
+            <button class="btn btn-primary px-4" @onclick="NextStep">
+                Next
+            </button>
+        </div>
+    </div>
+    <br/>
+
 </div>
 
 @code {
@@ -110,6 +132,11 @@
     void NextStep()
     {
         Console.WriteLine("Next clicked");
+    }
+
+    void PreviousStep()
+    {
+        Console.WriteLine("Previous Step clicked");
     }
 
     public class RegisterModel
