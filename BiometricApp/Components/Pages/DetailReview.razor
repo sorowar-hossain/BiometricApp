@@ -1,0 +1,266 @@
+﻿@page "/detail-review"
+
+<div class="container main-container">
+
+    <div class="card shadow-sm">
+        <!-- Header -->
+        <div class="card-header text-center header-title">
+            Data Capturing System
+        </div>
+
+        <div class="card-body">
+
+            <h5 class="text-primary fw-bold">Detail Review</h5>
+            <small class="text-muted">
+                Carefully check all your personal information shown on the screen
+            </small>
+
+            <div class="row mt-3">
+
+                <!-- ================= LEFT (BIOMETRICS) ================= -->
+                <div class="col-md-4">
+                    <div class="section-box">
+
+                        <h6 class="section-title">Biometrics</h6>
+
+                        <div class="row biometrics-container">
+
+                            <!-- PHOTO + SIGNATURE 1 -->
+                            <div class="col-8 d-flex flex-column">
+
+                                <!-- PHOTO -->
+                                <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center">
+                                    <img src="images/user1.jpg" class="img-fluid photo-box" />
+                                </div>
+
+                                <!-- SIGNATURE 1 -->
+                                <div class="signature-box">
+                                    <small class="signature-text">Signature 1</small>
+                                    <img src="images/signature1.jpg" class="signature-img" />
+                                </div>
+
+                            </div>
+
+                            <!-- FINGERPRINT + SIGNATURE 2 -->
+                            <div class="col-4 d-flex flex-column">
+
+                                <!-- FINGERPRINT -->
+                                <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-start mt-3">
+                                    <div class="fingerprint-container d-flex flex-column align-items-center">
+                                        @if (Fingerprints != null && Fingerprints.Any())
+                                        {
+                                            @foreach (var fp in Fingerprints)
+                                            {
+                                                <div class="fingerprint-box mb-3">
+                                                    <img src="@fp" class="fingerprint-img" style="width:60px; height:auto;" />
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- SIGNATURE 2 -->
+                                <div class="signature-box">
+                                    <small class="signature-text">Signature 2</small>
+                                    <img src="images/signature2.jpg" class="signature-img" />
+                                </div>
+
+                            </div>
+                         
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ================= RIGHT SIDE ================= -->
+                <div class="col-md-8">
+
+                    <!-- PERSONAL INFO -->
+                    <div class="section-box mb-3">
+                        <h6 class="section-title">Personal Information</h6>
+
+                        <div class="row mb-2">
+                            <div class="col-md-4 label">Full name</div>
+                            <div class="col-md-8">
+                                <input class="form-control" value="@Model.FullName" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-4 label">Date of birth</div>
+                            <div class="col-md-8">
+                                <input class="form-control" value="@Model.DateOfBirth" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-4 label">Gender</div>
+                            <div class="col-md-8">
+                                <input class="form-control" value="@Model.Gender" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-md-4 label">Civil Status</div>
+                            <div class="col-md-8">
+                                <input class="form-control" value="@Model.CivilStatus" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 label">Address</div>
+                            <div class="col-md-8">
+                                <textarea class="form-control" rows="2" readonly>@Model.Address</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOCUMENTS -->
+                    <div class="section-box">
+                        <h6 class="section-title">Document Upload</h6>
+
+                        <div class="d-flex gap-3">
+                            <img src="images/id-front1.jpg" class="doc-img" />
+                            <img src="images/id-back1.jpg" class="doc-img" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ================= FOOTER ================= -->
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-secondary px-4" @onclick="GoBack">
+                    Back
+                </button>
+
+                <button class="btn btn-primary px-4" @onclick="Submit">
+                    Done
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .main-container {
+        background: #f3f3f3;
+        padding: 20px;
+    }
+
+    .header-title {
+        background-color: #2f5ea8;
+        color: white;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .section-box {
+        border: 1px solid #ddd;
+        padding: 15px;
+        background: #fff;
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .label {
+        font-weight: 500;
+        padding-top: 5px;
+    }
+
+    .photo-box {
+        width: 100%;
+        border: 1px solid #ccc;
+    }
+
+    .fingerprint {
+        width: 40px;
+    }
+
+    .fingerprint-container {
+        min-height: 150px; /* IMPORTANT for alignment fix */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+
+    .signature-text {
+        margin-top: 8px;
+        font-size: 12px;
+    }
+
+    .doc-img {
+        width: 160px;
+        border: 1px solid #ccc;
+    }
+
+    .signature-box {
+        height: 120px; /* equal height */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #ddd; /* optional separator */
+        padding-top: 5px;
+    }
+
+    .signature-img {
+        width: 100%;
+        height: 70px; /* fixed image height */
+        object-fit: contain;
+    }
+
+    .signature-text {
+        font-size: 12px;
+    }
+</style>
+
+@code {
+    // Sample Model (bind from DB later)
+    public UserModel Model = new()
+    {
+        FullName = "Member's Fullname",
+        DateOfBirth = "01-Jan-2000",
+        Gender = "Male",
+        CivilStatus = "Single",
+        Address = "Dhaka, Bangladesh"
+    };
+
+    // Fingerprint list
+    public List<string> Fingerprints = new()
+    {
+        "images/fingerprint1.jpg",
+        "images/fingerprint2.jpg",
+        "images/fingerprint3.jpg",
+        "images/fingerprint4.jpg",
+        "images/fingerprint5.jpg"
+    };
+
+    void GoBack()
+    {
+        // Navigation logic
+    }
+
+    void Submit()
+    {
+        // Save / submit logic
+    }
+
+    public class UserModel
+    {
+        public string FullName { get; set; }
+        public string DateOfBirth { get; set; }
+        public string Gender { get; set; }
+        public string CivilStatus { get; set; }
+        public string Address { get; set; }
+    }
+}
