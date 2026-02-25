@@ -1,0 +1,156 @@
+﻿@page "/face-capture"
+
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="header-bar text-center">
+        <h4>Data Capturing System</h4>
+    </div>
+
+    <!-- Section Title -->
+    <div class="mt-3">
+        <h5 class="section-title">Face Capture</h5>
+        <small class="text-muted">Keep your face centered in the frame</small>
+    </div>
+
+    <div class="row mt-4">
+
+        <!-- LEFT: Camera Functions -->
+        <div class="col-md-3">
+            <h6 class="fw-bold">Camera Functions</h6>
+
+            <div class="mb-3">
+                <label>Brightness (0)</label>
+                <input type="range" class="form-range" min="0" max="100" @bind="Brightness" />
+                <small class="text-muted">Adjust how light or dark the photo appears.</small>
+            </div>
+
+            <div class="mb-3">
+                <label>Sharpness (0)</label>
+                <input type="range" class="form-range" min="0" max="100" @bind="Sharpness" />
+                <small class="text-muted">Controls the clarity of details in the image.</small>
+            </div>
+
+            <div class="mb-3">
+                <label>Zoom (0)</label>
+                <input type="range" class="form-range" min="0" max="100" @bind="Zoom" />
+                <small class="text-muted">Bring the subject closer or farther in the frame.</small>
+            </div>
+        </div>
+
+        <!-- CENTER: Camera -->
+        <div class="col-md-5 text-center">
+            <h6 class="fw-bold">Camera</h6>
+
+            <div class="camera-box">
+                <!-- Video stream goes here -->
+                <video id="video" autoplay></video>
+            </div>
+
+            <div class="mt-3">
+                <button class="btn btn-primary me-2" @onclick="ConnectCamera">Connect</button>
+                <button class="btn btn-dark me-2" @onclick="Capture">Capture</button>
+                <button class="btn btn-primary" @onclick="DisconnectCamera">Disconnect</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: Cropped Photo -->
+        <div class="col-md-4 text-center">
+            <h6 class="fw-bold">Cropped Photo</h6>
+
+            <div class="photo-box">
+                @if (!string.IsNullOrEmpty(CapturedImage))
+                {
+                    <img src="@CapturedImage" class="img-fluid" />
+                }
+            </div>
+
+            <div class="mt-2">
+                <small>Status: @Status</small>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="d-flex justify-content-between mt-4">
+        <button class="btn btn-secondary" @onclick="Back">Back</button>
+        <button class="btn btn-primary" @onclick="Next">Next</button>
+    </div>
+
+</div>
+
+<style>
+    .header-bar {
+        background-color: #355c9a;
+        color: white;
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .section-title {
+        color: #355c9a;
+        font-weight: 600;
+    }
+
+    .camera-box {
+        height: 260px;
+        border: 2px solid #cbd5e1;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+    }
+
+        .camera-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .photo-box {
+        height: 180px;
+        border: 2px solid #cbd5e1;
+        border-radius: 6px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+@code {
+    int Brightness = 0;
+    int Sharpness = 0;
+    int Zoom = 0;
+
+    string CapturedImage;
+    string Status = "Idle";
+
+    void ConnectCamera()
+    {
+        Status = "Camera Connected";
+    }
+
+    void Capture()
+    {
+        Status = "Captured";
+        // You can integrate JS to capture image from video
+    }
+
+    void DisconnectCamera()
+    {
+        Status = "Disconnected";
+    }
+
+    void Back()
+    {
+        // Navigation logic
+    }
+
+    void Next()
+    {
+        // Navigation logic
+    }
+}
