@@ -1,0 +1,169 @@
+﻿@page "/signature"
+
+@inject IJSRuntime JS
+
+<div class="container mt-4 main-box">
+
+    <!-- Header -->
+    <div class="header text-center">
+        Data Capturing System
+    </div>
+
+    <!-- Content -->
+    <div class="p-4">
+
+        <!-- Title -->
+        <h5 class="fw-bold text-primary">Capture Signature</h5>
+        <p class="text-muted small">Write your full signature clearly inside the box</p>
+
+        <div class="row mt-4">
+
+            <!-- LEFT SIDE (Signature Box) -->
+            <div class="col-md-6 text-center">
+
+                <!-- Signature Pad -->
+                <div class="signature-box" id="signaturePad">
+                    <!-- Canvas will be here -->
+                    <canvas id="canvas"></canvas>
+                </div>
+
+                <!-- Buttons -->
+                <div class="mt-3">
+                    <button class="btn btn-primary px-4 me-2" @onclick="SaveSignature">
+                        ✔ Done
+                    </button>
+
+                    <button class="btn btn-dark px-4" @onclick="ClearSignature">
+                        ⟳ Reset
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- RIGHT SIDE (Preview Boxes) -->
+            <div class="col-md-6 d-flex flex-column align-items-center">
+
+                <div class="preview-box mb-3"></div>
+                <div class="preview-box"></div>
+
+            </div>
+
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="d-flex justify-content-between mt-5">
+            <button class="btn btn-light px-4">Back</button>
+            <button class="btn btn-primary px-4">Next</button>
+        </div>
+
+    </div>
+</div>
+
+
+<style>
+    .main-box {
+        border: 1px solid #ccc;
+        background: #f8f9fa;
+    }
+
+    .header {
+        background-color: #2f5597;
+        color: white;
+        padding: 10px;
+        font-weight: bold;
+    }
+
+    .signature-box {
+        border: 2px solid #4a86e8;
+        width: 100%;
+        height: 200px;
+        position: relative;
+    }
+
+        .signature-box canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+    .preview-box {
+        width: 220px;
+        height: 60px;
+        border: 2px solid #4a86e8;
+    }
+</style>
+
+<script>
+   
+    let canvas, ctx, drawing = false;
+
+    window.initSignaturePad = () => {
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('mouseup', stop);
+        canvas.addEventListener('mousemove', draw);
+    };
+
+    function start(e) {
+        drawing = true;
+        draw(e);
+    }
+
+    function stop() {
+        drawing = false;
+        ctx.beginPath();
+    }
+
+    function draw(e) {
+        if (!drawing) return;
+
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000';
+
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    window.clearPad = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    window.getSignature = () => {
+        return canvas.toDataURL();
+    };
+</script>
+
+
+
+
+@code {
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initSignaturePad");
+        }
+    }
+
+    private async Task ClearSignature()
+    {
+        await JS.InvokeVoidAsync("clearPad");
+    }
+
+    private async Task SaveSignature()
+    {
+        var base64 = await JS.InvokeAsync<string>("getSignature");
+
+        // Save to DB or show preview
+        Console.WriteLine(base64);
+    }
+}
