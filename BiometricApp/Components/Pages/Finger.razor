@@ -1,5 +1,246 @@
-﻿<h3>Finger</h3>
+﻿@page "/fingerprint"
+
+<div class="wrapper">
+
+    <!-- HEADER -->
+    <div class="header">
+        Data Capturing System
+    </div>
+
+    <div class="content">
+
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+            <h5>Capture fingerprint</h5>
+            <small>Place your finger flat on the scanner</small>
+
+            <div class="finger-preview">
+                @if (!string.IsNullOrEmpty(CurrentImage))
+                {
+                    <img src="@($"data:image/png;base64,{CurrentImage}")" />
+                }
+                else
+                {
+                    <img src="images/fingerprint.png" />
+                }
+            </div>
+
+            <p class="mt-2 fw-bold">@CurrentFingerName</p>
+
+            <button class="btn capture-btn" @onclick="Capture">
+                Capture
+            </button>
+
+            <button class="btn next-btn" @onclick="NextFinger">
+                Next
+            </button>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+
+            <!-- HAND IMAGES -->
+            <div class="hands">
+                <img src="images/left-finger.jpg" class="hand-img" />
+                <img src="images/right-finger.jpg" class="hand-img" />
+            </div>
+
+            <!-- LEFT HAND SLOTS -->
+            <div class="slots">
+                @for (int i = 0; i < 5; i++)
+                {
+                    <div class="slot @(GetSlotClass(i))">
+                        @if (Fingerprints[i] != null)
+                        {
+                            <img src="@($"data:image/png;base64,{Fingerprints[i]}")" />
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- RIGHT HAND SLOTS -->
+            <div class="slots">
+                @for (int i = 5; i < 10; i++)
+                {
+                    <div class="slot @(GetSlotClass(i))">
+                        @if (Fingerprints[i] != null)
+                        {
+                            <img src="@($"data:image/png;base64,{Fingerprints[i]}")" />
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+
+    </div>
+</div>
 
 @code {
 
+    // Finger order
+    private string[] Fingers = new[]
+    {
+        "Left Thumb", "Left Index", "Left Middle", "Left Ring", "Left Little",
+        "Right Thumb", "Right Index", "Right Middle", "Right Ring", "Right Little"
+    };
+
+    private int currentIndex = 0;
+
+    // Store captured fingerprints (10 fingers)
+    private string[] Fingerprints = new string[10];
+
+    private string CurrentImage;
+
+    private string CurrentFingerName => currentIndex < Fingers.Length
+        ? $"Scan your {Fingers[currentIndex]} finger"
+        : "All fingers captured";
+
+    // Capture button
+    private void Capture()
+    {
+        // TODO: Replace with real SDK capture
+        var base64 = GetDummyImage();
+
+        Fingerprints[currentIndex] = base64;
+        CurrentImage = base64;
+    }
+
+    // Next button
+    private void NextFinger()
+    {
+        if (currentIndex < Fingers.Length - 1)
+        {
+            currentIndex++;
+            CurrentImage = Fingerprints[currentIndex];
+        }
+    }
+
+    // Highlight active slot
+    private string GetSlotClass(int index)
+    {
+        if (index == currentIndex)
+            return "active-finger";
+
+        return "";
+    }
+
+    // Dummy image for testing
+    private string GetDummyImage()
+    {
+        var path = Path.Combine("wwwroot/images/fingerprint.png");
+        var bytes = File.ReadAllBytes(path);
+        return Convert.ToBase64String(bytes);
+    }
 }
+
+<style>
+    .wrapper {
+        width: 100%;
+        min-height: 100vh; /* full screen height */
+        background: #f4f6f9;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .header {
+        background: #3b63a3;
+        color: white;
+        text-align: center;
+        padding: 12px;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .content {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* LEFT PANEL */
+    .left-panel {
+        width: 30%;
+    }
+
+    .finger-preview {
+        width: 150px;
+        height: 150px;
+        border: 2px solid #3b63a3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 15px;
+        border-radius: 8px;
+    }
+
+        .finger-preview img {
+            max-width: 100%;
+        }
+
+    .capture-btn {
+        background: #3b63a3;
+        color: white;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .next-btn {
+        background: gray;
+        color: white;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    /* RIGHT PANEL */
+    .right-panel {
+        width: 65%;
+        text-align: center;
+    }
+
+    .hands {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+    }
+
+    .hand-img {
+        width: 180px;
+    }
+
+    /* SLOTS */
+    .slots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .slot {
+        width: 45px;
+        height: 45px;
+        border: 2px solid #3b63a3;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .slot img {
+            width: 100%;
+            height: 100%;
+        }
+
+    .active-finger {
+        background: #4caf50;
+        border-color: #4caf50;
+    }
+</style>
