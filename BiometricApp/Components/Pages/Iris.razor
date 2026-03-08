@@ -1,4 +1,112 @@
-﻿<h3>Iris</h3>
+﻿@page "/iris-capture"
+
+<div class="iris-wrapper">
+
+    <!-- Header -->
+    <div class="header-bar">
+        Data Capturing System
+    </div>
+
+    <div class="content-area text-center">
+
+        <h5 class="section-title">Iris Capture</h5>
+        <p class="text-muted small">
+            Stand or sit still in front of the iris scanner
+        </p>
+
+        <div class="row justify-content-center mt-4">
+
+            <!-- Left Preview Small -->
+            <div class="col-md-2 text-center">
+                <img src="images/Iris-Left.jpg" class="thumb-img" />
+            </div>
+
+            <!-- Left Iris Large -->
+            <div class="col-md-3 text-center">
+                <p class="fw-semibold">Left Iris</p>
+                <img src="images/Iris-Left.jpg" class="iris-img" />
+                <p class="capture-status text-success">Capture completed</p>
+            </div>
+
+            <!-- Right Iris Large -->
+            <div class="col-md-3 text-center">
+                <p class="fw-semibold">Right Iris</p>
+                <img src="images/Iris-Right.jpg" class="iris-img" />
+                <p class="capture-status text-success">Capture completed</p>
+            </div>
+
+            <!-- Right Preview Small -->
+            <div class="col-md-2 text-center">
+                <img src="images/Iris-Right.jpg" class="thumb-img" />
+            </div>
+
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-4">
+            <button class="btn btn-outline-primary me-2">Retake</button>
+            <button class="btn btn-dark me-2">
+                <i class="bi bi-camera-fill"></i> Capture
+            </button>
+            <button class="btn btn-primary">Save</button>
+        </div>
+
+        <!-- Navigation -->
+        <div class="d-flex justify-content-between mt-5 px-5">
+            <button class="btn btn-light border">Back</button>
+            <button class="btn btn-primary px-4">Next</button>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .iris-wrapper {
+        background-color: #f5f6f8;
+        min-height: 100vh;
+    }
+
+    .header-bar {
+        background-color: #2f5fa4;
+        color: white;
+        padding: 12px;
+        font-weight: 600;
+        text-align: center;
+        font-size: 18px;
+    }
+
+    .content-area {
+        background: #ffffff;
+        margin: 40px auto;
+        padding: 40px;
+        max-width: 1100px;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+        color: #2f5fa4;
+    }
+
+    .iris-img {
+        width: 100%;
+        max-width: 220px;
+        height: auto;
+        border: 3px solid #2f5fa4;
+        border-radius: 4px;
+    }
+
+    .thumb-img {
+        width: 80px;
+        border: 2px solid #2f5fa4;
+        border-radius: 4px;
+    }
+
+    .capture-status {
+        font-size: 13px;
+        margin-top: 8px;
+    }
+</style>
 
 @code {
 
