@@ -1,14 +1,14 @@
 ﻿@page "/fingerprint"
-@inject FingerprintService FingerprintService
+@inject BiometricApp.Services.FingerService FingerService
+
+<h3>Fingerprint Device</h3>
+
+<p>@message</p>
+
+<button @onclick="InitializeDevice">Initialize Device</button>
+<button @onclick="StartScan">Start Scan</button>
 
 <div class="wrapper">
-
-   
-
-    <h3>Device Info</h3>
-
-    <button @onclick="OpenDevice">Open Device</button>
-
 
     <!-- HEADER -->
     <div class="header">
@@ -60,9 +60,9 @@
                     @for (int i = 0; i < 5; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-                            @if (Fingerprints[i] != null)
+                            @if (CapturedFingerprints[i] != null)
                             {
-                                <img src="@($"data:image/png;base64,{Fingerprints[i]}")" />
+                                <img src="@($"data:image/png;base64,{CapturedFingerprints[i]}")" />
                             }
                         </div>
                     }
@@ -73,9 +73,9 @@
                     @for (int i = 5; i < 10; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-                            @if (Fingerprints[i] != null)
+                            @if (CapturedFingerprints[i] != null)
                             {
-                                <img src="@($"data:image/png;base64,{Fingerprints[i]}")" />
+                                <img src="@($"data:image/png;base64,{CapturedFingerprints[i]}")" />
                             }
                         </div>
                     }
@@ -89,12 +89,60 @@
 </div>
 
 @code {
-    string deviceInfo;
+   
+    private string message = "";
 
-    void OpenDevice()
+    private async Task InitializeDevice()
     {
-        deviceInfo = FingerprintService.OpenDevice();
+        message = "Initializing device...";
+        await InvokeAsync(StateHasChanged);
+
+        await Task.Run(() =>
+        {
+            try
+            {
+                // Optional: provide host/port if your device requires network connection
+                int result = FingerService.Init();
+
+                if (result == 0)
+                {
+                    message = "Device initialized successfully ✅\n";
+
+                    // Show device info
+                    var p = FingerService.DeviceInfo;
+
+
+                    message += $"SN: {SystemPropertyHelper.GetProductSN(ref p)}\n";
+                    message += $"Model: {SystemPropertyHelper.GetProductModel(ref p)}\n";
+                    message += $"FW: {SystemPropertyHelper.GetFirmwareVersion(ref p)}\n";
+                    message += $"Lib: {SystemPropertyHelper.GetLibraryVersion(ref p)}\n";
+                    message += $"Chip: {p.chip_id}";
+                }
+                else
+                {
+                    message = $"Initialization failed. Error code: {result}";
+                }
+            }
+            catch (Exception ex)
+            {
+                message = $"Exception: {ex.Message}";
+            }
+
+            InvokeAsync(StateHasChanged);
+        });
     }
+
+    private async Task StartScan()
+    {
+        await Task.Run(() =>
+        {
+            bool success = FingerService.ScanStart();
+            message += success ? "\nScan started successfully ✅" : "\nScan failed ❌";
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+
     // Finger order
     private string[] Fingers = new[]
     {
@@ -104,8 +152,8 @@
 
     private int currentIndex = 0;
 
-    // Store captured fingerprints (10 fingers)
-    private string[] Fingerprints = new string[10];
+    // Store captured CapturedFingerprints (10 fingers)
+    private string[] CapturedFingerprints = new string[10];
 
     private string CurrentImage;
 
@@ -119,7 +167,7 @@
         // TODO: Replace with real SDK capture
         var base64 = GetDummyImage();
 
-        Fingerprints[currentIndex] = base64;
+        CapturedFingerprints[currentIndex] = base64;
         CurrentImage = base64;
     }
 
@@ -129,7 +177,7 @@
         if (currentIndex < Fingers.Length - 1)
         {
             currentIndex++;
-            CurrentImage = Fingerprints[currentIndex];
+            CurrentImage = CapturedFingerprints[currentIndex];
         }
     }
 

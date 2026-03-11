@@ -1,80 +1,58 @@
 ﻿
-using BiometricApp.Models;
+using BiometricApp.Natives;
 using System;
 using System.Runtime.InteropServices;
 namespace BiometricApp;
 public class FingerprintService
 {
-    public string OpenDevice()
+    public SystemProperty DeviceInfo { get; private set; }
+
+
+    public int Init(string host = null, ushort port = 0)
     {
-        SystemProperty p = default;
-
-        IMD_RESULT res = imd_fap50.get_system_property(ref p);
-
-        if (res != IMD_RESULT.SUCCESS)
+        // Connect if host/port provided
+        if (!string.IsNullOrEmpty(host) && port != 0)
         {
-            res = imd_fap50.device_reset();
-            if (res != IMD_RESULT.SUCCESS)
-            {
-                return $"Reset failed: {res}";
-            }
+            bool connected = FingerprintSDK.connect_fap50_panel(host, port);
+            if (!connected) return -1;
         }
 
-        imd_fap50.get_system_property(ref p);
+        // Reset device
+        IMD_RESULT result = FingerprintSDK.device_reset();
+        if (result != IMD_RESULT.SUCCESS) return (int)result;
 
-        string productSN = Marshal.PtrToStringAnsi(p.product_sn);
-        string productModel = Marshal.PtrToStringAnsi(p.product_model);
+        // Get system property
+        SystemProperty p = new SystemProperty();
+        result = FingerprintSDK.get_system_property(ref p);
+        if (result != IMD_RESULT.SUCCESS) return (int)result;
 
-        //unsafe
-        //{
-        //    return
-        //        //$"FW: {(char)p.fw_ver[2]}{p.fw_ver[1]:X}.{p.fw_ver[0]:X2}\n" +
-        //        //$"Chip ID: 0x{p.chip_id:X4}\n" +
-        //        $"SDK: {p.fap50_lib_ver[2]}.{p.fap50_lib_ver[1]}.{p.fap50_lib_ver[0]}\n" +
-        //        $"S/N: {productSN}\n" +
-        //        $"Model: {productModel}";
-        //}
-
-        return "";
+        DeviceInfo = p;
+        return 0; // success
     }
 
-    public enum IMD_RESULT
+    public int DeviceReset()
     {
-        SUCCESS = 0,
-        FAIL = -1
+        // Reset device
+        IMD_RESULT result = FingerprintSDK.device_reset();
+        if (result != IMD_RESULT.SUCCESS) return (int)result;
+
+        // Get system property
+        SystemProperty p = new SystemProperty();
+        result = FingerprintSDK.get_system_property(ref p);
+        if (result != IMD_RESULT.SUCCESS) return (int)result;
+
+        DeviceInfo = p;
+        return 0; // success
     }
 
-    public static class imd_fap50
+    public bool ScanStart()
     {
-        [DllImport("imd_fap50.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IMD_RESULT get_system_property(ref SystemProperty prop);
-
-        [DllImport("imd_fap50.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IMD_RESULT device_reset();
+        IMD_RESULT result = FingerprintSDK.scan_start();
+        return result == IMD_RESULT.SUCCESS;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct SystemProperty
+    public void Disconnect()
     {
-        public int image_width;
-        public int image_height;
-        public int image_bit_per_pix;
-        public int image_pix_per_inch;
-
-        public fixed Byte fap50_lib_ver[3];
-        //public fixed BYTE opencv_lib_ver[3];
-        //public fixed BYTE nbis_lib_ver[3];
-        //public fixed BYTE nfiq2_lib_ver[3];
-
-        //public fixed BYTE guid[16];
-
-        //public WORD chip_id;
-
-        //public fixed BYTE fw_ver[3];   // 🔹 THIS FIELD WAS MISSING
-        //public fixed BYTE led_ver[2];
-
-        public IntPtr product_sn;
-        public IntPtr product_brand;
-        public IntPtr product_model;
+        FingerprintSDK.disconnect_fap50_panel();
     }
 }
