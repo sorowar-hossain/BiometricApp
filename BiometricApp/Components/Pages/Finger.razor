@@ -1,6 +1,14 @@
 ﻿@page "/fingerprint"
+@inject FingerprintService FingerprintService
 
 <div class="wrapper">
+
+   
+
+    <h3>Device Info</h3>
+
+    <button @onclick="OpenDevice">Open Device</button>
+
 
     <!-- HEADER -->
     <div class="header">
@@ -81,7 +89,12 @@
 </div>
 
 @code {
+    string deviceInfo;
 
+    void OpenDevice()
+    {
+        deviceInfo = FingerprintService.OpenDevice();
+    }
     // Finger order
     private string[] Fingers = new[]
     {
