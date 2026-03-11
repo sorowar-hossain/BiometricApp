@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BiometricApp.Services;
+using Microsoft.Extensions.Logging;
 
 namespace BiometricApp
 {
@@ -16,6 +17,7 @@ namespace BiometricApp
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddSingleton<FingerprintService>();
+            
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

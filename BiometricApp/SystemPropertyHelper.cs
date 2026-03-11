@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using static BiometricApp.FingerprintService;
+using static BiometricApp.Services.FingerprintService;
 
 namespace BiometricApp
 {

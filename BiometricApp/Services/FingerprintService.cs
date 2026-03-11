@@ -1,8 +1,7 @@
-﻿
-using BiometricApp.Natives;
+﻿using BiometricApp.Natives;
 using System;
 using System.Runtime.InteropServices;
-namespace BiometricApp;
+namespace BiometricApp.Services;
 public class FingerprintService
 {
     public SystemProperty DeviceInfo { get; private set; }

@@ -1,12 +1,13 @@
 ﻿@page "/fingerprint"
-@inject BiometricApp.Services.FingerService FingerService
+
+@inject BiometricApp.Services.FingerprintService FingerService
 
 <h3>Fingerprint Device</h3>
 
 <p>@message</p>
 
-<button @onclick="InitializeDevice">Initialize Device</button>
-<button @onclick="StartScan">Start Scan</button>
+<button class="btn btn-primary" @onclick="InitializeDevice">Initialize Device</button>
+<button class="btn btn-success" @onclick="StartScan">Start Scan</button>
 
 <div class="wrapper">
 
@@ -60,9 +61,9 @@
                     @for (int i = 0; i < 5; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-                            @if (CapturedFingerprints[i] != null)
+                            @if (Fingerprints[i] != null)
                             {
-                                <img src="@($"data:image/png;base64,{CapturedFingerprints[i]}")" />
+                                <img src="@($"data:image/png;base64,{Fingerprints[i]}")" />
                             }
                         </div>
                     }
@@ -73,9 +74,9 @@
                     @for (int i = 5; i < 10; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-                            @if (CapturedFingerprints[i] != null)
+                            @if (Fingerprints[i] != null)
                             {
-                                <img src="@($"data:image/png;base64,{CapturedFingerprints[i]}")" />
+                                <img src="@($"data:image/png;base64,{Fingerprints[i]}")" />
                             }
                         </div>
                     }
@@ -89,59 +90,60 @@
 </div>
 
 @code {
-   
-    private string message = "";
 
+    string message = "";
+
+    // Initialize device
     private async Task InitializeDevice()
     {
         message = "Initializing device...";
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
 
-        await Task.Run(() =>
+        try
         {
-            try
+            int result = FingerService.Init();
+
+            if (result == 0)
             {
-                // Optional: provide host/port if your device requires network connection
-                int result = FingerService.Init();
-
-                if (result == 0)
-                {
-                    message = "Device initialized successfully ✅\n";
-
-                    // Show device info
-                    var p = FingerService.DeviceInfo;
-
-
-                    message += $"SN: {SystemPropertyHelper.GetProductSN(ref p)}\n";
-                    message += $"Model: {SystemPropertyHelper.GetProductModel(ref p)}\n";
-                    message += $"FW: {SystemPropertyHelper.GetFirmwareVersion(ref p)}\n";
-                    message += $"Lib: {SystemPropertyHelper.GetLibraryVersion(ref p)}\n";
-                    message += $"Chip: {p.chip_id}";
-                }
-                else
-                {
-                    message = $"Initialization failed. Error code: {result}";
-                }
+                var p = FingerService.DeviceInfo;
+                message = "Device initialized successfully ✅\n" +
+                          $"SN: {SystemPropertyHelper.GetProductSN(ref p)}\n" +
+                          $"Model: {SystemPropertyHelper.GetProductModel(ref p)}\n" +
+                          $"FW: {SystemPropertyHelper.GetFirmwareVersion(ref p)}\n" +
+                          $"Lib: {SystemPropertyHelper.GetLibraryVersion(ref p)}\n" +
+                          $"Chip: {p.chip_id}";
             }
-            catch (Exception ex)
+            else
             {
-                message = $"Exception: {ex.Message}";
+                message = $"Initialization failed. Error code: {result}";
             }
+        }
+        catch (Exception ex)
+        {
+            message = $"Exception: {ex.Message}";
+        }
 
-            InvokeAsync(StateHasChanged);
-        });
+        StateHasChanged();
     }
 
+    // Start scan
     private async Task StartScan()
     {
-        await Task.Run(() =>
+        try
         {
             bool success = FingerService.ScanStart();
-            message += success ? "\nScan started successfully ✅" : "\nScan failed ❌";
-            InvokeAsync(StateHasChanged);
-        });
-    }
 
+            message += success
+                ? "\nScan started successfully ✅"
+                : "\nScan failed ❌";
+        }
+        catch (Exception ex)
+        {
+            message = $"Exception: {ex.Message}";
+        }
+
+        StateHasChanged();
+    }
 
     // Finger order
     private string[] Fingers = new[]
@@ -152,8 +154,8 @@
 
     private int currentIndex = 0;
 
-    // Store captured CapturedFingerprints (10 fingers)
-    private string[] CapturedFingerprints = new string[10];
+    // Store captured fingerprints (10 fingers)
+    private string[] Fingerprints = new string[10];
 
     private string CurrentImage;
 
@@ -167,7 +169,7 @@
         // TODO: Replace with real SDK capture
         var base64 = GetDummyImage();
 
-        CapturedFingerprints[currentIndex] = base64;
+        Fingerprints[currentIndex] = base64;
         CurrentImage = base64;
     }
 
@@ -177,7 +179,7 @@
         if (currentIndex < Fingers.Length - 1)
         {
             currentIndex++;
-            CurrentImage = CapturedFingerprints[currentIndex];
+            CurrentImage = Fingerprints[currentIndex];
         }
     }
 
