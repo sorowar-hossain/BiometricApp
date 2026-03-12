@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BiometricApp.Natives 
+namespace BiometricApp.Natives
 {
     // DLL wrapper
     public enum IMD_RESULT
@@ -21,7 +21,7 @@ namespace BiometricApp.Natives
         // Add other modes from SDK
     }
 
-   
+
     public enum FINGER_POSITION
     {
         UNKNOWN = 0,
@@ -39,15 +39,99 @@ namespace BiometricApp.Natives
     }
 
 
-    //[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)] // default packing
-    //public unsafe struct SystemProperty
-    //{
-    //    public fixed byte product_sn[32];       // product serial number
-    //    public fixed byte product_model[32];    // product model
-    //    public fixed byte fw_ver[32];           // firmware version
-    //    public ushort chip_id;                  // 2-byte chip ID
-    //    public fixed byte fap50_lib_ver[32];    // library version
-    //}
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ImageProperty
+    {
+        public GUI_SHOW_MODE mode;        // Enum
+        public FINGER_POSITION pos;       // Enum
+        public bool this_scan;
+
+        public IntPtr img;                // PBYTE → IntPtr
+
+        public int width;
+        public int height;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public int[] score_array;
+
+        public int score_size;
+        public int score_min;
+
+        public VERSION score_ver;         // Enum
+    }
+    public enum VERSION
+    {
+        NFIQ_V1,
+        NFIQ_V2,
+        NFIQ_VER_SIZE,
+    };
+
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ImageStatus
+    {
+        // Fingerprint reading mode
+        public GUI_SHOW_MODE show_mode;
+        public FINGER_POSITION finger_position;
+
+        // Status of roll
+        [MarshalAs(UnmanagedType.I1)]
+        public bool is_roll_init;
+        [MarshalAs(UnmanagedType.I1)]
+        public bool is_roll_done;
+
+        // Status of flat
+        [MarshalAs(UnmanagedType.I1)]
+        public bool is_flat_init;
+        [MarshalAs(UnmanagedType.I1)]
+        public bool is_flat_done;
+
+        // Number of finger presses
+        public int finger_num;
+
+        // Finger touch status
+        [MarshalAs(UnmanagedType.I1)]
+        public bool is_finger_on;
+
+        // Contours pointer (void* in C++)
+        public IntPtr contours;
+
+        // Frame rate
+        public float frame_rate;
+
+        // Image buffer pointer (BYTE* in C++)
+        public IntPtr img;
+
+        // Signature done flag
+        [MarshalAs(UnmanagedType.I1)]
+        public bool is_signature_done;
+
+        // Result enum
+        public RESULT result;
+
+        // Constants for image size
+        public const int IMAGE_WIDTH = 1600;
+        public const int IMAGE_HEIGHT = 1000;
+
+        // Helper: Copy image data to managed byte array
+        public byte[] GetImageBytes()
+        {
+            int size = IMAGE_WIDTH * IMAGE_HEIGHT;
+            byte[] buffer = new byte[size];
+            if (img != IntPtr.Zero)
+            {
+                Marshal.Copy(img, buffer, 0, size);
+            }
+            return buffer;
+        }
+    }
+
+    // Example enums (replace with actual values)
+    //public enum GUI_SHOW_MODE { MODE1, MODE2 }
+    //public enum FINGER_POSITION { LEFT, RIGHT }
+    //public enum RESULT { SUCCESS, FAILURE }
+
+
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public unsafe struct SystemProperty
@@ -162,6 +246,8 @@ namespace BiometricApp.Natives
         [DllImport("lib_imd_fap50_method.dll", EntryPoint = "scan_cancel", CallingConvention = CallingConvention.Cdecl)]
         public static extern RESULT scan_cancel();
 
+        [DllImport("lib_imd_fap50_method.dll", EntryPoint = "Get_image", CallingConvention = CallingConvention.Cdecl)]
+        public static extern RESULT Get_image(ref ImageProperty img_property);
 
 
     }
