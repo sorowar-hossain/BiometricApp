@@ -1,6 +1,7 @@
 ﻿@page "/fingerprint"
-
+@using BiometricApp.Natives
 @inject BiometricApp.Services.FingerprintService FingerService
+@inject BiometricApp.Services.ScannerService ScannerService
 
 <h3>Fingerprint Device</h3>
 
@@ -126,21 +127,36 @@
         StateHasChanged();
     }
 
+   
+
+
     // Start scan
     private async Task StartScan()
     {
         try
         {
-            bool success = FingerService.ScanStart();
+            var result = ScannerService.StartScan();
 
-            message += success
-                ? "\nScan started successfully ✅"
-                : "\nScan failed ❌";
+            message = result
+                ? "Scan started ✅"
+                : $"Scan failed ❌ ({result})";
+
+            
         }
         catch (Exception ex)
         {
             message = $"Exception: {ex.Message}";
         }
+
+        StateHasChanged();
+    }
+
+    private void CancelScan()
+    {
+        var result = ScannerService.CancelScan();
+        message = result == RESULT.SUCCESS
+            ? "Scan cancelled ✅"
+            : $"Cancel failed ❌ ({result})";
 
         StateHasChanged();
     }

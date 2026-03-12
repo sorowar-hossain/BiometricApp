@@ -17,7 +17,8 @@ namespace BiometricApp
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddSingleton<FingerprintService>();
-            
+            builder.Services.AddSingleton<ScannerService>();
+
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

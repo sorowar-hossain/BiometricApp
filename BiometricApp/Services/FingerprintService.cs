@@ -44,14 +44,9 @@ public class FingerprintService
         return 0; // success
     }
 
-    public bool ScanStart()
-    {
-        IMD_RESULT result = FingerprintSDK.scan_start();
-        return result == IMD_RESULT.SUCCESS;
-    }
-
     public void Disconnect()
     {
         FingerprintSDK.disconnect_fap50_panel();
     }
+
 }

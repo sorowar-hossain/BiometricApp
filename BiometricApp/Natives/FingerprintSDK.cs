@@ -14,6 +14,30 @@ namespace BiometricApp.Natives
         SUCCESS = 0,
         FAILURE = 1
     }
+    public enum GUI_SHOW_MODE
+    {
+        NONE = 0,
+        SHOW = 1,
+        // Add other modes from SDK
+    }
+
+   
+    public enum FINGER_POSITION
+    {
+        UNKNOWN = 0,
+        LEFT_THUMB = 1,
+        RIGHT_THUMB = 2
+        // Add others if SDK supports more
+    }
+
+    public enum RESULT
+    {
+        SUCCESS = 0,
+        ERROR = -1,
+        NULL_POINTER = -2
+        // Add others from SDK
+    }
+
 
     //[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)] // default packing
     //public unsafe struct SystemProperty
@@ -96,9 +120,6 @@ namespace BiometricApp.Natives
     public static class FingerprintSDK
     {
         // Change CallingConvention to Cdecl if the DLL uses C calling convention
-        //[DllImport("lib_imd_fap50_method.dll", EntryPoint = "device_reset", CallingConvention = CallingConvention.StdCall)]
-        //public static extern IMD_RESULT device_reset();
-
         //[DllImport("lib_imd_fap50_method.dll", EntryPoint = "get_system_property", CallingConvention = CallingConvention.StdCall)]
         //public static extern IMD_RESULT get_system_property(ref SystemProperty p);
 
@@ -108,10 +129,6 @@ namespace BiometricApp.Natives
         [DllImport("lib_imd_fap50_method.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void disconnect_fap50_panel();
 
-
-        [DllImport("lib_imd_fap50_method.dll", EntryPoint = "scan_start", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IMD_RESULT scan_start();
-
         [DllImport("lib_imd_fap50_method.dll", EntryPoint = "device_reset", CallingConvention = CallingConvention.Cdecl)]
         public static extern IMD_RESULT device_reset();
 
@@ -119,7 +136,32 @@ namespace BiometricApp.Natives
         public static extern IMD_RESULT get_system_property(ref SystemProperty p);
 
         [DllImport("Device_Wrapper.dll", EntryPoint = "DeviceReset", CallingConvention = CallingConvention.StdCall)]
-        public static extern IMD_RESULT DeviceReset(); 
+        public static extern IMD_RESULT DeviceReset();
+
+        [DllImport("Device_Wrapper.dll", EntryPoint = "ScanStart", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int ScanStart();
+
+        //[DllImport("Device_Wrapper.dll", CallingConvention = CallingConvention.Cdecl)]
+        //public static extern int ScanStart();
+
+        [DllImport("Device_Wrapper.dll", EntryPoint = "IsScanBusy", CallingConvention = CallingConvention.StdCall)]
+        public static extern int IsScanBusy();
+
+
+        [DllImport("lib_imd_fap50_method.dll", EntryPoint = "scan_start", CallingConvention = CallingConvention.StdCall)]
+        public static extern RESULT scan_start(
+          GUI_SHOW_MODE mode,
+          [In, Out] FINGER_POSITION[] pos_buf,
+          int num
+      );
+
+        [DllImport("lib_imd_fap50_method.dll", EntryPoint = "is_scan_busy", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool is_scan_busy();
+
+        [DllImport("lib_imd_fap50_method.dll", EntryPoint = "scan_cancel", CallingConvention = CallingConvention.Cdecl)]
+        public static extern RESULT scan_cancel();
+
 
 
     }
