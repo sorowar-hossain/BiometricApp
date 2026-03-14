@@ -2,6 +2,8 @@
 @using BiometricApp.Natives
 @inject BiometricApp.Services.FingerprintService FingerService
 @inject BiometricApp.Services.ScannerService ScannerService
+@inject BiometricApp.Services.ImageService ImageService
+
 
 <h3>Fingerprint Device</h3>
 
@@ -127,7 +129,7 @@
         StateHasChanged();
     }
 
-   
+
 
 
     // Start scan
@@ -135,13 +137,13 @@
     {
         try
         {
-            var result = ScannerService.StartScan();
+            var result =await ImageService.CaptureFingerprint();
 
             message = result
-                ? "Scan started ✅"
-                : $"Scan failed ❌ ({result})";
+            ? "Fingerprint captured and saved ✅"
+            : "Fingerprint capture failed ❌";
 
-            
+
         }
         catch (Exception ex)
         {
@@ -151,9 +153,9 @@
         StateHasChanged();
     }
 
-    private void CancelScan()
+    private async Task CancelScan()
     {
-        var result = ScannerService.CancelScan();
+        var result =  ScannerService.CancelScan();
         message = result == RESULT.SUCCESS
             ? "Scan cancelled ✅"
             : $"Cancel failed ❌ ({result})";

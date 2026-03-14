@@ -246,8 +246,8 @@ namespace BiometricApp.Natives
         [DllImport("lib_imd_fap50_method.dll", EntryPoint = "scan_cancel", CallingConvention = CallingConvention.Cdecl)]
         public static extern RESULT scan_cancel();
 
-        [DllImport("lib_imd_fap50_method.dll", EntryPoint = "Get_image", CallingConvention = CallingConvention.Cdecl)]
-        public static extern RESULT Get_image(ref ImageProperty img_property);
+        [DllImport("lib_imd_fap50_method.dll", EntryPoint = "get_image", CallingConvention = CallingConvention.Cdecl)]
+        public static extern RESULT get_image(ref ImageProperty img_property);
 
 
     }
