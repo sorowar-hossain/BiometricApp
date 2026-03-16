@@ -1,156 +1,302 @@
 ﻿@page "/face-capture"
+@using BiometricApp.Services
+@inject IJSRuntime JS
+@inject FaceService FaceService
 
-<div class="container mt-4">
+<div class="container-fluid biometric-container">
 
     <!-- Header -->
     <div class="header-bar text-center">
-        <h4>Data Capturing System</h4>
+        <h4>Biometric Enrollment System</h4>
     </div>
 
-    <!-- Section Title -->
-    <div class="mt-3">
-        <h5 class="section-title">Face Capture</h5>
-        <small class="text-muted">Keep your face centered in the frame</small>
-    </div>
+    <div class="row mt-3">
 
-    <div class="row mt-4">
+        <!-- LEFT PANEL -->
+        <div class="col-lg-3 col-md-4 col-sm-12 control-panel">
 
-        <!-- LEFT: Camera Functions -->
-        <div class="col-md-3">
-            <h6 class="fw-bold">Camera Functions</h6>
+            <h6 class="panel-title">Camera Controls</h6>
 
-            <div class="mb-3">
-                <label>Brightness (0)</label>
-                <input type="range" class="form-range" min="0" max="100" @bind="Brightness" />
-                <small class="text-muted">Adjust how light or dark the photo appears.</small>
+            <div class="control-item">
+                <label>Brightness</label>
+                <input type="range" min="0" max="100" @bind="Brightness" class="form-range">
             </div>
 
-            <div class="mb-3">
-                <label>Sharpness (0)</label>
-                <input type="range" class="form-range" min="0" max="100" @bind="Sharpness" />
-                <small class="text-muted">Controls the clarity of details in the image.</small>
+            <div class="control-item">
+                <label>Sharpness</label>
+                <input type="range" min="0" max="100" @bind="Sharpness" class="form-range">
             </div>
 
-            <div class="mb-3">
-                <label>Zoom (0)</label>
-                <input type="range" class="form-range" min="0" max="100" @bind="Zoom" />
-                <small class="text-muted">Bring the subject closer or farther in the frame.</small>
+            <div class="control-item">
+                <label>Zoom</label>
+                <input type="range" min="0" max="100" @bind="Zoom" class="form-range">
             </div>
+
+            <div class="instructions">
+                <h6>Capture Instructions</h6>
+                <ul>
+                    <li>Face centered inside frame</li>
+                    <li>Good lighting required</li>
+                    <li>No glasses or hats</li>
+                    <li>Neutral expression</li>
+                </ul>
+            </div>
+
         </div>
 
-        <!-- CENTER: Camera -->
-        <div class="col-md-5 text-center">
-            <h6 class="fw-bold">Camera</h6>
+        <!-- CAMERA PANEL -->
+        <div class="col-lg-6 col-md-8 col-sm-12 text-center">
 
-            <div class="camera-box">
-                <!-- Video stream goes here -->
+            <h6 class="panel-title">Live Camera</h6>
+
+            <div class="camera-wrapper">
+
                 <video id="video" autoplay></video>
+
+                <!-- Face Guide -->
+                <div class="face-guide"></div>
+
             </div>
 
-            <div class="mt-3">
-                <button class="btn btn-primary me-2" @onclick="ConnectCamera">Connect</button>
-                <button class="btn btn-dark me-2" @onclick="Capture">Capture</button>
-                <button class="btn btn-primary" @onclick="DisconnectCamera">Disconnect</button>
+            <div class="camera-buttons">
+
+                <button class="btn btn-primary" @onclick="ToggleCamera">
+                    <i class="bi @(CameraConnected ? "bi-camera-video-off" : "bi-camera-video")"></i>
+                    @(CameraConnected ? " Close Camera" : " Open Camera")
+                </button>
+
+                <button class="btn btn-success"
+                        @onclick="Capture"
+                        disabled="@(!CameraConnected)">
+                    <i class="bi bi-camera"></i>
+                    Capture
+                </button>
+
+                <button class="btn btn-warning"
+                        @onclick="Retake"
+                        disabled="@string.IsNullOrEmpty(CapturedImage)">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Retake
+                </button>
+
             </div>
+
         </div>
 
-        <!-- RIGHT: Cropped Photo -->
-        <div class="col-md-4 text-center">
-            <h6 class="fw-bold">Cropped Photo</h6>
+        <!-- RIGHT PANEL -->
+        <div class="col-lg-3 col-md-12 text-center preview-panel">
 
-            <div class="photo-box">
+            <h6 class="panel-title">Captured Face</h6>
+
+            <div class="preview-box">
+
                 @if (!string.IsNullOrEmpty(CapturedImage))
                 {
-                    <img src="@CapturedImage" class="img-fluid" />
+                    <img src="@CapturedImage" />
                 }
+                else
+                {
+                    <span class="placeholder">No Image</span>
+                }
+
             </div>
 
-            <div class="mt-2">
+            <button class="btn btn-success mt-3 w-100"
+                    @onclick="SaveFace"
+                    disabled="@string.IsNullOrEmpty(CapturedImage)">
+                Save Photo
+            </button>
+
+            <div class="status-box">
                 <small>Status: @Status</small>
             </div>
+
         </div>
 
-    </div>
-
-    <!-- Footer Buttons -->
-    <div class="d-flex justify-content-between mt-4">
-        <button class="btn btn-secondary" @onclick="Back">Back</button>
-        <button class="btn btn-primary" @onclick="Next">Next</button>
     </div>
 
 </div>
 
 <style>
+
+    .biometric-container {
+        padding: 20px;
+    }
+
     .header-bar {
-        background-color: #355c9a;
+        background: #355c9a;
         color: white;
-        padding: 10px;
-        border-radius: 4px;
+        padding: 12px;
+        border-radius: 5px;
     }
 
-    .section-title {
-        color: #355c9a;
+    .panel-title {
         font-weight: 600;
+        color: #355c9a;
+        margin-bottom: 15px;
     }
 
-    .camera-box {
-        height: 260px;
+    .control-panel {
+        background: #f8fafc;
+        border-radius: 6px;
+        padding: 15px;
+    }
+
+    .control-item {
+        margin-bottom: 15px;
+    }
+
+    .instructions {
+        margin-top: 20px;
+        font-size: 13px;
+    }
+
+    .camera-wrapper {
+        position: relative;
+        height: 360px;
         border: 2px solid #cbd5e1;
         border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8fafc;
+        overflow: hidden;
+        background: black;
     }
 
-        .camera-box video {
+        .camera-wrapper video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-    .photo-box {
-        height: 180px;
+    .face-guide {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 220px;
+        height: 280px;
+        transform: translate(-50%,-50%);
+        border: 3px dashed #00ffcc;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .camera-buttons {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .preview-panel {
+        padding: 15px;
+    }
+
+    .preview-box {
+        height: 220px;
         border: 2px solid #cbd5e1;
         border-radius: 6px;
-        background: #f8fafc;
         display: flex;
-        align-items: center;
         justify-content: center;
+        align-items: center;
+        background: #f8fafc;
     }
+
+        .preview-box img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+    .placeholder {
+        color: #888;
+    }
+
+    .status-box {
+        margin-top: 10px;
+    }
+
+    .camera-buttons i{
+    margin-right:6px;
+}
+
 </style>
 
 @code {
-    int Brightness = 0;
-    int Sharpness = 0;
-    int Zoom = 0;
+
+    int Brightness;
+    int Sharpness;
+    int Zoom;
 
     string CapturedImage;
     string Status = "Idle";
 
-    void ConnectCamera()
+    async Task ConnectCamera()
     {
-        Status = "Camera Connected";
+        await JS.InvokeVoidAsync("webcam.start");
+        Status = "Camera connected";
     }
 
-    void Capture()
+    async Task Capture()
     {
-        Status = "Captured";
-        // You can integrate JS to capture image from video
+        CapturedImage = await JS.InvokeAsync<string>("webcam.capture");
+        Status = "Face captured";
     }
 
-    void DisconnectCamera()
+    void Retake()
     {
-        Status = "Disconnected";
+        CapturedImage = null;
+        Status = "Retake photo";
     }
 
-    void Back()
+    async Task DisconnectCamera()
     {
-        // Navigation logic
+        await JS.InvokeVoidAsync("webcam.stop");
+        Status = "Camera disconnected";
     }
 
-    void Next()
+    async Task SaveFace()
     {
-        // Navigation logic
+        if (string.IsNullOrEmpty(CapturedImage))
+        {
+            Status = "No image captured";
+            return;
+        }
+
+        try
+        {
+            var path = await FaceService.SaveFaceAsync(CapturedImage);
+            Status = $"Saved: {path}";
+        }
+        catch (Exception ex)
+        {
+            Status = ex.Message;
+        }
     }
+
+    bool CameraConnected = false;
+
+    async Task ToggleCamera()
+    {
+        try
+        {
+            if (!CameraConnected)
+            {
+                await JS.InvokeVoidAsync("webcam.start");
+
+                CameraConnected = true;
+                Status = "Camera connected";
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("webcam.stop");
+
+                CameraConnected = false;
+                Status = "Camera disconnected";
+            }
+        }
+        catch
+        {
+            CameraConnected = false;
+            Status = "Failed to connect camera";
+        }
+    }
+
 }
