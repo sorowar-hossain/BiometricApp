@@ -19,6 +19,7 @@ namespace BiometricApp
             builder.Services.AddSingleton<FingerprintService>();
             builder.Services.AddSingleton<ScannerService>();
             builder.Services.AddSingleton<ImageService>();
+            builder.Services.AddSingleton<FaceService>();
 
 
 #if DEBUG
