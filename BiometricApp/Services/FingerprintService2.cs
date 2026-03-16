@@ -2,7 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 namespace BiometricApp.Services;
-public class FingerprintService
+public class FingerprintService2
 {
     public SystemProperty DeviceInfo { get; private set; }
 

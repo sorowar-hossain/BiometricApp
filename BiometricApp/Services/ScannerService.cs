@@ -1,13 +1,15 @@
 ﻿using BiometricApp.Natives;
+using FingerprintWrapper;
+using Microsoft.Maui.Controls;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace BiometricApp.Services
 {
@@ -15,8 +17,11 @@ namespace BiometricApp.Services
     {
         private const string FingerprintFolder = "fingerprints";
         private const int SCORE_ARRAY_SIZE=4;
+        IMDWrapper iMDWrapper = new IMDWrapper(); 
         public bool StartScan2()
         {
+           
+            int r= iMDWrapper.DeviceReset();
             var result = FingerprintSDK.ScanStart();
             return result == 0;
         }
@@ -37,27 +42,56 @@ namespace BiometricApp.Services
         // Main function to capture fingerprint
         public async Task<bool> CaptureFingerprint()
         {
-            //if (!StartScan())
-            //    return false;
+            if (iMDWrapper.DeviceReset() !=0)
+                return false;
 
             // ✅ Wait at least 5 seconds before first image capture attempt
             await Task.Delay(5000);
 
             int timeout = 10000; // total timeout (after the 5s wait)
-            int interval = 500;  // check every 500ms
+            int interval = 200;  // check every 500ms
             int elapsed = 0;
 
             while (elapsed < timeout)
             {
-                ImageProperty imgProp = new ImageProperty
+                // ✅ Check if device is busy
+                if (iMDWrapper.IsScanBusy())
                 {
-                    score_array = new int[SCORE_ARRAY_SIZE] // use correct SDK size
-                };
-                RESULT res = FingerprintSDK.get_image(ref imgProp);
-                if (res == RESULT.SUCCESS && imgProp.img != IntPtr.Zero)
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                    continue;
+                }
+
+                bool fingerOn;
+                iMDWrapper.GetImageStatus(out fingerOn);
+
+                if (!fingerOn)
+                {
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                    continue;
+                }
+                int res = iMDWrapper.ScanLeftFour();
+
+
+                if (res ==0)
                 {
                     // process image
-                    break;
+
+                    string folder = @"C:\Biometric_Finger";
+
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+
+                    int s1=  iMDWrapper.SaveFile($@"{folder}\left_index.bmp");
+                    iMDWrapper.SaveFile($@"{folder}\left_middle.bmp");
+                    iMDWrapper.SaveFile($@"{folder}\left_ring.bmp");
+                    iMDWrapper.SaveFile($@"{folder}\left_little.bmp");
+
+                  
+                    return true;
                 }
 
                 await Task.Delay(interval);
