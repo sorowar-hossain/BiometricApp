@@ -21,7 +21,11 @@
 
         <!-- LEFT PANEL -->
         <div class="left-panel">
-            <button class="btn btn-success" @onclick="StartScan">Scan Left 4</button>
+            <div class="d-flex gap-3 mb-2">
+                <button class="btn btn-success" @onclick="StartScanLeft">Scan Left 4</button>
+                <button class="btn btn-success" @onclick="StartScanLeftRight">Scan Right 4</button>
+                <button class="btn btn-success" @onclick="StartScanLeftRight">Scan Thumb 2</button>
+            </div>
             <p>@message</p>
 
           @*   <div class="finger-preview">
@@ -95,12 +99,12 @@
     string message = "";
 
     // Start scan
-    private async Task StartScan()
+    private async Task StartScanLeft()
     {
         try
         {
             message = "Finger Capture Started.....";
-            var result = await ScannerService.CaptureFingerprint();
+            var result = await ScannerService.CaptureFingerprintLeft();
 
             message = result
             ? "Fingerprint captured and saved ✅"
@@ -115,6 +119,30 @@
 
         StateHasChanged();
     }
+
+
+    private async Task StartScanLeftRight() 
+    {
+        try
+        {
+            message = "Finger Capture Started.....";
+            var result = await ScannerService.CaptureFingerprintRight();
+
+            message = result
+            ? "Fingerprint captured and saved ✅"
+            : "Fingerprint capture failed ❌";
+
+            LoadLeftFourFingerprints();
+        }
+        catch (Exception ex)
+        {
+            message = $"Exception: {ex.Message}";
+        }
+
+        StateHasChanged();
+    }
+
+
 
     private void LoadLeftFourFingerprints()
     {
@@ -143,15 +171,7 @@
         currentIndex = 1;
     }
 
-    private async Task CancelScan()
-    {
-        var result =  ScannerService.CancelScan();
-        message = result == RESULT.SUCCESS
-            ? "Scan cancelled ✅"
-            : $"Cancel failed ❌ ({result})";
-
-        StateHasChanged();
-    }
+   
 
     // Finger order
     private string[] Fingers = new[]

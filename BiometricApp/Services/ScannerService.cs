@@ -18,29 +18,10 @@ namespace BiometricApp.Services
         private const string FingerprintFolder = "fingerprints";
         private const int SCORE_ARRAY_SIZE=4;
         IMDWrapper iMDWrapper = new IMDWrapper(); 
-        public bool StartScan2()
-        {
-           
-            int r= iMDWrapper.DeviceReset();
-            var result = FingerprintSDK.ScanStart();
-            return result == 0;
-        }
-
-        public bool IsBusy()
-        {
-
-            return FingerprintSDK.is_scan_busy();
-
-        }
-
-        public RESULT CancelScan()
-        {
-            return FingerprintSDK.scan_cancel();
-        }
-
+      
 
         // Main function to capture fingerprint
-        public async Task<bool> CaptureFingerprint()
+        public async Task<bool> CaptureFingerprintLeft() 
         {
             if (iMDWrapper.DeviceReset() !=0)
                 return false;
@@ -101,130 +82,66 @@ namespace BiometricApp.Services
             return false;
         }
 
-        //public bool StartScan(int num = 1, GUI_SHOW_MODE mode = GUI_SHOW_MODE.SHOW)
-        //{
-        //    // Create buffer for results
-        //    FINGER_POSITION[] positions = new FINGER_POSITION[num];
-
-        //    RESULT result = FingerprintSDK.scan_start(mode, positions, num);
-
-        //    if (result == RESULT.SUCCESS)
-        //    {
-        //        // positions now contains scanned fingerprint positions
-        //        return true;
-        //    }
-        //    else
-        //    {
-        //        return false;
-        //    }
-        //}
-
-
-
-        private bool GetImage()
+        public async Task<bool> CaptureFingerprintRight() 
         {
-            // Get project folder and create fingerprints folder
-            string projectRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..");
-            projectRoot = Path.GetFullPath(projectRoot);
-            string folder = Path.Combine(projectRoot, "fingerprints");
-            Directory.CreateDirectory(folder); // create if not exists
+            if (iMDWrapper.DeviceReset() != 0)
+                return false;
 
-            // Generate timestamped filename
-            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            string rawFile = Path.Combine(folder, $"finger_{timestamp}.raw");
-            string bmpFile = Path.Combine(folder, $"finger_{timestamp}.bmp");
+            // ✅ Wait at least 5 seconds before first image capture attempt
+            await Task.Delay(5000);
 
-            // Initialize struct
-            ImageProperty imgProp = new ImageProperty
+            int timeout = 10000; // total timeout (after the 5s wait)
+            int interval = 200;  // check every 500ms
+            int elapsed = 0;
+
+            while (elapsed < timeout)
             {
-                score_array = new int[SCORE_ARRAY_SIZE] // use correct SDK size
-            };
-
-            // Call the DLL
-            RESULT result = FingerprintSDK.get_image(ref imgProp);
-
-            if (result == RESULT.SUCCESS)
-            {
-                // ✅ Check pointer and size BEFORE Marshal.Copy
-                if (imgProp.img == IntPtr.Zero || imgProp.width == 0 || imgProp.height == 0)
+                // ✅ Check if device is busy
+                if (iMDWrapper.IsScanBusy())
                 {
-                    Console.WriteLine("No image data returned from device");
-                    return false; // exit safely
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                    continue;
                 }
 
-                int width = imgProp.width;
-                int height = imgProp.height;
-                int size = width * height;
+                bool fingerOn;
+                iMDWrapper.GetImageStatus(out fingerOn);
 
-                // Copy unmanaged buffer to managed byte array
-                byte[] buffer = new byte[size];
-                Marshal.Copy(imgProp.img, buffer, 0, size);
+                if (!fingerOn)
+                {
+                    await Task.Delay(interval);
+                    elapsed += interval;
+                    continue;
+                }
+                int res = iMDWrapper.ScanRightFour();
 
-                // Save RAW file
-                File.WriteAllBytes(rawFile, buffer);
 
-                // Convert RAW -> BMP for viewing
-                SaveRawToBmp(buffer, width, height, bmpFile);
+                if (res == 0)
+                {
+                    // process image
+                    string folder = @"C:\Biometric_Finger";
+                   // string folder = @"C:\Users\mohsi\Downloads";
 
-                Console.WriteLine($"Fingerprint saved: {bmpFile}");
-                return true;
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+
+                    int s1 = iMDWrapper.SaveFile($@"{ folder}\right_index.bmp");
+                    iMDWrapper.SaveFile($@"{folder}\right_middle.bmp");
+                    iMDWrapper.SaveFile($@"{folder}\right_ring.bmp");
+                    iMDWrapper.SaveFile($@"{folder}\right_little.bmp");
+
+
+                    return true;
+                }
+
+                await Task.Delay(interval);
+                elapsed += interval;
             }
 
             return false;
         }
-
-
-        /// Convert RAW grayscale fingerprint to BMP
-        /// </summary>
-        private void SaveRawToBmp(byte[] raw, int width, int height, string filePath)
-        {
-            using Image<L8> image = new Image<L8>(width, height);
-
-            // Copy raw data into image
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    byte value = raw[y * width + x];
-                    image[x, y] = new L8(value);
-                }
-            }
-
-            image.Save(filePath, new BmpEncoder());
-        }
-
-
-
-
-
-    
-        enum VERSION
-        {
-            NFIQ_V1,
-            NFIQ_V2,
-            NFIQ_VER_SIZE,
-        };
-
-        //[StructLayout(LayoutKind.Sequential)]
-        //public struct ImageProperty
-        //{
-        //    public GUI_SHOW_MODE mode;          // probably an int enum
-        //    public FINGER_POSITION pos;         // struct
-        //    [MarshalAs(UnmanagedType.I1)]
-        //    public bool this_scan;              // bool
-
-        //    public IntPtr img;                  // pointer to image buffer
-        //    public int width;
-        //    public int height;
-
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-        //    public int[] score_array;
-
-        //    public int score_size;
-        //    public int score_min;
-        //    public VERSION score_ver;           // struct
-        //}
-
     }
 
 }
