@@ -1,16 +1,14 @@
 ﻿@page "/fingerprint"
 @using BiometricApp.Natives
-@inject BiometricApp.Services.FingerprintService FingerService
 @inject BiometricApp.Services.ScannerService ScannerService
 @inject BiometricApp.Services.ImageService ImageService
 
 
 <h3>Fingerprint Device</h3>
 
-<p>@message</p>
 
-<button class="btn btn-primary" @onclick="InitializeDevice">Initialize Device</button>
-<button class="btn btn-success" @onclick="StartScan">Start Scan</button>
+
+
 
 <div class="wrapper">
 
@@ -23,10 +21,10 @@
 
         <!-- LEFT PANEL -->
         <div class="left-panel">
-            <h5>Capture fingerprint</h5>
-            <small>Place your finger flat on the scanner</small>
+            <button class="btn btn-success" @onclick="StartScan">Scan Left 4</button>
+            <p>@message</p>
 
-            <div class="finger-preview">
+          @*   <div class="finger-preview">
                 @if (!string.IsNullOrEmpty(CurrentImage))
                 {
                     <img src="@($"data:image/png;base64,{CurrentImage}")" />
@@ -35,9 +33,9 @@
                 {
                     <img src="images/fingerprint.png" />
                 }
-            </div>
+            </div> *@
 
-            <p class="mt-2 fw-bold">@CurrentFingerName</p>
+           @*  <p class="mt-2 fw-bold">@CurrentFingerName</p>
 
             <button class="btn capture-btn" @onclick="Capture">
                 Capture
@@ -45,7 +43,7 @@
 
             <button class="btn next-btn" @onclick="NextFinger">
                 Next
-            </button>
+            </button> *@
         </div>
 
         <!-- RIGHT PANEL -->
@@ -64,9 +62,9 @@
                     @for (int i = 0; i < 5; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-                            @if (Fingerprints[i] != null)
+                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
                             {
-                                <img src="@($"data:image/png;base64,{Fingerprints[i]}")" />
+                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
                             }
                         </div>
                     }
@@ -96,30 +94,19 @@
 
     string message = "";
 
-    // Initialize device
-    private async Task InitializeDevice()
+    // Start scan
+    private async Task StartScan()
     {
-        message = "Initializing device...";
-        StateHasChanged();
-
         try
         {
-            int result = FingerService.Init();
+            message = "Finger Capture Started.....";
+            var result = await ScannerService.CaptureFingerprint();
 
-            if (result == 0)
-            {
-                var p = FingerService.DeviceInfo;
-                message = "Device initialized successfully ✅\n" +
-                          $"SN: {SystemPropertyHelper.GetProductSN(ref p)}\n" +
-                          $"Model: {SystemPropertyHelper.GetProductModel(ref p)}\n" +
-                          $"FW: {SystemPropertyHelper.GetFirmwareVersion(ref p)}\n" +
-                          $"Lib: {SystemPropertyHelper.GetLibraryVersion(ref p)}\n" +
-                          $"Chip: {p.chip_id}";
-            }
-            else
-            {
-                message = $"Initialization failed. Error code: {result}";
-            }
+            message = result
+            ? "Fingerprint captured and saved ✅"
+            : "Fingerprint capture failed ❌";
+
+            LoadLeftFourFingerprints();
         }
         catch (Exception ex)
         {
@@ -129,28 +116,31 @@
         StateHasChanged();
     }
 
-
-
-
-    // Start scan
-    private async Task StartScan()
+    private void LoadLeftFourFingerprints()
     {
-        try
+        string folder = @"C:\Biometric_Finger";
+
+        string[] files =
         {
-            var result =await ImageService.CaptureFingerprint();
+        "left_index_Left_Index.bmp",
+        "left_middle_Left_Index.bmp",
+        "left_ring_Left_Index.bmp",
+        "left_little_Left_Index.bmp"
+    };
 
-            message = result
-            ? "Fingerprint captured and saved ✅"
-            : "Fingerprint capture failed ❌";
-
-
-        }
-        catch (Exception ex)
+        for (int i = 0; i < files.Length; i++)
         {
-            message = $"Exception: {ex.Message}";
+            string path = Path.Combine(folder, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[i + 1] = Convert.ToBase64String(bytes);
+            }
         }
 
-        StateHasChanged();
+        CurrentImage = Fingerprints[1];
+        currentIndex = 1;
     }
 
     private async Task CancelScan()
@@ -220,6 +210,18 @@
 }
 
 <style>
+
+    .finger-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .preview-img {
+        width: 220px;
+        height: 220px;
+        object-fit: contain;
+    }
     .wrapper {
         width: 100%;
         min-height: 100vh; /* full screen height */

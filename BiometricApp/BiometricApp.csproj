@@ -74,9 +74,7 @@
 
     <ItemGroup>
       <Reference Include="Device_Wrapper">
-        <HintPath>..\..\Biometric\Biometric_Finger_Application\Device_Wrapper.dll</HintPath>
+        <HintPath>Natives\Device_Wrapper.dll</HintPath>
       </Reference>
     </ItemGroup>
-
-    
 </Project>
