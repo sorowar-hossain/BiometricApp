@@ -97,7 +97,6 @@
         try
         {
             message = "Capturing left finger.....";
-            StateHasChanged();
             var result = await ScannerService.CaptureFingerprintLeft();
 
             message = result
@@ -140,7 +139,6 @@
         try
         {
             message = "Capturing both thumbs.....";
-            StateHasChanged();
             var result = await ScannerService.CaptureFingerprintThum();
 
             message = result
@@ -164,10 +162,10 @@
 
         string[] files =
         {
-            "left_little_Left_Little.bmp",
-            "left_ring_Left_Ring.bmp",
-            "left_middle_Left_Middle.bmp",
-            "left_index_Left_Index.bmp"
+            "l_Left_Little.bmp",
+            "l_Left_Ring.bmp",
+            "l_Left_Middle.bmp",
+            "l_Left_Index.bmp"
 
     };
 
@@ -192,10 +190,10 @@
 
         string[] files =
         {
-        "right_index_Right_Index.bmp",
-        "right_middle_Right_Middle.bmp",
-        "right_ring_Right_Ring.bmp",
-        "right_little_Right_Little.bmp"
+        "r_Right_Index.bmp",
+        "r_Right_Middle.bmp",
+        "r_Right_Ring.bmp",
+        "r_Right_Little.bmp"
     };
 
         for (int i = 0; i < files.Length; i++)
@@ -219,8 +217,8 @@
 
         string[] files =
         {
-            "thum_left_Left_Thumb.bmp",
-            "thum_right_Right_Thumb.bmp"
+            "l_Left_Thumb.bmp",
+            "r_Right_Thumb.bmp"
      };
 
         int j = 4;

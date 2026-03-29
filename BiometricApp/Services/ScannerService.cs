@@ -15,192 +15,256 @@ namespace BiometricApp.Services
 {
     public class ScannerService
     {
-        private const string FingerprintFolder = "fingerprints";
-        private const int SCORE_ARRAY_SIZE=4;
+
         IMDWrapper iMDWrapper = new IMDWrapper(); 
-      
-
         // Main function to capture fingerprint
-        public async Task<bool> CaptureFingerprintLeft() 
+        public async Task<bool> CaptureFingerprintLeft()
         {
-            if (iMDWrapper.DeviceReset() !=0)
-                return false;
-
-            // ✅ Wait at least 5 seconds before first image capture attempt
-            await Task.Delay(5000);
-
-            int timeout = 10000; // total timeout (after the 5s wait)
-            int interval = 200;  // check every 500ms
-            int elapsed = 0;
-
-            while (elapsed < timeout)
+            try
             {
-                // ✅ Check if device is busy
-                if (iMDWrapper.IsScanBusy())
+                // Reset device
+                if (iMDWrapper.DeviceReset() != 0)
+                    return false;
+
+                // Initial wait for device readiness
+                await Task.Delay(5000);
+
+                int timeout = 20000;   // total timeout
+                int interval = 300;    // polling interval
+                int elapsed = 0;
+
+                while (elapsed < timeout)
                 {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                    continue;
-                }
-
-                bool fingerOn;
-                iMDWrapper.GetImageStatus(out fingerOn);
-
-                if (!fingerOn)
-                {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                    continue;
-                }
-                int res = iMDWrapper.ScanLeftFour();
-
-
-                if (res ==0)
-                {
-                    // process image
-
-                    string folder = @"C:\Biometric_Finger";
-
-                    if (!Directory.Exists(folder))
+                    // 1. Wait if device is busy
+                    if (iMDWrapper.IsScanBusy())
                     {
-                        Directory.CreateDirectory(folder);
+                        await Task.Delay(interval);
+                        elapsed += interval;
+                        continue;
                     }
 
-                    int f1=  iMDWrapper.SaveFileLeftIndexFinger($@"{folder}\left_index.bmp");
-                    int f2 = iMDWrapper.SaveFileLeftMiddleFinger($@"{folder}\left_middle.bmp");
-                    int f3 = iMDWrapper.SaveFileLeftRingFinger($@"{folder}\left_ring.bmp");
-                    int f4 = iMDWrapper.SaveFileLeftlittleFinger($@"{folder}\left_little.bmp"); 
+                    // 2. Check if finger is placed
+                    bool fingerOn;
+                    iMDWrapper.GetImageStatus(out fingerOn);
 
-                  
-                    return true;
+                    if (!fingerOn)
+                    {
+                        await Task.Delay(interval);
+                        elapsed += interval;
+                        continue;
+                    }
+
+                    // 3. Stabilization delay (VERY IMPORTANT)
+                    await Task.Delay(500);
+
+                    // 4. Double-check device is still ready
+                    if (iMDWrapper.IsScanBusy())
+                        continue;
+
+                    // 5. Perform scan
+                    int res = iMDWrapper.ScanLeftFour();
+
+                    if (res == 0)
+                    {
+                        // 6. Give device time to finalize image
+                        await Task.Delay(2000);
+
+                        string folder = @"C:\Biometric_Finger";
+
+                        if (!Directory.Exists(folder))
+                            Directory.CreateDirectory(folder);
+
+                        // 7. Save each finger with unique file name
+                        int f1 = iMDWrapper.SaveFileLeftIndexFinger($@"{folder}\l.bmp");
+                        int f2 = iMDWrapper.SaveFileLeftMiddleFinger($@"{folder}\l.bmp");
+                        int f3 = iMDWrapper.SaveFileLeftRingFinger($@"{folder}\l.bmp");
+                        int f4 = iMDWrapper.SaveFileLeftlittleFinger($@"{folder}\l.bmp");
+
+                        return true;
+                    }
+                    else
+                    {
+                        // Retry after small delay if scan failed
+                        await Task.Delay(500);
+                    }
+
+                    elapsed += interval;
                 }
 
-                await Task.Delay(interval);
-                elapsed += interval;
+                return false;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                // Optional: log error
+                Console.WriteLine($"Error in CaptureFingerprintLeft: {ex.Message}");
+                return false;
+            }
         }
 
-        public async Task<bool> CaptureFingerprintRight() 
+        public async Task<bool> CaptureFingerprintRight()
         {
-            if (iMDWrapper.DeviceReset() != 0)
-                return false;
-
-            // ✅ Wait at least 5 seconds before first image capture attempt
-            await Task.Delay(5000);
-
-            int timeout = 10000; // total timeout (after the 5s wait)
-            int interval = 200;  // check every 500ms
-            int elapsed = 0;
-
-            while (elapsed < timeout)
+            try
             {
-                // ✅ Check if device is busy
-                if (iMDWrapper.IsScanBusy())
+                // Reset device
+                if (iMDWrapper.DeviceReset() != 0)
+                    return false;
+
+                // Initial wait for device readiness
+                await Task.Delay(5000);
+
+                int timeout = 20000;   // total timeout
+                int interval = 300;    // polling interval
+                int elapsed = 0;
+
+                while (elapsed < timeout)
                 {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                    continue;
-                }
-
-                bool fingerOn;
-                iMDWrapper.GetImageStatus(out fingerOn);
-
-                if (!fingerOn)
-                {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                    continue;
-                }
-                int res = iMDWrapper.ScanRightFour();
-
-
-                if (res == 0)
-                {
-                    // process image
-                    string folder = @"C:\Biometric_Finger";
-                   // string folder = @"C:\Users\mohsi\Downloads";
-
-                    if (!Directory.Exists(folder))
+                    // 1. Wait if device is busy
+                    if (iMDWrapper.IsScanBusy())
                     {
-                        Directory.CreateDirectory(folder);
+                        await Task.Delay(interval);
+                        elapsed += interval;
+                        continue;
                     }
 
-                    int f1 = iMDWrapper.SaveFileRightIndexFinger( $@"{folder}\right_index.bmp");
-                    int f2 = iMDWrapper.SaveFileRightMiddleFinger( $@"{folder}\right_middle.bmp");
-                    int f3 = iMDWrapper.SaveFileRightRingFinger( $@"{folder}\right_ring.bmp");
-                    int f4 = iMDWrapper.SaveFileRightlittleFinger( $@"{folder}\right_little.bmp");
+                    // 2. Check if finger is placed
+                    bool fingerOn;
+                    iMDWrapper.GetImageStatus(out fingerOn);
 
+                    if (!fingerOn)
+                    {
+                        await Task.Delay(interval);
+                        elapsed += interval;
+                        continue;
+                    }
 
-                    return true;
+                    // 3. Stabilization delay (VERY IMPORTANT)
+                    await Task.Delay(500);
+
+                    // 4. Double-check device is still ready
+                    if (iMDWrapper.IsScanBusy())
+                        continue;
+
+                    // 5. Perform scan
+                    int res = iMDWrapper.ScanRightFour();
+
+                    if (res == 0)
+                    {
+                        // 6. Give device time to finalize image
+                        await Task.Delay(2000);
+
+                        string folder = @"C:\Biometric_Finger";
+
+                        if (!Directory.Exists(folder))
+                            Directory.CreateDirectory(folder);
+
+                        // 7. Save each finger with unique file name
+
+                        int f1 = iMDWrapper.SaveFileRightIndexFinger($@"{folder}\r.bmp");
+                        int f2 = iMDWrapper.SaveFileRightMiddleFinger($@"{folder}\r.bmp");
+                        int f3 = iMDWrapper.SaveFileRightRingFinger($@"{folder}\r.bmp");
+                        int f4 = iMDWrapper.SaveFileRightlittleFinger($@"{folder}\r.bmp");
+
+                        return true;
+                    }
+                    else
+                    {
+                        // Retry after small delay if scan failed
+                        await Task.Delay(500);
+                    }
+
+                    elapsed += interval;
                 }
 
-                await Task.Delay(interval);
-                elapsed += interval;
+                return false;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                // Optional: log error
+                Console.WriteLine($"Error in CaptureFingerprintLeft: {ex.Message}");
+                return false;
+            }
         }
-
-        public async Task<bool> CaptureFingerprintThum() 
+      
+        public async Task<bool> CaptureFingerprintThum()
         {
-            if (iMDWrapper.DeviceReset() != 0)
-                return false;
-
-            // ✅ Wait at least 5 seconds before first image capture attempt
-            await Task.Delay(5000);
-
-            int timeout = 10000; // total timeout (after the 5s wait)
-            int interval = 200;  // check every 500ms
-            int elapsed = 0;
-
-            while (elapsed < timeout)
+            try
             {
-                // ✅ Check if device is busy
-                if (iMDWrapper.IsScanBusy())
+                // Reset device
+                if (iMDWrapper.DeviceReset() != 0)
+                    return false;
+
+                // Initial wait for device readiness
+                await Task.Delay(5000);
+
+                int timeout = 20000;   // total timeout
+                int interval = 300;    // polling interval
+                int elapsed = 0;
+
+                while (elapsed < timeout)
                 {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                    continue;
-                }
-
-                bool fingerOn;
-                iMDWrapper.GetImageStatus(out fingerOn);
-
-                if (!fingerOn)
-                {
-                    await Task.Delay(interval);
-                    elapsed += interval;
-                    continue;
-                }
-                int res = iMDWrapper.ScanThumbs();
-
-
-                if (res == 0)
-                {
-                    // process image
-                    string folder = @"C:\Biometric_Finger";
-                    // string folder = @"C:\Users\mohsi\Downloads";
-
-                    if (!Directory.Exists(folder))
+                    // 1. Wait if device is busy
+                    if (iMDWrapper.IsScanBusy())
                     {
-                        Directory.CreateDirectory(folder);
+                        await Task.Delay(interval);
+                        elapsed += interval;
+                        continue;
                     }
 
-                    int f1  = iMDWrapper.SaveFileThumbLeftFinger($@"{folder}\thum_left.bmp");
-                    int f2 = iMDWrapper.SaveFileThumbRightFinger($@"{folder}\thum_right.bmp"); 
-                  
+                    // 2. Check if finger is placed
+                    bool fingerOn;
+                    iMDWrapper.GetImageStatus(out fingerOn);
 
+                    if (!fingerOn)
+                    {
+                        await Task.Delay(interval);
+                        elapsed += interval;
+                        continue;
+                    }
 
-                    return true;
+                    // 3. Stabilization delay (VERY IMPORTANT)
+                    await Task.Delay(500);
+
+                    // 4. Double-check device is still ready
+                    if (iMDWrapper.IsScanBusy())
+                        continue;
+
+                    // 5. Perform scan
+                    int res = iMDWrapper.ScanThumbs();
+
+                    if (res == 0)
+                    {
+                        // 6. Give device time to finalize image
+                        await Task.Delay(2000);
+
+                        string folder = @"C:\Biometric_Finger";
+
+                        if (!Directory.Exists(folder))
+                            Directory.CreateDirectory(folder);
+
+                        // 7. Save each finger with unique file name
+
+                        int f1 = iMDWrapper.SaveFileThumbLeftFinger($@"{folder}\l.bmp");
+                        int f2 = iMDWrapper.SaveFileThumbRightFinger($@"{folder}\r.bmp");
+
+                        return true;
+                    }
+                    else
+                    {
+                        // Retry after small delay if scan failed
+                        await Task.Delay(500);
+                    }
+
+                    elapsed += interval;
                 }
 
-                await Task.Delay(interval);
-                elapsed += interval;
+                return false;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                // Optional: log error
+                Console.WriteLine($"Error in CaptureFingerprintLeft: {ex.Message}");
+                return false;
+            }
         }
     }
 
