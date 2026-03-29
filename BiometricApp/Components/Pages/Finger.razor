@@ -59,6 +59,10 @@
                     @for (int i = 0; i < 5; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
+
+                            <!-- Label -->
+                            <div class="finger-label">@GetFingerLabel(i)</div>
+
                             @if (!string.IsNullOrEmpty(Fingerprints[i]))
                             {
                                 <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
@@ -72,7 +76,11 @@
                     @for (int i = 5; i < 10; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-                            @if (Fingerprints[i] != null)
+
+                            <!-- Label -->
+                            <div class="finger-label">@GetFingerLabel(i)</div>
+
+                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
                             {
                                 <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
                             }
@@ -245,6 +253,24 @@
         "Left Thumb", "Left Index", "Left Middle", "Left Ring", "Left Little",
         "Right Thumb", "Right Index", "Right Middle", "Right Ring", "Right Little"
     };
+    private string GetFingerLabel(int index)
+    {
+        return index switch
+        {
+            0 => "LL", // Left Little
+            1 => "LR", // Left Ring
+            2 => "LM", // Left Middle
+            3 => "LI", // Left Index
+            4 => "LT", // Left Thumb
+
+            5 => "RT", // Right Little
+            6 => "RI", // Right Ring
+            7 => "RM", // Right Middle
+            8 => "RR", // Right Index
+            9 => "RL", // Right Thumb
+
+        };
+    }
 
     private int currentIndex = 0;
 
@@ -296,7 +322,27 @@
 }
 
 <style>
+ 
 
+    .finger-label {
+        position: absolute;
+        top: 2px;
+        left: 2px; /* tighter spacing */
+        font-size: 11px; /* slightly smaller */
+        font-weight: bold;
+        color: #333;
+        background: rgba(255,255,255,0.8);
+        padding: 1px 3px; /* reduce padding */
+        border-radius: 3px;
+        z-index: 2;
+        white-space: nowrap; /* prevent breaking */
+    }
+
+    .finger-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
     .finger-img {
         width: 100%;
         height: 100%;
@@ -392,7 +438,7 @@
     /* SLOTS */
     .slots-row {
         display: flex;
-        gap: 40px; /* space between left & right hand */
+        gap: 20px; /* reduce from 40px */
         justify-content: center;
         width: 100%;
     }
@@ -400,13 +446,15 @@
     /* Each group (5 fingers) */
     .slots {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(5, minmax(70px, 1fr));
         gap: 10px;
         width: 100%;
     }
 
     /* Slot styling */
     .slot {
+        position: relative;
+        width: 100%; /* ✅ responsive inside grid */
         height: 80px;
         border: 2px solid #3b63a3;
         border-radius: 6px;
