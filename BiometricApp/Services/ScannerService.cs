@@ -66,10 +66,10 @@ namespace BiometricApp.Services
                         Directory.CreateDirectory(folder);
                     }
 
-                    int s1=  iMDWrapper.SaveFileLeftFinger($@"{folder}\left_index.bmp");
-                    iMDWrapper.SaveFileLeftFinger($@"{folder}\left_middle.bmp");
-                    iMDWrapper.SaveFileLeftFinger($@"{folder}\left_ring.bmp");
-                    iMDWrapper.SaveFileLeftFinger($@"{folder}\left_little.bmp");
+                    int f1=  iMDWrapper.SaveFileLeftIndexFinger($@"{folder}\left_index.bmp");
+                    int f2 = iMDWrapper.SaveFileLeftMiddleFinger($@"{folder}\left_middle.bmp");
+                    int f3 = iMDWrapper.SaveFileLeftRingFinger($@"{folder}\left_ring.bmp");
+                    int f4 = iMDWrapper.SaveFileLeftlittleFinger($@"{folder}\left_little.bmp"); 
 
                   
                     return true;
@@ -127,10 +127,10 @@ namespace BiometricApp.Services
                         Directory.CreateDirectory(folder);
                     }
 
-                    int s1 = iMDWrapper.SaveFileRightFinger( $@"{folder}\right_index.bmp");
-                    iMDWrapper.SaveFileRightFinger( $@"{folder}\right_middle.bmp");
-                    iMDWrapper.SaveFileRightFinger( $@"{folder}\right_ring.bmp");
-                    iMDWrapper.SaveFileRightFinger( $@"{folder}\right_little.bmp");
+                    int f1 = iMDWrapper.SaveFileRightIndexFinger( $@"{folder}\right_index.bmp");
+                    int f2 = iMDWrapper.SaveFileRightMiddleFinger( $@"{folder}\right_middle.bmp");
+                    int f3 = iMDWrapper.SaveFileRightRingFinger( $@"{folder}\right_ring.bmp");
+                    int f4 = iMDWrapper.SaveFileRightlittleFinger( $@"{folder}\right_little.bmp");
 
 
                     return true;
@@ -188,8 +188,8 @@ namespace BiometricApp.Services
                         Directory.CreateDirectory(folder);
                     }
 
-                    int s1 = iMDWrapper.SaveFileThumFinger($@"{folder}\thum_left.bmp");
-                    iMDWrapper.SaveFileThumFinger($@"{folder}\thum_right.bmp");
+                    int f1  = iMDWrapper.SaveFileThumbLeftFinger($@"{folder}\thum_left.bmp");
+                    int f2 = iMDWrapper.SaveFileThumbRightFinger($@"{folder}\thum_right.bmp"); 
                   
 
 

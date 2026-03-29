@@ -3,13 +3,6 @@
 @inject BiometricApp.Services.ScannerService ScannerService
 @inject BiometricApp.Services.ImageService ImageService
 
-
-<h3>Fingerprint Device</h3>
-
-
-
-
-
 <div class="wrapper">
 
     <!-- HEADER -->
@@ -23,12 +16,12 @@
         <div class="left-panel">
             <div class="d-flex gap-3 mb-2">
                 <button class="btn btn-success" @onclick="StartScanLeft">Scan Left 4</button>
-                <button class="btn btn-success" @onclick="StartScanLeftRight">Scan Right 4</button>
-                <button class="btn btn-success" @onclick="StartScanLeftThum">Scan Thumb 2</button>
+                <button class="btn btn-success" @onclick="StartScanRight">Scan Right 4</button>
+                <button class="btn btn-success" @onclick="StartScanThums">Scan Thumb 2</button>
             </div>
             <p>@message</p>
 
-          @*   <div class="finger-preview">
+            @*   <div class="finger-preview">
                 @if (!string.IsNullOrEmpty(CurrentImage))
                 {
                     <img src="@($"data:image/png;base64,{CurrentImage}")" />
@@ -39,7 +32,7 @@
                 }
             </div> *@
 
-           @*  <p class="mt-2 fw-bold">@CurrentFingerName</p>
+            @*  <p class="mt-2 fw-bold">@CurrentFingerName</p>
 
             <button class="btn capture-btn" @onclick="Capture">
                 Capture
@@ -55,8 +48,8 @@
 
             <!-- HAND IMAGES -->
             <div class="hands">
-                <img src="images/left-finger2.jpg" class="hand-img" />
-                <img src="images/right-finger2.jpg" class="hand-img" />
+                <img src="images/left-finger.png" class="hand-img" />
+                <img src="images/right-finger.png" class="hand-img" />
             </div>
 
             <div class="slots-row">
@@ -103,7 +96,8 @@
     {
         try
         {
-            message = "Finger Capture Started.....";
+            message = "Capturing left finger.....";
+            StateHasChanged();
             var result = await ScannerService.CaptureFingerprintLeft();
 
             message = result
@@ -121,11 +115,11 @@
     }
 
 
-    private async Task StartScanLeftRight() 
+    private async Task StartScanRight()
     {
         try
         {
-            message = "Finger Capture Started.....";
+            message = "Capturing right finger.....";
             var result = await ScannerService.CaptureFingerprintRight();
 
             message = result
@@ -141,11 +135,12 @@
 
         StateHasChanged();
     }
-    private async Task StartScanLeftThum()
+    private async Task StartScanThums()
     {
         try
         {
-            message = "Finger Capture Started.....";
+            message = "Capturing both thumbs.....";
+            StateHasChanged();
             var result = await ScannerService.CaptureFingerprintThum();
 
             message = result
@@ -169,10 +164,11 @@
 
         string[] files =
         {
-        "left_index_Left_Index.bmp",
-        "left_middle_Left_Index.bmp",
-        "left_ring_Left_Index.bmp",
-        "left_little_Left_Index.bmp"
+            "left_little_Left_Little.bmp",
+            "left_ring_Left_Ring.bmp",
+            "left_middle_Left_Middle.bmp",
+            "left_index_Left_Index.bmp"
+
     };
 
         for (int i = 0; i < files.Length; i++)
@@ -182,7 +178,7 @@
             if (File.Exists(path))
             {
                 var bytes = File.ReadAllBytes(path);
-                Fingerprints[i + 1] = Convert.ToBase64String(bytes);
+                Fingerprints[i] = Convert.ToBase64String(bytes);
             }
         }
 
@@ -197,9 +193,9 @@
         string[] files =
         {
         "right_index_Right_Index.bmp",
-        "right_middle_Right_Index.bmp",
-        "right_ring_Right_Index.bmp",
-        "right_little_Right_Index.bmp"
+        "right_middle_Right_Middle.bmp",
+        "right_ring_Right_Ring.bmp",
+        "right_little_Right_Little.bmp"
     };
 
         for (int i = 0; i < files.Length; i++)
@@ -224,10 +220,10 @@
         string[] files =
         {
             "thum_left_Left_Thumb.bmp",
-            "thum_right_Left_Thumb.bmp"
+            "thum_right_Right_Thumb.bmp"
      };
 
-        int j = 0;
+        int j = 4;
         for (int i = 0; i < files.Length; i++)
         {
 
@@ -314,6 +310,7 @@
         height: 220px;
         object-fit: contain;
     }
+
     .wrapper {
         width: 100%;
         min-height: 100vh; /* full screen height */
