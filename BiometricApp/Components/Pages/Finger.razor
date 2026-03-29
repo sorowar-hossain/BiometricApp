@@ -112,6 +112,7 @@
             : "Fingerprint capture failed ❌";
 
             LoadLeftFourFingerprints();
+            currentIndex = 9;
         }
         catch (Exception ex)
         {
@@ -119,6 +120,7 @@
         }
 
         StateHasChanged();
+       
     }
 
 
@@ -134,6 +136,7 @@
             : "Fingerprint capture failed ❌";
 
             LoadRightFourFingerprints();
+            currentIndex = 4;
         }
         catch (Exception ex)
         {
