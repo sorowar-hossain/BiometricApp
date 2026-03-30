@@ -49,8 +49,8 @@
 
             <!-- HAND IMAGES -->
             <div class="hands">
-                <img src="images/left-finger.png" class="hand-img" />
-                <img src="images/right-finger.png" class="hand-img" />
+                <img src="@leftImage" class="hand-img" />
+                <img src="@rightImage" class="hand-img" />
             </div>
 
             <div class="slots-row">
@@ -99,6 +99,57 @@
 @code {
 
     string message = "";
+    bool lFingerDone = false, rFingerDone = false, tFingerDone = false;
+
+    string leftImage = "images/left-finger.png";
+    string rightImage = "images/right-finger.png";
+
+    void ChangeImage()
+    {
+        if (lFingerDone == true && rFingerDone == true && tFingerDone == true)
+        {
+            leftImage = "images/LBSelected.png";
+            rightImage = "images/RBSelected.png";
+        }
+
+        else if (lFingerDone == true && rFingerDone == false && tFingerDone == false)
+        {
+            leftImage = "images/L4Selected.png";
+            rightImage = "images/right-finger.png";
+        }
+
+        else if (lFingerDone == true && rFingerDone == true && tFingerDone == false)
+        {
+            leftImage = "images/L4Selected.png";
+            rightImage = "images/R4Selected.png";
+        }
+
+        else if (lFingerDone == false && rFingerDone == false && tFingerDone == true)
+        {
+            leftImage = "images/LTSelected.png";
+            rightImage = "images/RTSelected.png";
+        }
+
+        else if (lFingerDone == true && rFingerDone == false && tFingerDone == true)
+        {
+            leftImage = "images/LBSelected.png";
+            rightImage = "images/RTSelected.png";
+        }
+
+        else if (lFingerDone == false && rFingerDone == true && tFingerDone == true)
+        {
+            leftImage = "images/LTSelected.png";
+            rightImage = "images/RBSelected.png";
+        }
+
+
+        else
+        {
+            leftImage = "images/left-finger.png";
+            rightImage = "images/right-finger.png";
+        }
+
+    }
 
     // Start scan
     private async Task StartScanLeft()
@@ -113,7 +164,14 @@
             : "Fingerprint capture failed ❌";
 
             LoadLeftFourFingerprints();
-            currentIndex = 6;
+           
+            lFingerDone = true;
+            if (!rFingerDone)
+                currentIndex = 6;
+            else if (!tFingerDone)
+                currentIndex = 4;
+            ChangeImage();
+           
         }
         catch (Exception ex)
         {
@@ -121,7 +179,7 @@
         }
 
         StateHasChanged();
-       
+
     }
 
 
@@ -137,7 +195,15 @@
             : "Fingerprint capture failed ❌";
 
             LoadRightFourFingerprints();
-            currentIndex = 4;
+          
+            rFingerDone = true;
+            if (!lFingerDone)
+                currentIndex = 0;
+            else if (!tFingerDone)
+                currentIndex = 4;
+            ChangeImage();
+
+
         }
         catch (Exception ex)
         {
@@ -158,6 +224,13 @@
             : "Fingerprint capture failed ❌";
 
             LoadTumTwoFingerprints();
+   
+            tFingerDone = true;
+            if (!lFingerDone)
+                currentIndex = 0;
+            else if (!rFingerDone)
+                currentIndex = 6;
+            ChangeImage();
         }
         catch (Exception ex)
         {
@@ -192,7 +265,7 @@
             }
         }
 
-      
+
     }
 
     private void LoadRightFourFingerprints()
@@ -263,7 +336,7 @@
         StateHasChanged();
     }
 
-    
+
     private string GetFingerLabel(int index)
     {
         return index switch
@@ -283,14 +356,14 @@
         };
     }
 
-    
+
 
     private int currentIndex = 0;
 
     // Store captured fingerprints (10 fingers)
     private string[] Fingerprints = new string[10];
 
-  
+
 
     // Highlight active slot
     private string GetSlotClass(int index)
@@ -301,17 +374,11 @@
         return "";
     }
 
-    // Dummy image for testing
-    private string GetDummyImage()
-    {
-        var path = Path.Combine("wwwroot/images/fingerprint.png");
-        var bytes = File.ReadAllBytes(path);
-        return Convert.ToBase64String(bytes);
-    }
+
 }
 
 <style>
- 
+
 
     .finger-label {
         position: absolute;
@@ -332,6 +399,7 @@
         height: 100%;
         object-fit: cover;
     }
+
     .finger-img {
         width: 100%;
         height: 100%;

@@ -128,7 +128,7 @@ namespace BiometricApp.Services
 
                     // 2. Check if finger is placed
                     bool fingerOn;
-                    iMDWrapper.GetImageStatus(out fingerOn);
+                   var r= iMDWrapper.GetImageStatus(out fingerOn);
 
                     if (!fingerOn)
                     {
