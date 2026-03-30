@@ -120,84 +120,89 @@
 <style>
 
     .biometric-container {
-        padding: 20px;
+        min-height: 87vh; /* ✅ instead of fixed height */
+        display: flex;
+        flex-direction: column;
     }
 
+    /* HEADER */
     .header-bar {
         background: #355c9a;
         color: white;
-        padding: 12px;
+        padding: 10px;
         border-radius: 5px;
+        flex-shrink: 0;
     }
 
-    .panel-title {
-        font-weight: 600;
-        color: #355c9a;
-        margin-bottom: 15px;
+    /* ROW FIX */
+    .row {
+        flex: 1;
+        margin-top: 10px;
     }
 
-    .control-panel {
-        background: #f8fafc;
-        border-radius: 6px;
-        padding: 15px;
+    /* PANELS */
+    .control-panel,
+    .preview-panel,
+    .col-lg-6 {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 
-    .control-item {
-        margin-bottom: 15px;
-    }
-
-    .instructions {
-        margin-top: 20px;
-        font-size: 13px;
-    }
-
+    /* CAMERA SECTION */
     .camera-wrapper {
         position: relative;
-        height: 360px;
+        width: 100%;
+        aspect-ratio: 4 / 3; /* 🔥 FIXED RATIO */
         border: 2px solid #cbd5e1;
         border-radius: 6px;
         overflow: hidden;
         background: black;
     }
 
+        /* VIDEO */
         .camera-wrapper video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
+    /* FACE GUIDE */
     .face-guide {
         position: absolute;
-        top: 50%;
+        top: 45%;
         left: 50%;
-        width: 220px;
-        height: 280px;
-        transform: translate(-50%,-50%);
+        width: 40%;
+        height: 70%;
+        transform: translate(-50%, -50%);
         border: 3px dashed #00ffcc;
         border-radius: 50%;
         pointer-events: none;
     }
 
+    /* BUTTONS */
     .camera-buttons {
-        margin-top: 15px;
+        margin-top: 10px;
         display: flex;
-        gap: 10px;
+        gap: 8px;
         justify-content: center;
         flex-wrap: wrap;
+        flex-shrink: 0;
     }
 
-    .preview-panel {
-        padding: 15px;
-    }
-
+    /* PREVIEW */
     .preview-box {
-        height: 220px;
+        width: 100%;
+        aspect-ratio: 4 / 3; /* 🔥 same as camera */
+        max-height: 260px; /* limit height */
+        margin: 0 auto;
         border: 2px solid #cbd5e1;
         border-radius: 6px;
         display: flex;
         justify-content: center;
         align-items: center;
         background: #f8fafc;
+        overflow: hidden;
     }
 
         .preview-box img {
@@ -205,18 +210,68 @@
             max-height: 100%;
         }
 
-    .placeholder {
-        color: #888;
+    .preview-panel {
+        align-items: center;
     }
 
+    /* TEXT */
+    .panel-title {
+        font-weight: 600;
+        color: #355c9a;
+        margin-bottom: 10px;
+        flex-shrink: 0;
+    }
+
+    .control-item {
+        margin-bottom: 10px;
+    }
+
+    .instructions {
+        font-size: 12px;
+    }
+
+    /* STATUS */
     .status-box {
-        margin-top: 10px;
+        margin-top: 5px;
+        flex-shrink: 0;
     }
 
-    .camera-buttons i{
-    margin-right:6px;
-}
+    /* ICON */
+    .camera-buttons i {
+        margin-right: 6px;
+    }
 
+    /* 🔥 MOBILE FIX */
+    @@media (max-width: 768px) {
+        .row
+
+    {
+        flex-direction: column;
+    }
+
+        @@media (max-width: 768px) {
+
+            .preview-box {
+                max-height: 180px;
+            }
+        }
+
+    .control-panel {
+        display: none; /* optional: hide controls on mobile */
+    }
+
+    .col-lg-6,
+    .preview-panel {
+        height: 50%;
+    }
+
+    .camera-buttons button {
+        flex: 1 1 30%;
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    }
 </style>
 
 @code {
