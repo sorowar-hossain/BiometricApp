@@ -18,6 +18,7 @@
                 <button class="btn btn-success" @onclick="StartScanLeft">Scan Left 4</button>
                 <button class="btn btn-success" @onclick="StartScanRight">Scan Right 4</button>
                 <button class="btn btn-success" @onclick="StartScanThums">Scan Thumb 2</button>
+                <button class="btn btn-primary" @onclick="SaveFinger">Save</button>
             </div>
             <p>@message</p>
 
@@ -112,7 +113,7 @@
             : "Fingerprint capture failed ❌";
 
             LoadLeftFourFingerprints();
-            currentIndex = 9;
+            currentIndex = 6;
         }
         catch (Exception ex)
         {
@@ -191,8 +192,7 @@
             }
         }
 
-        CurrentImage = Fingerprints[1];
-        currentIndex = 1;
+      
     }
 
     private void LoadRightFourFingerprints()
@@ -246,16 +246,24 @@
             }
         }
 
-        // CurrentImage = Fingerprints[5];
-        // currentIndex = 5;
     }
 
-    // Finger order
-    private string[] Fingers = new[]
+    private async Task SaveFinger()
     {
-        "Left Thumb", "Left Index", "Left Middle", "Left Ring", "Left Little",
-        "Right Thumb", "Right Index", "Right Middle", "Right Ring", "Right Little"
-    };
+        try
+        {
+            message = "Finger Saved";
+            LoadTumTwoFingerprints();
+        }
+        catch (Exception ex)
+        {
+            message = $"Exception: {ex.Message}";
+        }
+
+        StateHasChanged();
+    }
+
+    
     private string GetFingerLabel(int index)
     {
         return index switch
@@ -275,36 +283,14 @@
         };
     }
 
+    
+
     private int currentIndex = 0;
 
     // Store captured fingerprints (10 fingers)
     private string[] Fingerprints = new string[10];
 
-    private string CurrentImage;
-
-    private string CurrentFingerName => currentIndex < Fingers.Length
-        ? $"Scan your {Fingers[currentIndex]} finger"
-        : "All fingers captured";
-
-    // Capture button
-    private void Capture()
-    {
-        // TODO: Replace with real SDK capture
-        var base64 = GetDummyImage();
-
-        Fingerprints[currentIndex] = base64;
-        CurrentImage = base64;
-    }
-
-    // Next button
-    private void NextFinger()
-    {
-        if (currentIndex < Fingers.Length - 1)
-        {
-            currentIndex++;
-            CurrentImage = Fingerprints[currentIndex];
-        }
-    }
+  
 
     // Highlight active slot
     private string GetSlotClass(int index)
