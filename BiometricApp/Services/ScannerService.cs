@@ -61,6 +61,10 @@ namespace BiometricApp.Services
                     if (iMDWrapper.IsScanBusy())
                         continue;
 
+
+
+
+
                     // 5. Perform scan
                     int res = iMDWrapper.ScanLeftFour();
 
@@ -79,6 +83,16 @@ namespace BiometricApp.Services
                         int f2 = iMDWrapper.SaveFileLeftMiddleFinger($@"{folder}\l.bmp");
                         int f3 = iMDWrapper.SaveFileLeftRingFinger($@"{folder}\l.bmp");
                         int f4 = iMDWrapper.SaveFileLeftlittleFinger($@"{folder}\l.bmp");
+
+                        bool success1 = (f1 == 0) && File.Exists($@"{folder}\l_Left_Index.bmp");
+                        bool success2 = (f1 == 0) && File.Exists($@"{folder}\l_Left_Middle.bmp");
+                        bool success3 = (f1 == 0) && File.Exists($@"{folder}\l_Left_Ring.bmp");
+                        bool success4 = (f1 == 0) && File.Exists($@"{folder}\l_Left_Little.bmp");
+                        if (!success1 || !success2 || !success3 || !success4)
+                        {
+                            return false;
+                        }
+                       
 
                         return true;
                     }
@@ -164,6 +178,15 @@ namespace BiometricApp.Services
                         int f3 = iMDWrapper.SaveFileRightRingFinger($@"{folder}\r.bmp");
                         int f4 = iMDWrapper.SaveFileRightlittleFinger($@"{folder}\r.bmp");
 
+                        bool success1 = (f1 == 0) && File.Exists($@"{folder}\r_Right_Index.bmp");
+                        bool success2 = (f1 == 0) && File.Exists($@"{folder}\r_Right_Middle.bmp");
+                        bool success3 = (f1 == 0) && File.Exists($@"{folder}\r_Right_Ring.bmp");
+                        bool success4 = (f1 == 0) && File.Exists($@"{folder}\r_Right_Little.bmp");
+                        if (!success1 || !success2 ||!success3 || !success4)
+                        {
+                            return false;
+                        }
+
                         return true;
                     }
                     else
@@ -245,6 +268,14 @@ namespace BiometricApp.Services
 
                         int f1 = iMDWrapper.SaveFileThumbLeftFinger($@"{folder}\l.bmp");
                         int f2 = iMDWrapper.SaveFileThumbRightFinger($@"{folder}\r.bmp");
+
+                        bool success1 = (f1 == 0) && File.Exists($@"{folder}\l_Left_Thumb.bmp");
+                        bool success2 = (f1 == 0) && File.Exists($@"{folder}\r_Right_Thumb.bmp");
+                      
+                        if (!success1 || !success2)
+                        {
+                            return false;
+                        }
 
                         return true;
                     }
