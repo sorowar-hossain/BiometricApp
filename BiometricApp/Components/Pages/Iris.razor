@@ -1,8 +1,8 @@
 ﻿@page "/iris-capture"
+@inject BiometricApp.Services.IrisService IrisService
 
 <div class="iris-wrapper">
 
-    <!-- Header -->
     <div class="header-bar">
         Data Capturing System
     </div>
@@ -18,47 +18,141 @@
 
             <!-- Left Preview Small -->
             <div class="col-md-2 text-center">
-                <img src="images/Iris-Left.jpg" class="thumb-img" />
+                <img src="@LeftPreviewImage" class="thumb-img" />
             </div>
 
             <!-- Left Iris Large -->
             <div class="col-md-3 text-center">
                 <p class="fw-semibold">Left Iris</p>
-                <img src="images/Iris-Left.jpg" class="iris-img" />
-                <p class="capture-status text-success">Capture completed</p>
+                <img src="@LeftIrisImage" class="iris-img" />
+                <p class="capture-status text-success">@LeftCaptureStatus</p>
             </div>
 
             <!-- Right Iris Large -->
             <div class="col-md-3 text-center">
                 <p class="fw-semibold">Right Iris</p>
-                <img src="images/Iris-Right.jpg" class="iris-img" />
-                <p class="capture-status text-success">Capture completed</p>
+                <img src="@RightIrisImage" class="iris-img" />
+                <p class="capture-status text-success">@RightCaptureStatus</p>
             </div>
 
             <!-- Right Preview Small -->
             <div class="col-md-2 text-center">
-                <img src="images/Iris-Right.jpg" class="thumb-img" />
+                <img src="@RightPreviewImage" class="thumb-img" />
             </div>
 
         </div>
 
         <!-- Buttons -->
         <div class="mt-4">
-            <button class="btn btn-outline-primary me-2">Retake</button>
-            <button class="btn btn-dark me-2">
+            <button class="btn btn-outline-primary me-2" @onclick="Retake">Retake</button>
+            <button class="btn btn-dark me-2" @onclick="CaptureIris">
                 <i class="bi bi-camera-fill"></i> Capture
             </button>
-            <button class="btn btn-primary">Save</button>
+            <button class="btn btn-primary" @onclick="SaveIrisImagesToServer">Save</button>
         </div>
 
-        <!-- Navigation -->
         <div class="d-flex justify-content-between mt-5 px-5">
-            <button class="btn btn-light border">Back</button>
-            <button class="btn btn-primary px-4">Next</button>
+           @*  <button class="btn btn-light border">Back</button>
+            <button class="btn btn-primary px-4">Next</button> *@
         </div>
 
     </div>
 </div>
+
+@code {
+    // Image sources as Base64 strings
+    private string LeftIrisImage = "images/Iris-Left.jpg";
+    private string RightIrisImage = "images/Iris-Right.jpg";
+    private string LeftPreviewImage = "images/Iris-Left.jpg";
+    private string RightPreviewImage = "images/Iris-Right.jpg";
+
+    private string LeftCaptureStatus = "";
+    private string RightCaptureStatus = "";
+
+    private byte[] leftImageBytes;
+    private byte[] rightImageBytes;
+
+    private string path = @"C:\Biometric_Iris";
+
+ 
+
+    private async Task CaptureIris()
+    {
+        // Attach device first (if not already attached)
+        IrisService.AttachDevice();
+
+        // Capture images
+        var result = IrisService.Capture();
+
+        leftImageBytes = result.leftImage;
+        rightImageBytes = result.rightImage;
+
+     
+
+        // Convert byte array to Base64 string
+        string leftBase64 = Convert.ToBase64String(leftImageBytes);
+        string rightBase64 = Convert.ToBase64String(rightImageBytes);
+
+        // Build data URL
+        LeftIrisImage = $"data:image/png;base64,{leftBase64}";
+        RightIrisImage = $"data:image/png;base64,{rightBase64}";
+
+        LeftPreviewImage = LeftIrisImage;
+        RightPreviewImage = RightIrisImage;
+
+        LeftCaptureStatus = "Capture completed";
+        RightCaptureStatus = "Capture completed";
+        SaveIrisImages();
+
+        string leftPath = Path.Combine(path, "left_iris.png");
+        string rightPath = Path.Combine(path, "right_iris.png");
+
+        if (File.Exists(leftPath))
+        {
+            byte[] leftBytes = File.ReadAllBytes(leftPath);
+            LeftIrisImage = $"data:image/png;base64,{Convert.ToBase64String(leftBytes)}";
+            LeftPreviewImage = $"data:image/png;base64,{Convert.ToBase64String(leftBytes)}";
+        }
+
+        if (File.Exists(rightPath))
+        {
+            byte[] rightBytes = File.ReadAllBytes(rightPath);
+            RightIrisImage = $"data:image/png;base64,{Convert.ToBase64String(rightBytes)}";
+            RightPreviewImage = $"data:image/png;base64,{Convert.ToBase64String(rightBytes)}";
+        }
+
+        StateHasChanged();
+    }
+
+    private void SaveIrisImages()
+    {
+        if (leftImageBytes != null && rightImageBytes != null)
+        {
+            IrisService.SaveImages(leftImageBytes, rightImageBytes, path);
+        }
+    }
+
+    private void SaveIrisImagesToServer()
+    {
+        if (leftImageBytes != null && rightImageBytes != null)
+        {
+            // save to server later
+        }
+    }
+
+    
+
+    private void Retake()
+    {
+        // Reset UI to placeholder
+        LeftIrisImage = "images/Iris-Left.jpg";
+        RightIrisImage = "images/Iris-Right.jpg";
+        LeftPreviewImage = "images/Iris-Left.jpg";
+        RightPreviewImage = "images/Iris-Right.jpg";
+        LeftCaptureStatus = "";
+        RightCaptureStatus = "";
+    }
+}
 
 <style>
     .iris-wrapper {
