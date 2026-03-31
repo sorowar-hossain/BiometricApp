@@ -3,84 +3,112 @@
 @inject BiometricApp.Services.ScannerService ScannerService
 @inject BiometricApp.Services.ImageService ImageService
 
-<div class="wrapper">
+<div class="content">
 
-    <!-- HEADER -->
-    <div class="header">
-        Data Capturing System
-    </div>
+    <!-- HAND IMAGES -->
+    <div class="hands">
 
-    <div class="content">
-
-        <!-- UPPER PANEL (images + slots) -->
-        <div class="upper-panel">
-
-            <!-- HAND IMAGES -->
-            <div class="hands">
-
-                <!-- LEFT HAND -->
-                <div class="hand-container">
-                    <div class="hand-title">Left Hand</div>
-                    <img src="@leftImage" class="hand-img" />
-                </div>
-
-                <!-- RIGHT HAND -->
-                <div class="hand-container">
-                    <div class="hand-title">Right Hand</div>
-                    <img src="@rightImage" class="hand-img" />
-                </div>
-
-            </div>
-
-            <!-- SLOTS -->
-            <div class="slots-row">
-
-                <!-- LEFT HAND -->
-                <div class="slots">
-                    @for (int i = 0; i < 5; i++)
-                    {
-                        <div class="slot @(GetSlotClass(i))">
-                            <div class="finger-label">@GetFingerLabel(i)</div>
-
-                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
-                            {
-                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
-                            }
-                        </div>
-                    }
-                </div>
-
-                <!-- RIGHT HAND -->
-                <div class="slots">
-                    @for (int i = 5; i < 10; i++)
-                    {
-                        <div class="slot @(GetSlotClass(i))">
-                            <div class="finger-label">@GetFingerLabel(i)</div>
-
-                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
-                            {
-                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
-                            }
-                        </div>
-                    }
-                </div>
-
-            </div>
-
+        <div class="hand-container">
+            <div class="hand-title">Left Hand</div>
+            <img src="@leftImage" class="hand-img" />
         </div>
 
-        <!-- LOWER PANEL (buttons) -->
-        <div class="bottom-panel">
-            <div class="d-flex gap-3 mb-2">
-                <button class="btn btn-success" @onclick="StartScanLeft">Scan Left 4</button>
-                <button class="btn btn-success" @onclick="StartScanRight">Scan Right 4</button>
-                <button class="btn btn-success" @onclick="StartScanThums">Scan Thumb 2</button>
-                <button class="btn btn-primary" @onclick="SaveFinger">Save</button>
-            </div>
-            <p>@message</p>
+        <div class="hand-container">
+            <div class="hand-title">Right Hand</div>
+            <img src="@rightImage" class="hand-img" />
         </div>
 
     </div>
+
+    <!-- 4 FINGERS ROW -->
+    <div class="slots-row">
+
+        <!-- LEFT 4 -->
+        <div class="group">
+            <div class="slots">
+                @for (int i = 0; i < 4; i++)
+                {
+                    <div class="slot @(GetSlotClass(i))">
+                        <div class="finger-label">@GetFingerLabel(i)</div>
+
+                        @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                        {
+                            <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
+                        }
+                    </div>
+                }
+            </div>
+
+            <button class="btn btn-success mt-2" @onclick="StartScanLeft">
+                Scan Left 4
+            </button>
+        </div>
+
+        <!-- RIGHT 4 -->
+        <div class="group">
+            <div class="slots">
+                @for (int i = 6; i < 10; i++)
+                {
+                    <div class="slot @(GetSlotClass(i))">
+                        <div class="finger-label">@GetFingerLabel(i)</div>
+
+                        @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                        {
+                            <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
+                        }
+                    </div>
+                }
+            </div>
+
+            <button class="btn btn-success mt-2" @onclick="StartScanRight">
+                Scan Right 4
+            </button>
+        </div>
+
+    </div>
+
+    <!-- THUMBS -->
+    <!-- THUMBS -->
+    <div class="thumb-section">
+
+        <div class="slots">
+            <!-- LEFT THUMB -->
+            <div class="slot @(GetSlotClass(4))">
+                <div class="finger-label">LT</div>
+
+                @if (!string.IsNullOrEmpty(Fingerprints[4]))
+                {
+                    <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")" class="finger-img" />
+                }
+            </div>
+
+            <!-- RIGHT THUMB -->
+            <div class="slot @(GetSlotClass(5))">
+                <div class="finger-label">RT</div>
+
+                @if (!string.IsNullOrEmpty(Fingerprints[5]))
+                {
+                    <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")" class="finger-img" />
+                }
+            </div>
+        </div>
+
+        <!-- Scan Thumb -->
+        <button class="btn btn-success mt-2" @onclick="StartScanThums">
+            Scan Thumb 2
+        </button>
+
+        <!-- ✅ SAVE BUTTON NOW HERE -->
+        <button class="btn btn-primary mt-2" @onclick="SaveFinger">
+            Save
+        </button>
+
+        <!-- MESSAGE -->
+        <p class="mt-2">@message</p>
+
+    </div>
+   
+
 </div>
 
 @code {
@@ -520,4 +548,32 @@
         padding: 3px 10px;
         border-radius: 12px;
     }
+
+    .group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .thumb-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+        .thumb-section button {
+            width: 180px;
+        }
+
+        .thumb-section .slots {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Make thumb bigger */
+        .thumb-section .slot {
+            width: 80px;
+            height: 90px;
+        }
 </style>
