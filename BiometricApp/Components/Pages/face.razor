@@ -15,7 +15,7 @@
         <!-- LEFT PANEL -->
         <div class="col-lg-3 col-md-4 col-sm-12 control-panel">
 
-            <h6 class="panel-title">Camera Controls</h6>
+            @* <h6 class="panel-title">Camera Controls</h6>
 
             <div class="control-item">
                 <label>Brightness</label>
@@ -30,7 +30,7 @@
             <div class="control-item">
                 <label>Zoom</label>
                 <input type="range" min="0" max="100" @bind="Zoom" class="form-range">
-            </div>
+            </div> *@
 
             <div class="instructions">
                 <h6>Capture Instructions</h6>
@@ -101,9 +101,35 @@
 
             </div>
 
+            <label>Brightness</label>
+            <input type="range" min="-100" max="100"
+                   value="@Brightness"
+                   disabled="@string.IsNullOrEmpty(CapturedImage)"
+                   @oninput="async e => await ChangeBrightness(e.Value.ToString())" />
+
+            <label>Rotate</label>
+            <input type="range" min="-180" max="180"
+                   value="@Rotation"
+                   disabled="@string.IsNullOrEmpty(CapturedImage)"
+                   @oninput="async e => await RotateImage(e.Value.ToString())" />
+
+            <label>Zoom</label>
+            <input type="range" min="1" max="3" step="0.1"
+                   value="@ZoomLevel"
+                   disabled="@string.IsNullOrEmpty(CapturedImage)"
+                   @oninput="async e => await ZoomImage(e.Value.ToString())" />
+
+            <button class="btn btn-secondary mt-2 w-100"
+                    @onclick="Undo"
+                    disabled="@string.IsNullOrEmpty(CapturedImage)">
+                <i class="bi bi-arrow-counterclockwise me-2"></i>
+                Undo
+            </button>
+
             <button class="btn btn-success mt-3 w-100"
                     @onclick="SaveFace"
                     disabled="@string.IsNullOrEmpty(CapturedImage)">
+                <i class="bi bi-save me-2"></i>
                 Save Photo
             </button>
 
@@ -193,9 +219,9 @@
     /* PREVIEW */
     .preview-box {
         width: 100%;
-        aspect-ratio: 4 / 3; /* 🔥 same as camera */
-        max-height: 260px; /* limit height */
-        margin: 0 auto;
+        aspect-ratio: 4 / 3; /* keep camera aspect ratio */
+        max-height: 400px; /* increased from 320px for bigger preview */
+        margin: 0 auto 15px auto; /* spacing below preview */
         border: 2px solid #cbd5e1;
         border-radius: 6px;
         display: flex;
@@ -206,8 +232,9 @@
     }
 
         .preview-box img {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%; /* make image fill the preview box */
+            height: auto; /* maintain aspect ratio */
+            object-fit: contain;
         }
 
     .preview-panel {
@@ -226,8 +253,10 @@
         margin-bottom: 10px;
     }
 
+    /* INSTRUCTIONS */
     .instructions {
         font-size: 12px;
+        margin-top: 20px; /* pushed down a bit */
     }
 
     /* STATUS */
@@ -271,14 +300,22 @@
         padding: 6px;
     }
 
+        input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
     }
 </style>
 
 @code {
 
-    int Brightness;
     int Sharpness;
     int Zoom;
+
+    int Brightness = 0;
+    int Rotation = 0;
+    double ZoomLevel = 1;
 
     string CapturedImage;
     string Status = "Idle";
@@ -292,6 +329,11 @@
     async Task Capture()
     {
         CapturedImage = await JS.InvokeAsync<string>("webcam.capture");
+
+        Brightness = 0;
+        Rotation = 0;
+        ZoomLevel = 1;
+
         Status = "Face captured";
     }
 
@@ -299,6 +341,10 @@
     {
         CapturedImage = null;
         Status = "Retake photo";
+
+        Brightness = 0;
+        Rotation = 0;
+        ZoomLevel = 1;
     }
 
     async Task DisconnectCamera()
@@ -324,6 +370,41 @@
         {
             Status = ex.Message;
         }
+    }
+
+    async Task ChangeBrightness(string value)
+    {
+        Brightness = int.Parse(value);
+        await ApplyEdit();
+    }
+
+    async Task RotateImage(string value)
+    {
+        Rotation = int.Parse(value);
+        await ApplyEdit();
+    }
+
+    async Task ZoomImage(string value)
+    {
+        ZoomLevel = double.Parse(value);
+        await ApplyEdit();
+    }
+
+    async Task ApplyEdit()
+    {
+        if (string.IsNullOrEmpty(CapturedImage)) return;
+
+        CapturedImage = await JS.InvokeAsync<string>(
+            "webcam.applyEdit",
+            Brightness,
+            Rotation,
+            ZoomLevel
+        );
+    }
+
+    async Task Undo()
+    {
+        CapturedImage = await JS.InvokeAsync<string>("webcam.undo");
     }
 
     bool CameraConnected = false;
