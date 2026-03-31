@@ -12,47 +12,27 @@
 
     <div class="content">
 
-        <!-- LEFT PANEL -->
-        <div class="left-panel">
-            <div class="d-flex gap-3 mb-2">
-                <button class="btn btn-success" @onclick="StartScanLeft">Scan Left 4</button>
-                <button class="btn btn-success" @onclick="StartScanRight">Scan Right 4</button>
-                <button class="btn btn-success" @onclick="StartScanThums">Scan Thumb 2</button>
-                <button class="btn btn-primary" @onclick="SaveFinger">Save</button>
-            </div>
-            <p>@message</p>
-
-            @*   <div class="finger-preview">
-                @if (!string.IsNullOrEmpty(CurrentImage))
-                {
-                    <img src="@($"data:image/png;base64,{CurrentImage}")" />
-                }
-                else
-                {
-                    <img src="images/fingerprint.png" />
-                }
-            </div> *@
-
-            @*  <p class="mt-2 fw-bold">@CurrentFingerName</p>
-
-            <button class="btn capture-btn" @onclick="Capture">
-                Capture
-            </button>
-
-            <button class="btn next-btn" @onclick="NextFinger">
-                Next
-            </button> *@
-        </div>
-
-        <!-- RIGHT PANEL -->
-        <div class="right-panel">
+        <!-- UPPER PANEL (images + slots) -->
+        <div class="upper-panel">
 
             <!-- HAND IMAGES -->
             <div class="hands">
-                <img src="@leftImage" class="hand-img" />
-                <img src="@rightImage" class="hand-img" />
+
+                <!-- LEFT HAND -->
+                <div class="hand-container">
+                    <div class="hand-title">Left Hand</div>
+                    <img src="@leftImage" class="hand-img" />
+                </div>
+
+                <!-- RIGHT HAND -->
+                <div class="hand-container">
+                    <div class="hand-title">Right Hand</div>
+                    <img src="@rightImage" class="hand-img" />
+                </div>
+
             </div>
 
+            <!-- SLOTS -->
             <div class="slots-row">
 
                 <!-- LEFT HAND -->
@@ -60,8 +40,6 @@
                     @for (int i = 0; i < 5; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-
-                            <!-- Label -->
                             <div class="finger-label">@GetFingerLabel(i)</div>
 
                             @if (!string.IsNullOrEmpty(Fingerprints[i]))
@@ -77,8 +55,6 @@
                     @for (int i = 5; i < 10; i++)
                     {
                         <div class="slot @(GetSlotClass(i))">
-
-                            <!-- Label -->
                             <div class="finger-label">@GetFingerLabel(i)</div>
 
                             @if (!string.IsNullOrEmpty(Fingerprints[i]))
@@ -91,6 +67,17 @@
 
             </div>
 
+        </div>
+
+        <!-- LOWER PANEL (buttons) -->
+        <div class="bottom-panel">
+            <div class="d-flex gap-3 mb-2">
+                <button class="btn btn-success" @onclick="StartScanLeft">Scan Left 4</button>
+                <button class="btn btn-success" @onclick="StartScanRight">Scan Right 4</button>
+                <button class="btn btn-success" @onclick="StartScanThums">Scan Thumb 2</button>
+                <button class="btn btn-primary" @onclick="SaveFinger">Save</button>
+            </div>
+            <p>@message</p>
         </div>
 
     </div>
@@ -163,6 +150,9 @@
         try
         {
             message = "Capturing left finger.....";
+            // Force UI update immediately
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100);
             var result = await ScannerService.CaptureFingerprintLeft();
 
             message = result
@@ -198,6 +188,9 @@
         try
         {
             message = "Capturing right finger.....";
+            // Force UI update immediately
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100);
             var result = await ScannerService.CaptureFingerprintRight();
 
             message = result
@@ -228,6 +221,9 @@
         try
         {
             message = "Capturing both thumbs.....";
+            // Force UI update immediately
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100);
             var result = await ScannerService.CaptureFingerprintThum();
 
             message = result
@@ -393,55 +389,20 @@
 }
 
 <style>
-
-
-    .finger-label {
-        position: absolute;
-        top: 2px;
-        left: 2px; /* tighter spacing */
-        font-size: 11px; /* slightly smaller */
-        font-weight: bold;
-        color: #333;
-        background: rgba(255,255,255,0.8);
-        padding: 1px 3px; /* reduce padding */
-        border-radius: 3px;
-        z-index: 2;
-        white-space: nowrap; /* prevent breaking */
-    }
-
-    .finger-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .finger-img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .preview-img {
-        width: 220px;
-        height: 220px;
-        object-fit: contain;
-    }
-
-    .wrapper {
-        width: 100%;
-        min-height: 100vh; /* full screen height */
-        background: #f4f6f9;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        box-sizing: border-box;
-    }
-
     body {
         margin: 0;
         padding: 0;
     }
 
+    .wrapper {
+        width: 100%;
+        min-height: 100vh;
+        background: #f4f6f9;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    /* HEADER */
     .header {
         background: #3b63a3;
         color: white;
@@ -449,84 +410,49 @@
         padding: 12px;
         font-weight: bold;
         font-size: 20px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
 
+    /* MAIN LAYOUT */
     .content {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+        gap: 15px;
     }
 
-    /* LEFT PANEL */
-    .left-panel {
-        width: 30%;
-    }
-
-    .finger-preview {
-        width: 150px;
-        height: 150px;
-        border: 2px solid #3b63a3;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 15px;
-        border-radius: 8px;
-    }
-
-        .finger-preview img {
-            max-width: 100%;
-        }
-
-    .capture-btn {
-        background: #3b63a3;
-        color: white;
-        margin-top: 10px;
-        width: 100%;
-    }
-
-    .next-btn {
-        background: gray;
-        color: white;
-        margin-top: 10px;
-        width: 100%;
-    }
-
-    /* RIGHT PANEL */
-    .right-panel {
-        width: 65%;
+    /* UPPER PANEL */
+    .upper-panel {
         text-align: center;
     }
 
+    /* HAND IMAGES */
     .hands {
         display: flex;
-        justify-content: space-around;
-        margin-bottom: 20px;
+        justify-content: center;
+        gap: 40px;
+        margin-bottom: 15px;
     }
 
     .hand-img {
-        width: 180px;
+        width: 160px;
     }
 
     /* SLOTS */
     .slots-row {
         display: flex;
-        gap: 20px; /* reduce from 40px */
         justify-content: center;
-        width: 100%;
+        gap: 20px;
     }
 
-    /* Each group (5 fingers) */
     .slots {
         display: grid;
-        grid-template-columns: repeat(5, minmax(70px, 1fr));
+        grid-template-columns: repeat(5, 70px);
         gap: 10px;
-        width: 100%;
     }
 
-    /* Slot styling */
     .slot {
         position: relative;
-        width: 100%; /* ✅ responsive inside grid */
+        width: 70px;
         height: 80px;
         border: 2px solid #3b63a3;
         border-radius: 6px;
@@ -536,14 +462,62 @@
         overflow: hidden;
     }
 
-        .slot img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
+    .finger-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .finger-label {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        font-size: 10px;
+        font-weight: bold;
+        background: rgba(255,255,255,0.8);
+        padding: 1px 3px;
+        border-radius: 3px;
+    }
 
     .active-finger {
         background: #4caf50;
         border-color: #4caf50;
+    }
+
+    /* BOTTOM PANEL */
+    .bottom-panel {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 10px;
+        border-top: 1px solid #ccc;
+    }
+
+        .bottom-panel .d-flex {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+    .hand-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hand-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .hand-title {
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: white;
+        font-size: 13px;
+        background: #3b63a3;
+        padding: 3px 10px;
+        border-radius: 12px;
     }
 </style>
