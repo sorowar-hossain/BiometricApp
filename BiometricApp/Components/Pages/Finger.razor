@@ -1,7 +1,8 @@
 ﻿@page "/fingerprint"
 @using BiometricApp.Natives
+@using BiometricApp.Services
 @inject BiometricApp.Services.ScannerService ScannerService
-@inject BiometricApp.Services.ImageService ImageService
+@inject BiometricApp.Services.ApiService ApiService
 
 <div class="content">
 
@@ -364,6 +365,13 @@
     {
         try
         {
+           
+            var users = await ApiService.GetUsersAsync();
+
+            foreach (var user in users)
+            {
+                Console.WriteLine(user);
+            }
             message = "Finger Saved";
             LoadTumTwoFingerprints();
         }

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36811.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometricApp", "BiometricApp\BiometricApp.csproj", "{C738E1B8-FFAC-45AD-8FF7-BE20DEE809A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiometricApi", "BiometricApi\BiometricApi.csproj", "{790D8F3F-E598-4DA7-B125-192544254A19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,14 @@ Global
 		{C738E1B8-FFAC-45AD-8FF7-BE20DEE809A7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C738E1B8-FFAC-45AD-8FF7-BE20DEE809A7}.Release|x64.ActiveCfg = Release|x64
 		{C738E1B8-FFAC-45AD-8FF7-BE20DEE809A7}.Release|x64.Build.0 = Release|x64
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Debug|x64.Build.0 = Debug|Any CPU
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Release|x64.ActiveCfg = Release|Any CPU
+		{790D8F3F-E598-4DA7-B125-192544254A19}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
