@@ -1,5 +1,7 @@
 ﻿@page "/registration"
 @using System.ComponentModel.DataAnnotations
+@using BiometricApp.Services
+@inject UserService UserService;
 
 <div class="container mt-4">
 
@@ -119,6 +121,7 @@
     private async Task Save()
     {
         // Your save logic here
+        var user = UserService.CurrentUser;
         Console.WriteLine("Form submitted!");
     }
 

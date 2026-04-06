@@ -6,6 +6,7 @@
 @using BiometricApp.Services
 @inject NavigationManager Navigation
 @inject ApiService ApiService
+@inject UserService UserService;
 
 <div class="login-container">
     <h2>Login</h2>
@@ -144,6 +145,9 @@
     private LoginModel loginModel = new();
     private string loginMessage = "We're so excited to see you login";
 
+    
+
+
     private async Task HandleLogin()
     {
         // Clear any previous message
@@ -155,6 +159,7 @@
 
             if (res != null)
             {
+                UserService.CurrentUser = res; // Store user globally
                 // Login successful: reset form and navigate
                 loginModel = new LoginModel();
                 loginMessage = "";
