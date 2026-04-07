@@ -14,10 +14,6 @@ namespace BiometricApi.Services
 
         public async Task<bool> CreateAsync(Demographic demographic)
         {
-            // Step 1: Create entity
-            demographic.BiometricId = "";
-
-            // Step 2: Save using EF
             return await demographicsRepository.SaveAsync(demographic);
         }
 

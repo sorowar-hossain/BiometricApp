@@ -52,7 +52,7 @@ namespace BiometricApp.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"api/demographics/personuniqueid/{orgId}");
+                var response = await _httpClient.GetAsync($"api/Demographics/GetPersonUniqueId/{orgId}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -75,6 +75,23 @@ namespace BiometricApp.Services
                 // Optional: log exception
                 Console.WriteLine(ex.Message);
                 return null;
+            }
+        }
+
+        public async Task<bool> CreateDemographicAsync(MemberModel demographic)
+        {
+            try
+            {
+                // POST to your API
+                var response = await _httpClient.PostAsJsonAsync("api/Demographics/Create", demographic);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                // Log exception if needed
+                Console.WriteLine(ex.Message);
+                return false;
             }
         }
 

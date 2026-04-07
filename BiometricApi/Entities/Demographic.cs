@@ -33,6 +33,6 @@ namespace BiometricApi.Entities
         public string? UpdatedBy { get; set; }
 
         [Required]
-        public string BiometricId { get; set; } = null!;  // Unique ID
+        public string PersonUniqueId { get; set; } = null!;  // Unique ID 
     }
 }

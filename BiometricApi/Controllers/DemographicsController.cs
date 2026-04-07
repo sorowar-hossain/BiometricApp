@@ -16,14 +16,14 @@ namespace BiometricApi.Controllers
             this.service = service;
         }
 
-        
+        [HttpPost]
         public async Task<IActionResult> Create(Demographic demographic)
         {
             await service.CreateAsync(demographic);
             return Ok();
         }
 
-        [HttpGet("personuniqueid/{orgId}")]
+        [HttpGet("GetPersonUniqueId/{orgId}")]
         public async Task<ActionResult<string>> GetPersonUniqueId(int orgId)
         {
             try

@@ -139,45 +139,9 @@
     private async Task Save()
     {
         // Your save logic here
-         
-        Console.WriteLine("Form submitted!");
+        model.OrgId = user.OrgId;
+        model.UserId = user.UserId;
+        bool result = await ApiService.CreateDemographicAsync(model);
     }
 
-    public class MemberModel
-    {
-        [Required(ErrorMessage = "First Name is required")]
-        public string FirstName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Last Name is required")]
-        public string LastName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Marital Status is required")]
-        public string MaritalStatus { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Date of Birth is required")]
-        public DateTime? DateOfBirth { get; set; }
-
-        [Required(ErrorMessage = "Gender is required")]
-        public string Gender { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Address is required")]
-        public string Address { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Father's Name is required")]
-        public string FatherName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Mother's Name is required")]
-        public string MotherName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Expiry Date is required")]
-        public DateTime? ExpiryDate { get; set; }
-
-        // Optional
-        public string? PlaceOfIssue { get; set; }
-        public string? PlaceOfBirth { get; set; }
-        [Range(0, double.MaxValue, ErrorMessage = "Weight cannot be negative")]
-        public decimal? Weight { get; set; }
-
-        public string PersonUniqueId { get; set; }
-    }
 }
