@@ -21,7 +21,7 @@ namespace BiometricApi.Repository
             this.config = config;
         }
 
-        public async Task<string> GetBioCodeAsync(int orgId) 
+        public async Task<string> GetPersonUniqueIdAsync(int orgId)  
         {
             BiometricViewModel biometricViewModel = new BiometricViewModel();
             using var conn = new SqlConnection(config.GetConnectionString("connectionString"));

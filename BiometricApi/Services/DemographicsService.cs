@@ -14,14 +14,20 @@ namespace BiometricApi.Services
 
         public async Task<bool> CreateAsync(Demographic demographic)
         {
-            // Step 1: Get Unique ID from SP
-            var bioCode = await demographicsRepository.GetBioCodeAsync(demographic.OrgId);
+            // Step 1: Create entity
+            demographic.BiometricId = "";
 
-            // Step 2: Create entity
-            demographic.BiometricId = bioCode;
-
-            // Step 3: Save using EF
+            // Step 2: Save using EF
             return await demographicsRepository.SaveAsync(demographic);
         }
+
+        public async Task<string> GetPersonUniqueId(int orgId)
+        {
+            // Get Unique ID from SP
+            string id = await demographicsRepository.GetPersonUniqueIdAsync(orgId); 
+            return id;
+
+        }
+
     }
 }

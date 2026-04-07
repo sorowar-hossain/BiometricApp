@@ -1,7 +1,9 @@
 ﻿@page "/registration"
 @using System.ComponentModel.DataAnnotations
 @using BiometricApp.Services
-@inject UserService UserService;
+@using BiometricApp.Models
+@inject UserService UserService
+@inject ApiService ApiService
 
 <div class="container mt-4">
 
@@ -21,6 +23,12 @@
             <ValidationSummary />
 
             <div class="row mt-4">
+                <div class="col-md-12 mb-3">
+                    <label>Member Id</label>
+                    <InputText class="form-control" readonly  @bind-Value="model.PersonUniqueId" />
+                    
+                </div>
+
                 <div class="col-md-6 mb-3">
                     <label>First Name *</label>
                     <InputText class="form-control" placeholder="Enter First Name" @bind-Value="model.FirstName" />
@@ -117,11 +125,21 @@
 
 @code {
     private MemberModel model = new();
+    private UserLoginResponse user = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get current user
+        user = UserService.CurrentUser;
+        var id = await ApiService.GetPersonUniqueIdAsync(user.OrgId);
+        model.PersonUniqueId = id;
+    }
 
     private async Task Save()
     {
         // Your save logic here
-        var user = UserService.CurrentUser;
+         
         Console.WriteLine("Form submitted!");
     }
 
@@ -159,5 +177,7 @@
         public string? PlaceOfBirth { get; set; }
         [Range(0, double.MaxValue, ErrorMessage = "Weight cannot be negative")]
         public decimal? Weight { get; set; }
+
+        public string PersonUniqueId { get; set; }
     }
 }

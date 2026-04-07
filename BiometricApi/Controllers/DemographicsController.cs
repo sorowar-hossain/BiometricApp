@@ -16,11 +16,30 @@ namespace BiometricApi.Controllers
             this.service = service;
         }
 
-        [HttpPost("{orgId}")]
+        
         public async Task<IActionResult> Create(Demographic demographic)
         {
             await service.CreateAsync(demographic);
             return Ok();
+        }
+
+        [HttpGet("personuniqueid/{orgId}")]
+        public async Task<ActionResult<string>> GetPersonUniqueId(int orgId)
+        {
+            try
+            {
+                string uniqueId = await service.GetPersonUniqueId(orgId);
+
+                if (string.IsNullOrEmpty(uniqueId))
+                    return NotFound("Unique ID not found.");
+
+                return Ok(uniqueId);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

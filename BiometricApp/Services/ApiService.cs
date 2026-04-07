@@ -48,5 +48,35 @@ namespace BiometricApp.Services
         
         }
 
+        public async Task<string?> GetPersonUniqueIdAsync(int orgId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/demographics/personuniqueid/{orgId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // API returns string (may include quotes if JSON)
+                    var uniqueId = await response.Content.ReadAsStringAsync();
+                    return uniqueId.Trim('"'); // Remove quotes
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null; // Unique ID not found
+                }
+                else
+                {
+                    // Optional: log or handle other errors
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Optional: log exception
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
+
     }
 }

@@ -5,7 +5,7 @@ namespace BiometricApi.IRepository
 {
     public interface IDemographicsRepository
     {
-        Task<string> GetBioCodeAsync(int orgId);  
+        Task<string> GetPersonUniqueIdAsync(int orgId);   
         Task<bool> SaveAsync(Demographic entity);
     }
 }
