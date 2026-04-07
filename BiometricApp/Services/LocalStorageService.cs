@@ -69,5 +69,37 @@ namespace BiometricApp.Services
                 Directory.Delete(memberFolder, true); // recursive delete
             }
         }
+
+        public async Task<List<MemberDropdown>> GetMembersForDropdownAsync()
+        {
+            var result = new List<MemberDropdown>();
+
+            if (!Directory.Exists(baseFolder))
+                return result;
+
+            var folders = Directory.GetDirectories(baseFolder);
+
+            foreach (var folder in folders)
+            {
+                var jsonPath = Path.Combine(folder, "demographics.json");
+
+                if (File.Exists(jsonPath))
+                {
+                    var json = await File.ReadAllTextAsync(jsonPath);
+                    var member = JsonSerializer.Deserialize<MemberModel>(json);
+
+                    if (member != null)
+                    {
+                        result.Add(new MemberDropdown
+                        {
+                            PersonUniqueId = member.PersonUniqueId,
+                            FullName = $"{member.FirstName} {member.LastName}"
+                        });
+                    }
+                }
+            }
+
+            return result.OrderBy(x => x.FullName).ToList(); 
+        }
     }
 }

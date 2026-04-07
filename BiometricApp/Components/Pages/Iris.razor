@@ -1,5 +1,8 @@
 ﻿@page "/iris-capture"
+@using BiometricApp.Models
+@using BiometricApp.Services
 @inject BiometricApp.Services.IrisService IrisService
+@inject LocalStorageService LocalStorageService
 
 <div class="iris-wrapper">
 
@@ -15,6 +18,20 @@
         </p>
 
         <div class="row justify-content-center mt-4">
+            <div class="col-md-3 text-center">
+                <label>Select Member</label>
+
+                <select class="form-control" @bind="selectedMemberId">
+                    <option value="">-- Select Member --</option>
+
+                    @foreach (var item in members)
+                    {
+                        <option value="@item.PersonUniqueId">
+                            @item.FullName
+                        </option>
+                    }
+                </select>
+            </div>
 
             <!-- Left Preview Small -->
             <div class="col-md-2 text-center">
@@ -73,11 +90,25 @@
     private byte[] rightImageBytes;
 
     private string path = @"C:\Biometric_Iris";
+    private List<MemberDropdown> members = new();
+    private string selectedMemberId;
 
- 
+    protected override async Task OnInitializedAsync()
+    {
+        members = await LocalStorageService.GetMembersForDropdownAsync();
+    }
+    private void SelectMember(MemberDropdown item)
+    {
+        selectedMemberId = item.PersonUniqueId;
+    }
 
     private async Task CaptureIris()
     {
+        if (string.IsNullOrWhiteSpace(selectedMemberId))
+        {
+            return;
+        }
+
         // Attach device first (if not already attached)
         IrisService.AttachDevice();
 

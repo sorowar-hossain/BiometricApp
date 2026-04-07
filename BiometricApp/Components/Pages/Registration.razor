@@ -138,8 +138,6 @@
     private MemberModel model = new();
     private UserLoginResponse user = new();
     string message = "";
-
-
     protected override async Task OnInitializedAsync()
     {
         // Get current user
@@ -147,6 +145,7 @@
         // var id = await ApiService.GetPersonUniqueIdAsync(user.OrgId);
         var id = CreateMemberId();
         model.PersonUniqueId = id;
+
     }
 
     private async Task Save()
