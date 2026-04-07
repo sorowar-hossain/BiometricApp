@@ -4,6 +4,7 @@
 @using BiometricApp.Models
 @inject UserService UserService
 @inject ApiService ApiService
+@inject LocalStorageService LocalStorageService
 
 <div class="container mt-4">
 
@@ -23,6 +24,16 @@
             <ValidationSummary />
 
             <div class="row mt-4">
+                <div class="col-md-12 mb-3">
+                    @if (!string.IsNullOrEmpty(message))
+                    {
+                        <div class="alert alert-success">
+                            @message
+                        </div>
+                    }
+                    
+                </div>
+
                 <div class="col-md-12 mb-3">
                     <label>Member Id</label>
                     <InputText class="form-control" readonly  @bind-Value="model.PersonUniqueId" />
@@ -115,7 +126,7 @@
 
             <div class="d-flex justify-content-end mt-4">
                 <button type="submit" class="btn btn-primary px-4">
-                    Save To Server
+                    Save
                 </button>
             </div>
         </EditForm>
@@ -126,22 +137,88 @@
 @code {
     private MemberModel model = new();
     private UserLoginResponse user = new();
+    string message = "";
 
 
     protected override async Task OnInitializedAsync()
     {
         // Get current user
         user = UserService.CurrentUser;
-        var id = await ApiService.GetPersonUniqueIdAsync(user.OrgId);
+        // var id = await ApiService.GetPersonUniqueIdAsync(user.OrgId);
+        var id = CreateMemberId();
         model.PersonUniqueId = id;
     }
 
     private async Task Save()
     {
-        // Your save logic here
         model.OrgId = user.OrgId;
         model.UserId = user.UserId;
-        bool result = await ApiService.CreateDemographicAsync(model);
+        model.CreatedBy = user.UserName;
+        var savePath= LocalStorageService.SaveDemographicsAsync(model);
+        message = "Member saved successfully to " + savePath.Result;
+        model = new MemberModel
+        {
+            PersonUniqueId = CreateMemberId()
+        };
+        StateHasChanged();
+        //bool result = await ApiService.CreateDemographicAsync(model);
     }
+
+    private int GetNextMemberSequence()
+    {
+        // Absolute path for members
+        string baseFolder = AppSettings.BaseFolder;
+
+        // Create the folder if it doesn't exist
+        if (!Directory.Exists(baseFolder))
+        {
+            Directory.CreateDirectory(baseFolder);
+            return 1; // no members yet
+        }
+
+        // Get all subfolders (each folder = one member)
+        var allFolders = Directory.GetDirectories(baseFolder);
+
+        if (allFolders.Length == 0)
+            return 1; // no members yet
+
+        // Count members created today (optional, or just use total folders)
+        int maxSequence = 0;
+
+        foreach (var folder in allFolders)
+        {
+            string jsonPath = Path.Combine(folder, "demographics.json");
+            if (File.Exists(jsonPath))
+            {
+                var json = File.ReadAllText(jsonPath);
+                var member = System.Text.Json.JsonSerializer.Deserialize<MemberModel>(json);
+                if (member != null)
+                {
+                    // Extract last 6-7 digits from PersonUniqueId if your ID stores sequence
+                    // Or simply count existing members and take max + 1
+                    maxSequence++;
+                }
+            }
+        }
+
+        return maxSequence + 1; // next sequence number
+    }
+
+
+    private string CreateMemberId()
+    {
+        string userName = user.UserName;
+        int seq = GetNextMemberSequence();
+
+        // Format sequence as 6-digit or 7-digit number with leading zeros
+        string seqStr = seq.ToString("D6"); // 000001, 000002, etc.
+
+        // Include username + datetime + sequence
+        string id = $"BIO.{userName}.{DateTime.Now:yyyyMMddHHmm}.{seqStr}";
+
+        return id;
+    }
+
+  
 
 }

@@ -44,8 +44,9 @@ namespace BiometricApp
             builder.Services.AddSingleton<Fap50FingerprintService>();
             builder.Services.AddSingleton<IrisService>(); 
             builder.Services.AddSingleton<FaceService>();
-    
-            
+
+            builder.Services.AddSingleton<LocalStorageService>();
+
 
 
 #if DEBUG
