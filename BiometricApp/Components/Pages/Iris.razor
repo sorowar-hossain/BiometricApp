@@ -89,7 +89,7 @@
     private byte[] leftImageBytes;
     private byte[] rightImageBytes;
 
-    private string path = @"C:\Biometric_Iris";
+    private string path = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
     private string selectedMemberId;
 
@@ -108,6 +108,8 @@
         {
             return;
         }
+
+        path = Path.Combine(path, selectedMemberId);
 
         // Attach device first (if not already attached)
         IrisService.AttachDevice();

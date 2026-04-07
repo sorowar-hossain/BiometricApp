@@ -119,6 +119,7 @@
 
     string leftImage = "images/left-finger.png";
     string rightImage = "images/right-finger.png";
+    string folder = AppSettings.BaseFolder;
 
     void ChangeImage()
     {
@@ -283,8 +284,6 @@
 
     private void LoadLeftFourFingerprints()
     {
-        string folder = @"C:\Biometric_Finger";
-
         string[] files =
         {
             "l_Left_Little.bmp",
@@ -310,7 +309,6 @@
 
     private void LoadRightFourFingerprints()
     {
-        string folder = @"C:\Biometric_Finger";
 
         string[] files =
         {
@@ -337,8 +335,7 @@
 
     private void LoadTumTwoFingerprints()
     {
-        string folder = @"C:\Biometric_Finger";
-
+       
         string[] files =
         {
             "l_Left_Thumb.bmp",
