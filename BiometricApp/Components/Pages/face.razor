@@ -236,7 +236,7 @@
 
         try
         {
-            var path = await FaceService.SaveFaceAsync(CapturedImage);
+            var path = await FaceService.SaveFaceAsync(CapturedImage, selectedMemberId);
             Status = $"Saved: {path}";
         }
         catch (Exception ex)
