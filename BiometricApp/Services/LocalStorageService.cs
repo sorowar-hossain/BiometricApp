@@ -33,7 +33,15 @@ namespace BiometricApp.Services
             // Save demographics JSON
             string jsonPath = Path.Combine(memberFolder, "demographics.json");
             string json = JsonSerializer.Serialize(member, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(jsonPath, json);
+            try
+            {
+                await File.WriteAllTextAsync(jsonPath, json);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            
 
             return memberFolder;
         }

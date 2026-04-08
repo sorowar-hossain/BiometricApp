@@ -1,4 +1,4 @@
-﻿@page "/registration"
+@page "/registration"
 @using System.ComponentModel.DataAnnotations
 @using BiometricApp.Services
 @using BiometricApp.Models
@@ -153,8 +153,8 @@
         model.OrgId = user.OrgId;
         model.UserId = user.UserId;
         model.CreatedBy = user.UserName;
-        var savePath= LocalStorageService.SaveDemographicsAsync(model);
-        message = "Member saved successfully to " + savePath.Result;
+        var savePath = await LocalStorageService.SaveDemographicsAsync2(model);
+        message = "Member saved successfully to " + savePath;
         model = new MemberModel
         {
             PersonUniqueId = CreateMemberId()
