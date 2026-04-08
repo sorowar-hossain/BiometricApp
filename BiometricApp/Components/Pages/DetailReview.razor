@@ -16,10 +16,9 @@
             <h5 class="text-primary fw-bold">Detail Review</h5>
             <small class="text-muted">Carefully check all your personal information shown on the screen</small>
             <!-- Member Selection -->
-            <!-- Member Selection -->
             <div class="member-select">
                 <label>Select Member</label>
-                <select class="form-control" @bind="selectedMemberId">
+                <select class="form-control" @onchange="OnMemberChanged">
                     <option value="">-- Select Member --</option>
                     @foreach (var item in members)
                     {
@@ -40,18 +39,28 @@
 
                         <!-- FACE -->
                         <div class="mb-3 text-center">
-                            <label class="biometric-label">Face</label>
-                            <div class="photo-wrapper">
-                                <img src="images/user1.jpg" class="photo-box" />
-                            </div>
+                            <label class="biometric-label d-block text-start">Face</label>
+                             @for (int i = 14; i < 15; i++)
+                            {
+                                <div class="photo-wrapper">
+                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="photo-box" />
+                                </div>
+                         
+                            }
+                            
                         </div>
 
                         <!-- IRIS -->
                         <div class="mb-3">
                             <label class="biometric-label">Iris</label>
                             <div class="iris-container">
-                                <img src="images/left_iris.png" class="iris-img" />
-                                <img src="images/right_iris.png" class="iris-img" />
+                                @for (int i = 10; i < 12; i++)
+                                {
+                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="iris-img" />
+
+                                }
+
+
                             </div>
                         </div>
 
@@ -65,18 +74,21 @@
                                 <div class="hand-container">
                                     <div class="hand-title">Left Hand</div>
                                     <div class="slots">
+
                                         @for (int i = 0; i < 4; i++)
                                         {
                                             <div>
                                                 <div class="finger-label">@GetFingerLabel(i)</div>
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
-                                                    <img src="@Fingerprints[i]" class="finger-img" />
+                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
                                                 }
                                             </div>
                                         }
+
+
                                     </div>
-                                
+
                                 </div>
 
                                 <!-- RIGHT HAND -->
@@ -89,12 +101,13 @@
                                                 <div class="finger-label">@GetFingerLabel(i)</div>
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
-                                                    <img src="@Fingerprints[4]" class="finger-img" />
+                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
                                                 }
                                             </div>
                                         }
+
                                     </div>
-                                   
+
                                 </div>
                             </div>
 
@@ -104,18 +117,20 @@
                                     <!-- LEFT THUMB -->
                                     <div>
                                         <div class="finger-label">LT</div>
+
                                         @if (!string.IsNullOrEmpty(Fingerprints[4]))
                                         {
-                                            <img src="@Fingerprints[4]" class="finger-img" />
+                                            <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")" class="finger-img" />
                                         }
                                     </div>
 
                                     <!-- RIGHT THUMB -->
                                     <div>
                                         <div class="finger-label">RT</div>
+
                                         @if (!string.IsNullOrEmpty(Fingerprints[5]))
                                         {
-                                            <img src="@Fingerprints[4]" class="finger-img" />
+                                            <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")" class="finger-img" />
                                         }
                                     </div>
                                 </div>
@@ -127,15 +142,16 @@
                         <div class="mb-3">
                             <label class="biometric-label">Signatures</label>
                             <div class="signature-container">
-                                <div class="signature-box">
-                                    <small>Signature 1</small>
-                                    <img src="images/signature1.jpg" class="signature-img" />
-                                </div>
+                                @for (int i = 12; i < 14; i++)
+                                {
+                                    
+                                    <div class="signature-box">
+                                        <small>Signature @(i - 11)</small>
+                                        <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="signature-img" />
+                                    </div>
+                                   
+                                }
 
-                                <div class="signature-box">
-                                    <small>Signature 2</small>
-                                    <img src="images/signature2.jpg" class="signature-img" />
-                                </div>
                             </div>
                         </div>
 
@@ -155,7 +171,9 @@
 
                         <div class="info-row">
                             <label>Date of Birth</label>
-                            <input class="form-control" value="@Model.DateOfBirth" readonly />
+                            <input class="form-control"
+                                   value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))"
+                                   readonly />
                         </div>
 
                         <div class="info-row">
@@ -180,7 +198,7 @@
 
             <!-- FOOTER -->
             <div class="d-flex justify-content-between mt-4">
-              @*   <button class="btn btn-secondary px-4">Back</button>
+                @*   <button class="btn btn-secondary px-4">Back</button>
                 <button class="btn btn-primary px-4">Done</button> *@
             </div>
 
@@ -202,6 +220,7 @@
     .member-select {
         width: 250px;
     }
+
     .main-container {
         background: #f4f6f9;
         padding: 20px;
@@ -381,7 +400,7 @@
             width: 65%;
             height: auto;
             object-fit: contain;
-            height:65%
+            height: 65%
         }
 
     /* SIGNATURES */
@@ -438,9 +457,9 @@
     // Sample Model (bind from DB later)
     public MemberModel Model = new()
     {
-      
-    };
 
+    };
+    private string[] Fingerprints = new string[16];
     private string path = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
     private string selectedMemberId;
@@ -452,6 +471,31 @@
     private void SelectMember(MemberDropdown item)
     {
         selectedMemberId = item.PersonUniqueId;
+    }
+
+    private async Task OnMemberChanged(ChangeEventArgs e)
+    {
+        selectedMemberId = e.Value?.ToString();
+        //selectedMemberId = "BIO.admin.202604071417.000002";
+
+        Model = await LocalStorageService.LoadDemographicsAsync(selectedMemberId);
+        Fingerprints = new string[16];
+        string memberFolder = Path.Combine(path, selectedMemberId);
+        LoadLeftFourFingerprints(memberFolder);
+        LoadRightFourFingerprints(memberFolder);
+        LoadThumbsFingerprints(memberFolder);
+        LoadIris(memberFolder);
+        LoadSignature(memberFolder);
+        LoadFace(memberFolder);
+
+        StateHasChanged();
+    }
+
+    private Task LoadMemberData(string memberId)
+    {
+        // Fetch or update data based on selected member
+        Console.WriteLine($"Selected Member ID: {memberId}");
+        return Task.CompletedTask;
     }
 
     private string GetFingerLabel(int index)
@@ -473,19 +517,155 @@
         };
     }
     // Fingerprint list
-    public List<string> Fingerprints = new()
+   
+    private void LoadLeftFourFingerprints(string imagePath)
     {
-        "images/fingerprint1.jpg",
-        "images/fingerprint2.jpg",
-        "images/fingerprint1.jpg",
-        "images/fingerprint1.jpg",
-        "images/fingerprint1.jpg",
-        "images/fingerprint1.jpg",
-        "images/fingerprint1.jpg",
-        "images/fingerprint1.jpg",
-        "images/fingerprint1.jpg",
-        "images/fingerprint1.jpg"
+        string[] files =
+        {
+             "l_Left_Little.bmp",
+            "l_Left_Ring.bmp",
+            "l_Left_Middle.bmp",
+            "l_Left_Index.bmp"
+
     };
+
+        for (int i = 0; i < files.Length; i++)
+        {
+
+            string path = Path.Combine(imagePath, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[i] = Convert.ToBase64String(bytes);
+
+            }
+        }
+
+
+    }
+
+    private void LoadRightFourFingerprints(string imagePath)
+    {
+
+        string[] files =
+        {
+        "r_Right_Index.bmp",
+        "r_Right_Middle.bmp",
+        "r_Right_Ring.bmp",
+        "r_Right_Little.bmp"
+    };
+
+        for (int i = 0; i < files.Length; i++)
+        {
+            string path = Path.Combine(imagePath, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[i + 6] = Convert.ToBase64String(bytes);
+            }
+        }
+
+        
+    }
+
+    private void LoadThumbsFingerprints(string imagePath)
+    {
+
+        string[] files =
+        {
+            "l_Left_Thumb.bmp",
+            "r_Right_Thumb.bmp"
+     };
+
+        int j = 4;
+        for (int i = 0; i < files.Length; i++)
+        {
+            string path = Path.Combine(imagePath, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[j] = Convert.ToBase64String(bytes);
+                j = 5;
+            }
+        }
+
+    }
+
+    private void LoadIris(string imagePath)
+    {
+
+        string[] files =
+        {
+            "left_iris.png",
+            "right_iris.png"
+        };
+
+        int j = 10;
+        for (int i = 0; i < files.Length; i++)
+        {
+            string path = Path.Combine(imagePath, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[j] = Convert.ToBase64String(bytes);
+                j++;
+            }
+        }
+
+    }
+
+    private void LoadSignature(string imagePath)
+    {
+
+        string[] files =
+        {
+            "signature1.jpg",
+            "signature2.jpg"
+        };
+
+        int j = 12;
+        for (int i = 0; i < files.Length; i++)
+        {
+            string path = Path.Combine(imagePath, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[j] = Convert.ToBase64String(bytes);
+                j++;
+            }
+        }
+
+    }
+    private void LoadFace(string imagePath)
+    {
+
+        string[] files =
+        {
+            "face.jpg"
+        };
+
+        int j = 14;
+        for (int i = 0; i < files.Length; i++)
+        {
+            string path = Path.Combine(imagePath, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[j] = Convert.ToBase64String(bytes);
+                j++;
+            }
+        }
+
+    }
+    
+
+
 
     void GoBack()
     {
@@ -497,12 +677,5 @@
         // Save / submit logic
     }
 
-    public class UserModel
-    {
-        public string FullName { get; set; }
-        public string DateOfBirth { get; set; }
-        public string Gender { get; set; }
-        public string CivilStatus { get; set; }
-        public string Address { get; set; }
-    }
+
 }
