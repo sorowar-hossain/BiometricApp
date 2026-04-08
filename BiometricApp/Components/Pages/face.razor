@@ -1,7 +1,9 @@
 ﻿@page "/face-capture"
+@using BiometricApp.Models
 @using BiometricApp.Services
 @inject IJSRuntime JS
 @inject FaceService FaceService
+@inject LocalStorageService LocalStorageService
 
 <div class="container-fluid biometric-container">
 
@@ -14,6 +16,21 @@
 
         <!-- LEFT PANEL -->
         <div class="col-lg-3 col-md-4 col-sm-12 control-panel">
+
+            <!-- Member Selection -->
+            <div class="member-select">
+
+                <label>Select Member</label>
+                <select class="form-control" @bind="selectedMemberId">
+                    <option value="">-- Select Member --</option>
+                    @foreach (var item in members)
+                    {
+                        <option value="@item.PersonUniqueId">
+                            @item.FullName
+                        </option>
+                    }
+                </select>
+            </div>
 
             @* <h6 class="panel-title">Camera Controls</h6>
 
@@ -142,6 +159,156 @@
     </div>
 
 </div>
+
+
+
+@code {
+
+    int Sharpness;
+    int Zoom;
+
+    int Brightness = 0;
+    int Rotation = 0;
+    double ZoomLevel = 1;
+
+    string CapturedImage;
+    string Status = "Idle";
+
+    private string path = AppSettings.BaseFolder;
+    private List<MemberDropdown> members = new();
+    private string selectedMemberId;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        members = await LocalStorageService.GetMembersForDropdownAsync();
+    }
+    private void SelectMember(MemberDropdown item)
+    {
+        selectedMemberId = item.PersonUniqueId;
+    }
+
+    async Task ConnectCamera()
+    {
+        await JS.InvokeVoidAsync("webcam.start");
+        Status = "Camera connected";
+    }
+
+    async Task Capture()
+    {
+
+        if (string.IsNullOrWhiteSpace(selectedMemberId))
+        {
+            return;
+        }
+        CapturedImage = await JS.InvokeAsync<string>("webcam.capture");
+
+        Brightness = 0;
+        Rotation = 0;
+        ZoomLevel = 1;
+
+        Status = "Face captured";
+    }
+
+    void Retake()
+    {
+        CapturedImage = null;
+        Status = "Retake photo";
+
+        Brightness = 0;
+        Rotation = 0;
+        ZoomLevel = 1;
+    }
+
+    async Task DisconnectCamera()
+    {
+        await JS.InvokeVoidAsync("webcam.stop");
+        Status = "Camera disconnected";
+    }
+
+    async Task SaveFace()
+    {
+        if (string.IsNullOrEmpty(CapturedImage))
+        {
+            Status = "No image captured";
+            return;
+        }
+
+        try
+        {
+            var path = await FaceService.SaveFaceAsync(CapturedImage);
+            Status = $"Saved: {path}";
+        }
+        catch (Exception ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    async Task ChangeBrightness(string value)
+    {
+        Brightness = int.Parse(value);
+        await ApplyEdit();
+    }
+
+    async Task RotateImage(string value)
+    {
+        Rotation = int.Parse(value);
+        await ApplyEdit();
+    }
+
+    async Task ZoomImage(string value)
+    {
+        ZoomLevel = double.Parse(value);
+        await ApplyEdit();
+    }
+
+    async Task ApplyEdit()
+    {
+        if (string.IsNullOrEmpty(CapturedImage)) return;
+
+        CapturedImage = await JS.InvokeAsync<string>(
+            "webcam.applyEdit",
+            Brightness,
+            Rotation,
+            ZoomLevel
+        );
+    }
+
+    async Task Undo()
+    {
+        CapturedImage = await JS.InvokeAsync<string>("webcam.undo");
+    }
+
+    bool CameraConnected = false;
+
+    async Task ToggleCamera()
+    {
+        try
+        {
+            if (!CameraConnected)
+            {
+                await JS.InvokeVoidAsync("webcam.start");
+
+                CameraConnected = true;
+                Status = "Camera connected";
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("webcam.stop");
+
+                CameraConnected = false;
+                Status = "Camera disconnected";
+            }
+        }
+        catch
+        {
+            CameraConnected = false;
+            Status = "Failed to connect camera";
+        }
+    }
+
+}
 
 <style>
 
@@ -272,11 +439,9 @@
 
     /* 🔥 MOBILE FIX */
     @@media (max-width: 768px) {
-        .row
-
-    {
-        flex-direction: column;
-    }
+        .row {
+            flex-direction: column;
+        }
 
         @@media (max-width: 768px) {
 
@@ -285,152 +450,22 @@
             }
         }
 
-  
 
-    .col-lg-6,
-    .preview-panel {
-        height: 50%;
-    }
 
-    .camera-buttons button {
-        flex: 1 1 30%;
-        font-size: 12px;
-        padding: 6px;
-    }
+        .col-lg-6,
+        .preview-panel {
+            height: 50%;
+        }
+
+        .camera-buttons button {
+            flex: 1 1 30%;
+            font-size: 12px;
+            padding: 6px;
+        }
 
         input:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-
     }
 </style>
-
-@code {
-
-    int Sharpness;
-    int Zoom;
-
-    int Brightness = 0;
-    int Rotation = 0;
-    double ZoomLevel = 1;
-
-    string CapturedImage;
-    string Status = "Idle";
-
-    async Task ConnectCamera()
-    {
-        await JS.InvokeVoidAsync("webcam.start");
-        Status = "Camera connected";
-    }
-
-    async Task Capture()
-    {
-        CapturedImage = await JS.InvokeAsync<string>("webcam.capture");
-
-        Brightness = 0;
-        Rotation = 0;
-        ZoomLevel = 1;
-
-        Status = "Face captured";
-    }
-
-    void Retake()
-    {
-        CapturedImage = null;
-        Status = "Retake photo";
-
-        Brightness = 0;
-        Rotation = 0;
-        ZoomLevel = 1;
-    }
-
-    async Task DisconnectCamera()
-    {
-        await JS.InvokeVoidAsync("webcam.stop");
-        Status = "Camera disconnected";
-    }
-
-    async Task SaveFace()
-    {
-        if (string.IsNullOrEmpty(CapturedImage))
-        {
-            Status = "No image captured";
-            return;
-        }
-
-        try
-        {
-            var path = await FaceService.SaveFaceAsync(CapturedImage);
-            Status = $"Saved: {path}";
-        }
-        catch (Exception ex)
-        {
-            Status = ex.Message;
-        }
-    }
-
-    async Task ChangeBrightness(string value)
-    {
-        Brightness = int.Parse(value);
-        await ApplyEdit();
-    }
-
-    async Task RotateImage(string value)
-    {
-        Rotation = int.Parse(value);
-        await ApplyEdit();
-    }
-
-    async Task ZoomImage(string value)
-    {
-        ZoomLevel = double.Parse(value);
-        await ApplyEdit();
-    }
-
-    async Task ApplyEdit()
-    {
-        if (string.IsNullOrEmpty(CapturedImage)) return;
-
-        CapturedImage = await JS.InvokeAsync<string>(
-            "webcam.applyEdit",
-            Brightness,
-            Rotation,
-            ZoomLevel
-        );
-    }
-
-    async Task Undo()
-    {
-        CapturedImage = await JS.InvokeAsync<string>("webcam.undo");
-    }
-
-    bool CameraConnected = false;
-
-    async Task ToggleCamera()
-    {
-        try
-        {
-            if (!CameraConnected)
-            {
-                await JS.InvokeVoidAsync("webcam.start");
-
-                CameraConnected = true;
-                Status = "Camera connected";
-            }
-            else
-            {
-                await JS.InvokeVoidAsync("webcam.stop");
-
-                CameraConnected = false;
-                Status = "Camera disconnected";
-            }
-        }
-        catch
-        {
-            CameraConnected = false;
-            Status = "Failed to connect camera";
-        }
-    }
-
-}

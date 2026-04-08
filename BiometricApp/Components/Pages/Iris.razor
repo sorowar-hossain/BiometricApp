@@ -18,9 +18,22 @@
         <p class="text-muted small">
             Stand or sit still in front of the iris scanner
         </p>
+ 
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <div class="text-center mt-2">
+                <span class="text-success fw-semibold">
+                    @message
+                </span>
+            </div>
+           
+        }
+            
+            
 
         <!-- Member Selection -->
         <div class="member-select">
+           
             <label>Select Member</label>
             <select class="form-control" @bind="selectedMemberId">
                 <option value="">-- Select Member --</option>
@@ -68,7 +81,7 @@
             <button class="btn btn-dark me-2" @onclick="CaptureIris">
                 <i class="bi bi-camera-fill"></i> Capture
             </button>
-            <button class="btn btn-primary" @onclick="SaveIrisImagesToServer">Save</button>
+            @* <button class="btn btn-primary" @onclick="SaveIrisImages">Save</button> *@
         </div>
 
     </div>
@@ -76,6 +89,7 @@
 
 @code {
     // Image sources as Base64 strings
+    private string message = "";
     private string LeftIrisImage = "images/Iris-Left.jpg";
     private string RightIrisImage = "images/Iris-Right.jpg";
     private string LeftPreviewImage = "images/Iris-Left.jpg";
@@ -93,6 +107,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        message = "";
         members = await LocalStorageService.GetMembersForDropdownAsync();
     }
     private void SelectMember(MemberDropdown item)
@@ -118,7 +133,7 @@
         leftImageBytes = result.leftImage;
         rightImageBytes = result.rightImage;
 
-     
+
 
         // Convert byte array to Base64 string
         string leftBase64 = Convert.ToBase64String(leftImageBytes);
@@ -160,6 +175,7 @@
         if (leftImageBytes != null && rightImageBytes != null)
         {
             IrisService.SaveImages(leftImageBytes, rightImageBytes, path);
+            message = "Iris saved successfully to " + path;
         }
     }
 
@@ -171,7 +187,7 @@
         }
     }
 
-    
+
 
     private void Retake()
     {
@@ -182,6 +198,8 @@
         RightPreviewImage = "images/Iris-Right.jpg";
         LeftCaptureStatus = "";
         RightCaptureStatus = "";
+        message = "";
+        path = AppSettings.BaseFolder;
     }
 }
 
