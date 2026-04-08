@@ -1,22 +1,39 @@
 ﻿@page "/fingerprint"
+@using BiometricApp.Models
 @using BiometricApp.Natives
 @using BiometricApp.Services
 @inject BiometricApp.Services.ScannerService ScannerService
 @inject BiometricApp.Services.ApiService ApiService
+@inject LocalStorageService LocalStorageService
 
 <div class="content">
+    <div class="top-row">
 
-    <!-- HAND IMAGES -->
-    <div class="hands">
-
-        <div class="hand-container">
-            <div class="hand-title">Left Hand</div>
-            <img src="@leftImage" class="hand-img" />
+        <!-- Member Selection -->
+        <div class="member-select">
+            <label>Select Member</label>
+            <select class="form-control" @bind="selectedMemberId">
+                <option value="">-- Select Member --</option>
+                @foreach (var item in members)
+                {
+                    <option value="@item.PersonUniqueId">
+                        @item.FullName
+                    </option>
+                }
+            </select>
         </div>
 
-        <div class="hand-container">
-            <div class="hand-title">Right Hand</div>
-            <img src="@rightImage" class="hand-img" />
+        <!-- HAND IMAGES -->
+        <div class="hands">
+            <div class="hand-container">
+                <div class="hand-title">Left Hand</div>
+                <img src="@leftImage" class="hand-img" />
+            </div>
+
+            <div class="hand-container">
+                <div class="hand-title">Right Hand</div>
+                <img src="@rightImage" class="hand-img" />
+            </div>
         </div>
 
     </div>
@@ -69,7 +86,6 @@
     </div>
 
     <!-- THUMBS -->
-    <!-- THUMBS -->
     <div class="thumb-section">
 
         <div class="slots">
@@ -100,9 +116,9 @@
         </button>
 
         <!-- ✅ SAVE BUTTON NOW HERE -->
-        <button class="btn btn-primary mt-2" @onclick="SaveFinger">
+       @*  <button class="btn btn-primary mt-2" @onclick="SaveFinger">
             Save
-        </button>
+        </button> *@
 
         <!-- MESSAGE -->
         <p class="mt-2">@message</p>
@@ -119,7 +135,21 @@
 
     string leftImage = "images/left-finger.png";
     string rightImage = "images/right-finger.png";
+
     string folder = AppSettings.BaseFolder;
+    private List<MemberDropdown> members = new();
+    private string selectedMemberId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        message = "";
+        members = await LocalStorageService.GetMembersForDropdownAsync();
+    }
+    private void SelectMember(MemberDropdown item)
+    {
+        selectedMemberId = item.PersonUniqueId;
+    }
+
 
     void ChangeImage()
     {
@@ -179,17 +209,23 @@
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(selectedMemberId))
+            {
+                return;
+            }
+
             message = "Capturing left finger.....";
             // Force UI update immediately
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
-            var result = await ScannerService.CaptureFingerprintLeft();
-
+            var result = await ScannerService.CaptureFingerprintLeft(selectedMemberId);
+            string imagePath = Path.Combine(folder, selectedMemberId);
             message = result
-            ? "Fingerprint captured and saved ✅"
+            ? "Left Fingerprint captured and saved ✅ To " + imagePath
             : "Fingerprint capture failed ❌";
 
-            LoadLeftFourFingerprints();
+            
+            LoadLeftFourFingerprints(imagePath);
             if (result)
             {
                 lFingerDone = true;
@@ -217,14 +253,19 @@
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(selectedMemberId))
+            {
+                return;
+            }
+
             message = "Capturing right finger.....";
             // Force UI update immediately
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
-            var result = await ScannerService.CaptureFingerprintRight();
-
+            var result = await ScannerService.CaptureFingerprintRight(selectedMemberId);
+            string imagePath = Path.Combine(folder, selectedMemberId);
             message = result
-            ? "Fingerprint captured and saved ✅"
+            ? "Right Fingerprint captured and saved ✅ To " + imagePath
             : "Fingerprint capture failed ❌";
 
             LoadRightFourFingerprints();
@@ -250,17 +291,21 @@
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(selectedMemberId))
+            {
+                return;
+            }
             message = "Capturing both thumbs.....";
             // Force UI update immediately
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
-            var result = await ScannerService.CaptureFingerprintThum();
-
+            var result = await ScannerService.CaptureFingerprintThum(selectedMemberId);
+            string imagePath = Path.Combine(folder, selectedMemberId);
             message = result
-            ? "Fingerprint captured and saved ✅"
+            ? "Thums Fingerprint captured and saved ✅ To " + imagePath
             : "Fingerprint capture failed ❌";
 
-            LoadTumTwoFingerprints();
+            LoadTumTwoFingerprints(imagePath);
 
             if (result)
             {
@@ -282,7 +327,7 @@
     }
 
 
-    private void LoadLeftFourFingerprints()
+    private void LoadLeftFourFingerprints(string imagePath)
     {
         string[] files =
         {
@@ -295,7 +340,8 @@
 
         for (int i = 0; i < files.Length; i++)
         {
-            string path = Path.Combine(folder, files[i]);
+            
+            string path = Path.Combine(imagePath, files[i]);
 
             if (File.Exists(path))
             {
@@ -320,7 +366,8 @@
 
         for (int i = 0; i < files.Length; i++)
         {
-            string path = Path.Combine(folder, files[i]);
+            string imagePath = Path.Combine(folder, selectedMemberId);
+            string path = Path.Combine(imagePath, files[i]);
 
             if (File.Exists(path))
             {
@@ -333,7 +380,7 @@
         // currentIndex = 5;
     }
 
-    private void LoadTumTwoFingerprints()
+    private void LoadTumTwoFingerprints(string imagePath)
     {
        
         string[] files =
@@ -345,8 +392,7 @@
         int j = 4;
         for (int i = 0; i < files.Length; i++)
         {
-
-            string path = Path.Combine(folder, files[i]);
+            string path = Path.Combine(imagePath, files[i]);
 
             if (File.Exists(path))
             {
@@ -370,7 +416,7 @@
                 Console.WriteLine(user);
             }
             message = "Finger Saved";
-            LoadTumTwoFingerprints();
+            //LoadTumTwoFingerprints();
         }
         catch (Exception ex)
         {
@@ -422,6 +468,25 @@
 }
 
 <style>
+    .member-select .form-control {
+        width: 100%;
+    }
+    .top-row {
+        display: flex;
+        align-items: flex-start; /* aligns with titles */
+        gap: 30px;
+    }
+
+    .member-select {
+        width: 250px;
+    }
+
+  
+
+    .hand-container {
+        text-align: center;
+    }
+
     body {
         margin: 0;
         padding: 0;
@@ -461,10 +526,11 @@
     /* HAND IMAGES */
     .hands {
         display: flex;
-        justify-content: center;
         gap: 40px;
         margin-bottom: 15px;
+        margin-left:10%;
     }
+    
 
     .hand-img {
         width: 160px;

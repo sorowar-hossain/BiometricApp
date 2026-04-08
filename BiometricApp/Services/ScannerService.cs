@@ -16,9 +16,10 @@ namespace BiometricApp.Services
     public class ScannerService
     {
 
-        IMDWrapper iMDWrapper = new IMDWrapper(); 
+        IMDWrapper iMDWrapper = new IMDWrapper();
+        string basePath = AppSettings.BaseFolder; 
         // Main function to capture fingerprint
-        public async Task<bool> CaptureFingerprintLeft()
+        public async Task<bool> CaptureFingerprintLeft( string selectedMemberId)
         {
             try
             {
@@ -73,7 +74,7 @@ namespace BiometricApp.Services
                         // 6. Give device time to finalize image
                         await Task.Delay(2000);
 
-                        string folder = @"C:\Biometric_Finger";
+                        string folder = Path.Combine(basePath, selectedMemberId);
 
                         if (!Directory.Exists(folder))
                             Directory.CreateDirectory(folder);
@@ -115,7 +116,7 @@ namespace BiometricApp.Services
             }
         }
 
-        public async Task<bool> CaptureFingerprintRight()
+        public async Task<bool> CaptureFingerprintRight(string selectedMemberId)
         {
             try
             {
@@ -166,7 +167,7 @@ namespace BiometricApp.Services
                         // 6. Give device time to finalize image
                         await Task.Delay(2000);
 
-                        string folder = @"C:\Biometric_Finger";
+                        string folder = Path.Combine(basePath, selectedMemberId);
 
                         if (!Directory.Exists(folder))
                             Directory.CreateDirectory(folder);
@@ -208,7 +209,7 @@ namespace BiometricApp.Services
             }
         }
       
-        public async Task<bool> CaptureFingerprintThum()
+        public async Task<bool> CaptureFingerprintThum(string selectedMemberId)
         {
             try
             {
@@ -259,7 +260,7 @@ namespace BiometricApp.Services
                         // 6. Give device time to finalize image
                         await Task.Delay(2000);
 
-                        string folder = @"C:\Biometric_Finger";
+                        string folder = Path.Combine(basePath, selectedMemberId);
 
                         if (!Directory.Exists(folder))
                             Directory.CreateDirectory(folder);
