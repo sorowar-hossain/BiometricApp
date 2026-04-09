@@ -115,7 +115,7 @@ namespace BiometricApp.Services
                         result.Add(new MemberDropdown
                         {
                             PersonUniqueId = member.PersonUniqueId,
-                            FullName = $"{member.FirstName} {member.LastName} ({member.FatherName})"
+                            FullName = $"{member.FirstName} {member.LastName} ({member.CreatedOn.ToString("HH:mm")})"
                         });
                     }
                 }
