@@ -168,11 +168,26 @@
                             <label>Full Name</label>
                             <input class="form-control" value="@Model.FirstName @Model.LastName" readonly />
                         </div>
+                           <div class="info-row">
+                            <label>Father Name</label>
+                            <input class="form-control" value="@Model.FatherName" readonly />
+                        </div>
+                        <div class="info-row">
+                            <label>Mother Name</label>
+                            <input class="form-control" value="@Model.MotherName" readonly />
+                        </div>
 
                         <div class="info-row">
                             <label>Date of Birth</label>
                             <input class="form-control"
                                    value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))"
+                                   readonly />
+                        </div>
+
+                        <div class="info-row">
+                            <label>Date of Expiry</label>
+                            <input class="form-control"
+                                   value="@(Model.ExpiryDate?.ToString("yyyy-MM-dd"))"
                                    readonly />
                         </div>
 

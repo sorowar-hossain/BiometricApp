@@ -24,7 +24,7 @@ namespace BiometricApp.Services
 
         // Saves demographics data to a member folder.
        
-        public async Task<string> SaveDemographicsAsync2(MemberModel member)
+        public async Task<string> SaveDemographicsAsync(MemberModel member)
         {
             // Each member gets their own folder
             string memberFolder = Path.Combine(baseFolder, member.PersonUniqueId);
@@ -46,23 +46,7 @@ namespace BiometricApp.Services
             return memberFolder;
         }
 
-        public async Task<string> SaveDemographicsAsync(MemberModel member)
-        {
-            return await Task.Run(async () =>
-            {
-                string memberFolder = Path.Combine(baseFolder, member.PersonUniqueId);
-                Directory.CreateDirectory(memberFolder);
-
-                string jsonPath = Path.Combine(memberFolder, "demographics.json");
-                string json = JsonSerializer.Serialize(member, new JsonSerializerOptions { WriteIndented = true });
-
-                await File.WriteAllTextAsync(jsonPath, json);
-
-                return memberFolder;
-            });
-        }
-
-
+      
         /// Loads demographics data for a member from folder
         public async Task<MemberModel?> LoadDemographicsAsync(string personUniqueId)
         {

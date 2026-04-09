@@ -153,7 +153,7 @@
         model.OrgId = user.OrgId;
         model.UserId = user.UserId;
         model.CreatedBy = user.UserName;
-        var savePath = await LocalStorageService.SaveDemographicsAsync2(model);
+        var savePath = await LocalStorageService.SaveDemographicsAsync(model);
         message = "Member saved successfully to " + savePath;
         model = new MemberModel
         {
