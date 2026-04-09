@@ -78,6 +78,20 @@ namespace BiometricApp.Services
             }
         }
 
+
+        public void DeleteAllMemberFolders()
+        {
+            if (Directory.Exists(baseFolder))
+            {
+                var directories = Directory.GetDirectories(baseFolder);
+
+                foreach (var dir in directories)
+                {
+                    Directory.Delete(dir, true); // recursive delete
+                }
+            }
+        }
+
         public async Task<List<MemberDropdown>> GetMembersForDropdownAsync()
         {
             var result = new List<MemberDropdown>();
