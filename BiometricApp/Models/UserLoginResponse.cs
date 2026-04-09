@@ -12,5 +12,9 @@ namespace BiometricApp.Models
         public int OrgId { get; set; }
         public string OrgCode { get; set; }
         public string UserName { get; set; }
+        public bool Success { get; set; }
+        public string Message { get; internal set; }
+        public string OrganizationName { get; internal set; }
+        public string OrganizationCode { get; internal set; }
     }
 }
