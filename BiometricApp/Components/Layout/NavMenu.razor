@@ -1,4 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using BiometricApp.Models
+@using BiometricApp.Services
+@inject UserService UserService
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">BiometricApp</a>
     </div>
@@ -24,15 +28,18 @@
             </NavLink>
         </div> *@
 
+       @if (user != null && user.UserName == "administrator")
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/create-user">
+                        <i class="bi bi-person-plus-fill me-2"></i> Create User
+                    </NavLink>
+                </div>
+            }
+        
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="registration">
                 <i class="bi bi-person-plus" aria-hidden="true"></i> Demographics Data
-            </NavLink>
-        </div>
-
-         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/create-user">
-                <i class="bi bi-person-plus-fill"></i>Create User
             </NavLink>
         </div>
 
@@ -74,3 +81,14 @@
 
     </nav>
 </div>
+
+@code {
+   
+    private UserLoginResponse user = new();
+    protected override async Task OnInitializedAsync()
+    {
+        // Get current user
+        user = UserService.CurrentUser;
+        
+    }
+ }

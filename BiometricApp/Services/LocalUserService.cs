@@ -97,7 +97,8 @@ namespace BiometricApp.Services
                     loginObj.Message = "Valid User";
                     loginObj.Success = true;
                     loginObj.OrganizationName = AppSettings.OrganizationName;
-                    loginObj.OrganizationCode = AppSettings.OrganizationCode;  
+                    loginObj.OrganizationCode = AppSettings.OrganizationCode;
+                    loginObj.UserName = user.Username;
                     return loginObj;
                 }
 
