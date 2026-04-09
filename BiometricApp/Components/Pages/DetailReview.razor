@@ -73,23 +73,30 @@
                                 <!-- LEFT HAND -->
                                 <div class="hand-container">
                                     <div class="hand-title">Left Hand</div>
-                                    <div class="slots">
 
+                                    <div class="slots">
                                         @for (int i = 0; i < 4; i++)
                                         {
-                                            <div>
+                                            <div class="slot @(GetSlotClass(i))">
+
+                                                <!-- Label -->
                                                 <div class="finger-label">@GetFingerLabel(i)</div>
+
+                                                <!-- Image -->
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
                                                     <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
                                                 }
+
                                             </div>
                                         }
-
-
                                     </div>
-
                                 </div>
+                               
+                            </div>
+
+                            <div class="hands">
+                            
 
                                 <!-- RIGHT HAND -->
                                 <div class="hand-container">
@@ -97,7 +104,7 @@
                                     <div class="slots">
                                         @for (int i = 6; i < 10; i++)
                                         {
-                                            <div>
+                                            <div class="slot @(GetSlotClass(i))">
                                                 <div class="finger-label">@GetFingerLabel(i)</div>
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
@@ -112,11 +119,12 @@
                             </div>
 
                             <!-- THUMBS -->
-                            <div class="thumb-section">
+                            <div class="hand-container">
+                                <div class="hand-title">Thumbs</div>
                                 <div class="slots">
                                     <!-- LEFT THUMB -->
-                                    <div>
-                                        <div class="finger-label">LT</div>
+                                    <div class="slot @(GetSlotClass(4))">
+                                        <div class="finger-label">@GetFingerLabel(4)</div>
 
                                         @if (!string.IsNullOrEmpty(Fingerprints[4]))
                                         {
@@ -125,8 +133,8 @@
                                     </div>
 
                                     <!-- RIGHT THUMB -->
-                                    <div>
-                                        <div class="finger-label">RT</div>
+                                    <div class="slot @(GetSlotClass(5))">
+                                        <div class="finger-label">@GetFingerLabel(5)</div>
 
                                         @if (!string.IsNullOrEmpty(Fingerprints[5]))
                                         {
@@ -220,22 +228,9 @@
         </div>
     </div>
 </div>
+
 <style>
-
-    .member-select .form-control {
-        width: 100%;
-    }
-
-    .top-row {
-        display: flex;
-        align-items: flex-start; /* aligns with titles */
-        gap: 30px;
-    }
-
-    .member-select {
-        width: 250px;
-    }
-
+    /* MAIN CONTAINER */
     .main-container {
         background: #f4f6f9;
         padding: 20px;
@@ -249,6 +244,21 @@
         font-size: 18px;
     }
 
+    /* MEMBER SELECT */
+    .member-select {
+        width: 250px;
+    }
+
+        .member-select .form-control {
+            width: 100%;
+        }
+
+    .top-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 30px;
+    }
+
     /* SECTION BOX */
     .section-box {
         border: 1px solid #e0e0e0;
@@ -258,33 +268,102 @@
         margin-bottom: 15px;
     }
 
-    /* SECTION TITLES */
-    .section-title {
-        font-weight: 600;
-        margin-bottom: 12px;
-        color: #2f5ea8;
-    }
-
-    /* PERSONAL INFO ROW */
-    .info-row {
-        margin-bottom: 12px;
-    }
-
-        .info-row label {
-            font-weight: 500;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-    /* BIOMETRIC LABELS */
+    .section-title,
     .biometric-label {
         font-weight: 600;
-        display: block;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
         color: #2f5ea8;
     }
 
-    /* FACE IMAGE */
+    /* HAND LAYOUT */
+    .hands {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        margin-bottom: 15px;
+    }
+
+    .hand-container {
+        text-align: center;
+    }
+
+    /* HAND TITLE */
+    .hand-title {
+        display: inline-block;
+        background: #3b63a3;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    /* FINGER SLOTS */
+    .slots {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    /* SINGLE SLOT */
+    .slot {
+        position: relative;
+        width: 70px;
+        height: 70px;
+        border: 2px solid #3b63a3;
+        border-radius: 8px;
+        background-color: #f4f6f9;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ACTIVE SLOT */
+    .active-finger {
+        background-color: #4CAF50;
+        border-color: #4CAF50;
+    }
+
+    /* COMPLETED SLOT */
+    .slot.completed {
+        background: #d4edda;
+        border-color: #28a745;
+    }
+
+    /* LABEL INSIDE BOX */
+    .finger-label {
+        position: absolute;
+        top: 4px;
+        left: 6px;
+        font-size: 11px;
+        font-weight: bold;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 1px 4px;
+        border-radius: 4px;
+        z-index: 2;
+    }
+
+    /* FINGERPRINT IMAGE */
+    .finger-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* THUMB SECTION */
+    .thumb-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 15px;
+    }
+
+        .thumb-section .slots {
+            gap: 20px;
+        }
+
+    /* PHOTO */
     .photo-wrapper {
         width: 100%;
         height: 180px;
@@ -315,110 +394,7 @@
         border: 1px solid #ccc;
     }
 
-    /* HANDS FINGERPRINTS */
-    .hands {
-        display: flex;
-        justify-content: center;
-        gap: 50px;
-        margin-bottom: 15px;
-    }
-
-    .hand-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .hand-title {
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: white;
-        font-size: 14px;
-        background: #3b63a3;
-        padding: 4px 12px;
-        border-radius: 12px;
-    }
-
-    /* FINGER SLOTS */
-    .slots {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-    }
-
-    .slot {
-        width: 60px;
-        height: 80px;
-        border: 2px solid #3b63a3;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        background: #f9f9f9;
-    }
-
-        .slot.completed {
-            background: #d4edda;
-            border-color: #28a745;
-        }
-
-    .finger-img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-    /* FINGER SLOTS */
-    .slots .finger-img {
-        width: 135%; /* slightly bigger than before (was 110%) */
-        height: 135%; /* slightly bigger */
-        object-fit: contain;
-    }
-
-
-    .finger-label {
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        font-size: 10px;
-        font-weight: bold;
-        background: rgba(255, 255, 255, 0.8);
-        padding: 1px 3px;
-        border-radius: 3px;
-    }
-
-    /* THUMB SECTION */
-    .thumb-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 10px;
-    }
-
-        .thumb-section .slots {
-            display: flex;
-            gap: 20px;
-        }
-
-        .thumb-section .slot {
-            width: 70px;
-            height: 70px;
-            border: 2px solid #3b63a3;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .thumb-section .finger-img {
-            width: 65%;
-            height: auto;
-            object-fit: contain;
-            height: 65%
-        }
-
-    /* SIGNATURES */
+    /* SIGNATURE */
     .signature-container {
         display: flex;
         gap: 10px;
@@ -451,12 +427,6 @@
             background-color: #244a87;
         }
 
-    .btn-secondary {
-        background-color: #6c757d;
-        border: none;
-        color: white;
-    }
-
     .btn-success {
         background-color: #3b63a3;
         border: none;
@@ -466,6 +436,12 @@
         .btn-success:hover {
             background-color: #2f4f84;
         }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        color: white;
+    }
 </style>
 
 @code {
@@ -517,20 +493,30 @@
     {
         return index switch
         {
-            0 => "LL", // Left Little
-            1 => "LR", // Left Ring
-            2 => "LM", // Left Middle
-            3 => "LI", // Left Index
-            4 => "LT", // Left Thumb
-
-            5 => "RT", // Right Thumb
-            6 => "RI", // Right Index
-            7 => "RM", // Right Middle
-            8 => "RR", // Right Ring
-            9 => "RL", // Right Little
-
+            0 => "LL",
+            1 => "LR",
+            2 => "LM",
+            3 => "LI",
+            4 => "LT",
+            5 => "RT",
+            6 => "RI",
+            7 => "RM",
+            8 => "RR",
+            9 => "RL",
+            _ => ""   // ✅ VERY IMPORTANT
         };
     }
+
+    // Highlight active slot
+    int currentIndex = 0;
+    private string GetSlotClass(int index)
+    {
+        // if (index == currentIndex)
+        //     return "active-finger";
+
+        return "";
+    }
+
     // Fingerprint list
    
     private void LoadLeftFourFingerprints(string imagePath)
