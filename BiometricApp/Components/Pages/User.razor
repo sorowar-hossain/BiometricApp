@@ -1,0 +1,275 @@
+﻿@page "/create-user"
+@using BiometricApp.Models
+@using BiometricApp.Services
+@using System.Text.Json
+@inject LocalUser LocalUser
+
+
+<div class="iris-wrapper">
+
+    <!-- Header -->
+    <div class="header-bar">
+        Data Capturing System
+    </div>
+
+    <!-- Content -->
+    <div class="content-area">
+
+        <h5 class="section-title text-center">Create User</h5>
+
+        <div class="form-section">
+            <!-- LEFT PART -->
+            <div class="form-left">
+                <div class="form-group">
+                    <label>Organization Name</label>
+                    <input @bind="user.OrganizationName"  readonly class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Organization Code</label>
+                    <input @bind="user.OrganizationCode" readonly class="form-control" />
+                </div>
+
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" @bind="user.IsActive" id="activeUser" />
+                    <label for="activeUser">Active</label>
+                </div>
+            </div>
+
+            <!-- RIGHT PART -->
+            <div class="form-right">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input @bind="user.Username" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" @bind="password" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Role</label>
+                    <select @bind="user.Role" class="form-control">
+                        <option value="">---Select Role---</option>
+                        <option value="Admin">Admin</option>
+                        <option value="User">User</option>
+                    </select>
+                </div>
+
+
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-section">
+            <button class="btn btn-success" @onclick="SaveUser">Save</button>
+            <button class="btn btn-secondary" @onclick="ResetForm">Reset</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <p class="message">@message</p>
+        }
+    </div>
+
+    <style>
+        .iris-wrapper {
+            padding: 20px;
+            background-color: #f4f6f9;
+            min-height: 100vh;
+        }
+
+        .header-bar {
+            background-color: #3b63a3;
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .content-area {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #3b63a3;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .form-section {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .form-left, .form-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .form-group label {
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: row; /* keep checkbox and label in row */
+            align-items: center; /* vertically center the checkbox with label */
+            gap: 6px;
+        }
+
+            .checkbox-group input[type="checkbox"] {
+                transform: scale(1.5); /* 1.5 times bigger */
+                margin: 0; /* remove default spacing */
+                vertical-align: middle; /* align with label */
+                cursor: pointer; /* show pointer on hover */
+            }
+
+            .checkbox-group label {
+                line-height: 1.2; /* adjust text vertical alignment */
+                cursor: pointer; /* clickable label */
+            }
+
+        .button-section {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 6px 14px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #4CAF50;
+        }
+
+            .btn-success:hover {
+                background-color: #45a049;
+            }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+            .btn-secondary:hover {
+                background-color: #5a6268;
+            }
+
+        .message {
+            margin-top: 12px;
+            font-weight: 600;
+            color: #3b63a3;
+            text-align: center;
+        }
+    </style>
+</div>
+
+
+
+@code {
+    private AppUser user = new();
+    private SaveUserResult res = new();
+    private string password;
+    private string message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = new() { IsActive = true, OrganizationName = AppSettings.OrganizationName, OrganizationCode = AppSettings.OrganizationCode };
+
+    }
+
+    private async Task SaveUser()
+    {
+        if (string.IsNullOrWhiteSpace(user.OrganizationCode) || string.IsNullOrWhiteSpace(user.OrganizationName))
+        {
+            message = "Organization code and Organization Name are required!";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(password))
+        {
+            message = "Password and username are required!";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(user.Role))
+        {
+            message = "Select a role!";
+            return;
+        }
+        try
+        {
+            user.PasswordHash = HashPassword(password);
+
+            res = await LocalUser.SaveUser(user);
+            if (res.Success)
+            {
+                message = res.Message;
+                ResetAll("User saved successfully ✅");
+            }
+            else
+            {
+                message = res.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = "Error: " + ex.Message;
+        }
+    }
+
+    private void ResetForm()
+    {
+        ResetAll("");
+
+    }
+
+    private void ResetAll(string mess)
+    {
+        string ff = AppSettings.OrganizationName;
+        user = new() { IsActive = true, OrganizationName = AppSettings.OrganizationName, OrganizationCode = AppSettings.OrganizationCode };
+        password = "";
+        message = mess;
+     
+    }
+
+    private string HashPassword(string password)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+        var hash = sha.ComputeHash(bytes);
+        return Convert.ToBase64String(hash);
+    }
+}
+
+
+
+
+
+
+
