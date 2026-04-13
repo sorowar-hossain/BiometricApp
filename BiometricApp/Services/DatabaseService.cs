@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -400,10 +401,10 @@ namespace BiometricApp.Services
                     // =========================
                     // BIOMETRICS
                     // =========================
-                  //  await SaveBiometrics(conn, folder, personId);
+                    await SaveBiometrics(conn, folder, personId);
                 }
 
-                return (true, "All members Saved successfully ✅");
+                return (true, "All Members Saved Successfully ✅");
             }
             catch (Exception ex)
             {
@@ -445,33 +446,194 @@ namespace BiometricApp.Services
         public async Task SaveBiometrics(SqlConnection conn, string folder, int personId)
         {
             string query = @"
-                        IF EXISTS (SELECT 1 FROM Biometrics WHERE PersonId=@PersonId)
-                        BEGIN
-                            UPDATE Biometrics SET
-                                Face=@Face,
-                                UpdatedOn=GETDATE()
-                            WHERE PersonId=@PersonId
-                        END
-                        ELSE
-                        BEGIN
-                            INSERT INTO Biometrics (PersonId, Face, CreatedOn)
-                            VALUES (@PersonId, @Face, GETDATE())
-                        END";
+                    IF EXISTS (SELECT 1 FROM Biometrics WHERE PersonId=@PersonId)
+                    BEGIN
+                        UPDATE Biometrics SET
+                            LeftThumb=@LeftThumb,
+                            LeftThumb_FileName=@LeftThumb_FileName,
 
-            SqlCommand cmd = new SqlCommand(query, conn);
+                            LeftIndex=@LeftIndex,
+                            LeftIndex_FileName=@LeftIndex_FileName,
+
+                            LeftMiddle=@LeftMiddle,
+                            LeftMiddle_FileName=@LeftMiddle_FileName,
+
+                            LeftRing=@LeftRing,
+                            LeftRing_FileName=@LeftRing_FileName,
+
+                            LeftLittle=@LeftLittle,
+                            LeftLittle_FileName=@LeftLittle_FileName,
+
+                            RightThumb=@RightThumb,
+                            RightThumb_FileName=@RightThumb_FileName,
+
+                            RightIndex=@RightIndex,
+                            RightIndex_FileName=@RightIndex_FileName,
+
+                            RightMiddle=@RightMiddle,
+                            RightMiddle_FileName=@RightMiddle_FileName,
+
+                            RightRing=@RightRing,
+                            RightRing_FileName=@RightRing_FileName,
+
+                            RightLittle=@RightLittle,
+                            RightLittle_FileName=@RightLittle_FileName,
+
+                            LeftIris=@LeftIris,
+                            LeftIris_FileName=@LeftIris_FileName,
+
+                            RightIris=@RightIris,
+                            RightIris_FileName=@RightIris_FileName,
+
+                            Face=@Face,
+                            Face_FileName=@Face_FileName,
+
+                            UpdatedBy=@UpdatedBy,
+                            UpdatedOn=GETDATE()
+
+                        WHERE PersonId=@PersonId
+                    END
+                    ELSE
+                    BEGIN
+                        INSERT INTO Biometrics
+                        (
+                            PersonId,
+
+                            LeftThumb, LeftThumb_FileName,
+                            LeftIndex, LeftIndex_FileName,
+                            LeftMiddle, LeftMiddle_FileName,
+                            LeftRing, LeftRing_FileName,
+                            LeftLittle, LeftLittle_FileName,
+
+                            RightThumb, RightThumb_FileName,
+                            RightIndex, RightIndex_FileName,
+                            RightMiddle, RightMiddle_FileName,
+                            RightRing, RightRing_FileName,
+                            RightLittle, RightLittle_FileName,
+
+                            LeftIris, LeftIris_FileName,
+                            RightIris, RightIris_FileName,
+
+                            Face, Face_FileName,
+
+                            CreatedBy,
+                            CreatedOn
+                          
+                        )
+                        VALUES
+                        (
+                            @PersonId,
+
+                            @LeftThumb, @LeftThumb_FileName,
+                            @LeftIndex, @LeftIndex_FileName,
+                            @LeftMiddle, @LeftMiddle_FileName,
+                            @LeftRing, @LeftRing_FileName,
+                            @LeftLittle, @LeftLittle_FileName,
+
+                            @RightThumb, @RightThumb_FileName,
+                            @RightIndex, @RightIndex_FileName,
+                            @RightMiddle, @RightMiddle_FileName,
+                            @RightRing, @RightRing_FileName,
+                            @RightLittle, @RightLittle_FileName,
+
+                            @LeftIris, @LeftIris_FileName,
+                            @RightIris, @RightIris_FileName,
+
+                            @Face, @Face_FileName,
+
+                            @CreatedBy,
+                            GETDATE()
+                        )
+                    END";
+            using SqlCommand cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@PersonId", personId);
 
-            string facePath = Path.Combine(folder, "face.png");
 
-            if (File.Exists(facePath))
+            // Helper function
+            byte[] GetFileBytes(string fileName, string folder)
             {
-                byte[] faceBytes = await File.ReadAllBytesAsync(facePath);
-                cmd.Parameters.AddWithValue("@Face", faceBytes);
+                string path = Path.Combine(folder, fileName);
+
+                if (!File.Exists(path))
+                    return null;
+
+                return File.ReadAllBytes(path);
             }
-            else
-            {
-                cmd.Parameters.AddWithValue("@Face", DBNull.Value);
-            }
+
+
+            // LEFT HAND
+            cmd.Parameters.Add("@LeftThumb", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("l_Left_Thumb.bmp", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@LeftIndex", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("l_Left_Index.bmp", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@LeftMiddle", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("l_Left_Middle.bmp", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@LeftRing", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("l_Left_Ring.bmp", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@LeftLittle", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("l_Left_Little.bmp", folder) ?? DBNull.Value;
+
+
+            // RIGHT HAND
+
+            cmd.Parameters.Add("@RightThumb", SqlDbType.VarBinary).Value =
+                   (object?)GetFileBytes("r_Right_Thumb.bmp", folder) ?? DBNull.Value;
+
+
+            cmd.Parameters.Add("@RightIndex", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("r_Right_Index.bmp", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@RightMiddle", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("r_Right_Middle.bmp", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@RightRing", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("r_Right_Ring.bmp", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@RightLittle", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("r_Right_Little.bmp", folder) ?? DBNull.Value;
+
+
+            // IRIS
+
+            cmd.Parameters.Add("@LeftIris", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("left_iris.png", folder) ?? DBNull.Value;
+
+            cmd.Parameters.Add("@RightIris", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("right_iris.png", folder) ?? DBNull.Value;
+
+            // FACE
+            cmd.Parameters.Add("@Face", SqlDbType.VarBinary).Value =
+                (object?)GetFileBytes("face.png", folder) ?? DBNull.Value;
+
+            // LEFT HAND FileNames
+            cmd.Parameters.Add("@LeftThumb_FileName", SqlDbType.NVarChar, 200).Value = "l_Left_Thumb.bmp";
+            cmd.Parameters.Add("@LeftIndex_FileName", SqlDbType.NVarChar, 200).Value = "l_Left_Index.bmp";
+            cmd.Parameters.Add("@LeftMiddle_FileName", SqlDbType.NVarChar, 200).Value = "l_Left_Middle.bmp";
+            cmd.Parameters.Add("@LeftRing_FileName", SqlDbType.NVarChar, 200).Value = "l_Left_Ring.bmp";
+            cmd.Parameters.Add("@LeftLittle_FileName", SqlDbType.NVarChar, 200).Value = "l_Left_Little.bmp";
+
+            // RIGHT HAND FileNames
+            cmd.Parameters.Add("@RightThumb_FileName", SqlDbType.NVarChar, 200).Value = "r_Right_Thumb.bmp";
+            cmd.Parameters.Add("@RightIndex_FileName", SqlDbType.NVarChar, 200).Value = "r_Right_Index.bmp";
+            cmd.Parameters.Add("@RightMiddle_FileName", SqlDbType.NVarChar, 200).Value = "r_Right_Middle.bmp";
+            cmd.Parameters.Add("@RightRing_FileName", SqlDbType.NVarChar, 200).Value = "r_Right_Ring.bmp";
+            cmd.Parameters.Add("@RightLittle_FileName", SqlDbType.NVarChar, 200).Value = "r_Right_Little.bmp";
+
+            // IRIS FileNames
+            cmd.Parameters.Add("@LeftIris_FileName", SqlDbType.NVarChar, 200).Value = "left_iris.png";
+            cmd.Parameters.Add("@RightIris_FileName", SqlDbType.NVarChar, 200).Value = "right_iris.png";
+
+            // FACE FileName
+            cmd.Parameters.Add("@Face_FileName", SqlDbType.NVarChar, 200).Value = "face.png";
+
+            string currentUser = "admin"; // or from login/session
+
+            cmd.Parameters.Add("@CreatedBy", SqlDbType.NVarChar, 100).Value = currentUser;
+            cmd.Parameters.Add("@UpdatedBy", SqlDbType.NVarChar, 100).Value = currentUser;
 
             await cmd.ExecuteNonQueryAsync();
         }
