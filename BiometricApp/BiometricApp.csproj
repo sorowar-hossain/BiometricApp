@@ -20,6 +20,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <EnableDefaultCssItems>false</EnableDefaultCssItems>
         <Nullable>enable</Nullable>
+	
 
         <!-- Display name -->
         <ApplicationTitle>BiometricApp</ApplicationTitle>
@@ -85,6 +86,8 @@
       <Reference Include="Device_Wrapper">
         <HintPath>Natives\Device_Wrapper.dll</HintPath>
       </Reference>
+		<MauiAsset Include="Scripts\CreateTables.sql" />
+		
     </ItemGroup>
 
 	<!--<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">

@@ -27,7 +27,7 @@ namespace BiometricApp.Services
                 {
                     return (false, "No internet connection ❌");
                 }
-               
+
 
                 // Step 2: Validate inputs (optional but useful)
                 if (string.IsNullOrWhiteSpace(dbModel.ServerName))
@@ -59,61 +59,8 @@ namespace BiometricApp.Services
                 return (false, $"Error: {ex.Message}");
             }
         }
-        public async Task<(bool Success, string Message)> EnsureDatabaseExists(DbConnectionModel dbModel)
-        {
-            try
-            {
-                if (!IsInternetAvailable())
-                    return (false, "No network connection ❌");
 
-                // Step 1: Connect to master DB
-                string masterConnStr =
-                    $"Server={dbModel.ServerName};Database=master;" +
-                    $"User Id={dbModel.Username};Password={dbModel.Password};" +
-                    $"TrustServerCertificate=True;Connection Timeout=5;";
-
-                using (SqlConnection conn = new SqlConnection(masterConnStr))
-                {
-                    await conn.OpenAsync();
-
-                    // Step 2: Check if database exists
-                    string checkDbQuery =
-                        "SELECT COUNT(*) FROM sys.databases WHERE name = @db";
-
-                    using (SqlCommand cmd = new SqlCommand(checkDbQuery, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@db", dbModel.DatabaseName);
-
-                        int exists = (int)await cmd.ExecuteScalarAsync();
-
-                        if (exists > 0)
-                        {
-                            return (true, $"Database '{dbModel.DatabaseName}' already exists ✅");
-                        }
-                    }
-
-                    // Step 3: Create database if not exists
-                    string createDbQuery = $"CREATE DATABASE [{dbModel.DatabaseName}]";
-
-                    using (SqlCommand cmd = new SqlCommand(createDbQuery, conn))
-                    {
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-
-                    return (true, $"Database '{dbModel.DatabaseName}' created successfully 🏗️");
-                }
-            }
-            catch (SqlException ex)
-            {
-                return (false, $"SQL Error: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                return (false, $"Error: {ex.Message}");
-            }
-        }
-
-        public async Task<(bool Success, string Message)> TestLocalConnection(DbConnectionModel dbModel)
+        public async Task<(bool Success, string Message)> TestConnectionLocal(DbConnectionModel dbModel)
         {
             try
             {
@@ -153,7 +100,63 @@ namespace BiometricApp.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> EnsureDatabaseExistsLocal(DbConnectionModel dbModel)
+        public async Task<(bool Success, string Message)> SetupDatabase(DbConnectionModel dbModel) 
+        {
+            try
+            {
+                if (!IsInternetAvailable())
+                    return (false, "No network connection ❌");
+
+                // Step 1: Connect to master DB
+                string masterConnStr =
+                    $"Server={dbModel.ServerName};Database=master;" +
+                    $"User Id={dbModel.Username};Password={dbModel.Password};" +
+                    $"TrustServerCertificate=True;Connection Timeout=5;";
+
+                using (SqlConnection conn = new SqlConnection(masterConnStr))
+                {
+                    await conn.OpenAsync();
+
+                    // Step 2: Check if database exists
+                    string checkDbQuery =
+                        "SELECT COUNT(*) FROM sys.databases WHERE name = @db";
+
+                    using (SqlCommand cmd = new SqlCommand(checkDbQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@db", dbModel.DatabaseName);
+
+                        int exists = (int)await cmd.ExecuteScalarAsync();
+
+                        if (exists > 0)
+                        {
+                            var res = await CreateTables(dbModel);
+                            return res;
+                        }
+                    }
+
+                    // Step 3: Create database if not exists
+                    string createDbQuery = $"CREATE DATABASE [{dbModel.DatabaseName}]";
+
+                    using (SqlCommand cmd = new SqlCommand(createDbQuery, conn))
+                    {
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+
+                    var result = await CreateTables(dbModel);
+                    return result;
+                }
+            }
+            catch (SqlException ex)
+            {
+                return (false, $"SQL Error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> SetupDatabaseLocal(DbConnectionModel dbModel)
         {
             try
             {
@@ -184,7 +187,9 @@ namespace BiometricApp.Services
 
                         if (exists > 0)
                         {
-                            return (true, $"Database '{dbModel.DatabaseName}' already exists ✅ (Local)");
+                            //return (true, $"Database '{dbModel.DatabaseName}' already exists ✅ (Local)");
+                            var result = await CreateTablesLocal(dbModel);
+                            return result;
                         }
                     }
 
@@ -197,7 +202,9 @@ namespace BiometricApp.Services
                         await cmd.ExecuteNonQueryAsync();
                     }
 
-                    return (true, $"Database '{dbModel.DatabaseName}' created successfully 🏗️ (Local)");
+                    //return (true, $"Database '{dbModel.DatabaseName}' created successfully 🏗️ (Local)");
+                    var res = await CreateTablesLocal(dbModel);
+                    return res;
                 }
             }
             catch (SqlException ex)
@@ -209,6 +216,68 @@ namespace BiometricApp.Services
                 return (false, $"Error: {ex.Message}");
             }
         }
+
+        public async Task<(bool Success, string Message)> CreateTables(DbConnectionModel dbModel)
+        {
+            try
+            {
+                string connStr =
+                    $"Server={dbModel.ServerName};Database={dbModel.DatabaseName};" +
+                    $"User Id={dbModel.Username};Password={dbModel.Password};" +
+                    $"TrustServerCertificate=True;Connection Timeout=5;";
+
+                using var stream = await FileSystem.OpenAppPackageFileAsync("Scripts/CreateTables.sql");
+
+                using var reader = new StreamReader(stream);
+                string script = await reader.ReadToEndAsync();
+
+                using SqlConnection conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                using SqlCommand cmd = new SqlCommand(script, conn);
+                await cmd.ExecuteNonQueryAsync();
+
+                return (true, "Database setup successfully ✅");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        public async Task<(bool Success, string Message)> CreateTablesLocal(DbConnectionModel dbModel)
+        {
+            try
+            {
+                string connStr =
+                            $"Server={dbModel.ServerName};" +
+                            $"Database={dbModel.DatabaseName};" +
+                            $"Trusted_Connection=True;" +
+                            $"TrustServerCertificate=True;" +
+                            $"Connection Timeout=5;";
+
+                using var stream = await FileSystem.OpenAppPackageFileAsync("Scripts/CreateTables.sql");
+
+                using var reader = new StreamReader(stream);
+                string script = await reader.ReadToEndAsync();
+
+                using SqlConnection conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                using SqlCommand cmd = new SqlCommand(script, conn);
+                await cmd.ExecuteNonQueryAsync();
+
+                return (true, "Database setup successfully ✅");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+
     }
+
 }
+
 

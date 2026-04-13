@@ -15,7 +15,8 @@ namespace BiometricApp
         public static readonly string OrganizationCode = "Org-001";
 
         public static readonly string MasterDb = "master";
-        public static readonly string BiometricDbName = "BiometircDBTest"; 
+        public static readonly string BiometricDbName = "BiometircDBTest2";
+    
 
     }
 }
