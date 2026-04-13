@@ -21,7 +21,7 @@
             <div class="form-group">
                 <label>Database Type</label>
                 <select class="form-control" @bind="dbModel.DatabaseType">
-                    <option value="">--Select Server--</option>
+                    <option value="0">--Select Server--</option>
                     <option value="1">SQL Server</option>
                 </select>
             </div>
@@ -51,17 +51,19 @@
                     Test Connection
                 </button>
 
-               @*  <button class="btn btn-primary">
+                <button class="btn btn-primary" @onclick="SetupDatabase">
                     Setup Database
-                </button> *@
+                </button>
+
+                <button class="btn btn-secondary" @onclick="ResetForm">Reset</button>
             </div>
 
         </div>
 
         <!-- Bottom Buttons -->
         <div class="button-section">
-            <button class="btn btn-success" @onclick="SaveUser">Save</button>
-            <button class="btn btn-secondary" @onclick="ResetForm">Reset</button>
+            <button class="btn btn-success" @onclick="SaveUser">Save Data</button>
+            
         </div>
 
         @if (!string.IsNullOrEmpty(message))
@@ -178,25 +180,54 @@
 </div>
 
 
-
-
 @code {
     private DbConnectionModel dbModel = new();
     private SaveUserResult res = new();
-    private string password;
     private string message;
+    bool isDbconnection = false;
 
     protected override async Task OnInitializedAsync()
     {
 
     }
 
-    async Task TestConnection()
+    private async Task TestConnection()
     {
-        dbModel.DatabaseName = "BangladeshECPS19Nov23";
-        var result = await DatabaseService.TestConnection(dbModel);
+        if (dbModel.DatabaseType == 0)
+        {
+            message = "Please select a database type ❌";
+            return;
+        }
+
+        //dbModel.DatabaseName = "BangladeshECPS19Nov23";
+        dbModel.DatabaseName = AppSettings.MasterDb;
+        var result = await DatabaseService.TestLocalConnection(dbModel);
+        isDbconnection = result.Success;
         message = result.Message;
     }
+
+    private async Task SetupDatabase()
+    {
+        if (dbModel.DatabaseType == 0)
+        {
+            message = "Please select a database type ❌";
+            return;
+        }
+        if (isDbconnection)
+        {
+            dbModel.DatabaseName = AppSettings.BiometricDbName;
+            var result = await DatabaseService.EnsureDatabaseExistsLocal(dbModel);
+            message = result.Message;
+        }
+
+        else
+        {
+            message = "Please Test Connection First..!";
+        }
+
+    }
+
+    
 
     private async Task SaveUser()
     {
@@ -229,6 +260,7 @@
     {
         dbModel = new() { };
         message = "";
+        isDbconnection = false;
     }
 
    
