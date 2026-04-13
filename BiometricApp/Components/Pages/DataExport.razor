@@ -3,6 +3,7 @@
 @using BiometricApp.Services
 @using System.Text.Json
 @inject DatabaseService DatabaseService
+@inject UserService UserService
 
 <div class="dataExport-wrapper">
 
@@ -62,7 +63,7 @@
 
         <!-- Bottom Buttons -->
         <div class="button-section">
-            <button class="btn btn-success" @onclick="SaveUser">Save Data</button>
+            <button class="btn btn-success" @onclick="SaveData">Save Data</button>
             
         </div>
 
@@ -183,12 +184,15 @@
 @code {
     private DbConnectionModel dbModel = new();
     private SaveUserResult res = new();
+    private UserLoginResponse user = new();
     private string message;
     bool isDbconnection = false;
+    bool isSetupDone = false;
 
     protected override async Task OnInitializedAsync()
     {
-
+        // Get current user
+        user = UserService.CurrentUser;
     }
 
     private async Task TestConnection()
@@ -211,38 +215,42 @@
         if (dbModel.DatabaseType == 0)
         {
             message = "Please select a database type ❌";
+            isSetupDone = false;
             return;
         }
         if (isDbconnection)
         {
             dbModel.DatabaseName = AppSettings.BiometricDbName;
             var result = await DatabaseService.SetupDatabaseLocal(dbModel);
+            isSetupDone = true;
             message = result.Message;
         }
 
         else
         {
-            message = "Please Test Connection First..!";
+            message = "Please Test Connection First ❌";
         }
 
     }
 
-    
 
-    private async Task SaveUser()
+
+    private async Task SaveData()
     {
 
         try
         {
-            if (res.Success)
+            if (!isSetupDone)
             {
-                message = res.Message;
-                ResetAll("User saved successfully ✅");
+                ResetAll("Please Database setup First ❌");
             }
-            else
+            else if (isSetupDone)
             {
-                message = res.Message;
+                var result = await DatabaseService.ImportAllMembers(dbModel,user);
+                isSetupDone = true;
+                message = result.Message;
             }
+            
         }
         catch (Exception ex)
         {
@@ -259,8 +267,9 @@
     private void ResetAll(string mess)
     {
         dbModel = new() { };
-        message = "";
+        message = mess;
         isDbconnection = false;
+        isSetupDone = false;
     }
 
    

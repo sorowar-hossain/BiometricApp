@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BiometricApp.Services
@@ -100,7 +101,7 @@ namespace BiometricApp.Services
             }
         }
 
-        public async Task<(bool Success, string Message)> SetupDatabase(DbConnectionModel dbModel) 
+        public async Task<(bool Success, string Message)> SetupDatabase(DbConnectionModel dbModel)
         {
             try
             {
@@ -276,8 +277,208 @@ namespace BiometricApp.Services
         }
 
 
+        public async Task<(bool Success, string Message)> ImportAllMembers(DbConnectionModel dbModel, UserLoginResponse user)
+        {
+            try
+            {
+                string rootPath = AppSettings.BaseFolder;
+
+                string connStr =
+                    $"Server={dbModel.ServerName};" +
+                    $"Database={dbModel.DatabaseName};" +
+                    $"Trusted_Connection=True;" +
+                    $"TrustServerCertificate=True;" +
+                    $"Connection Timeout=30;";
+
+                var folders = Directory.GetDirectories(rootPath);
+
+                using SqlConnection conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                foreach (var folder in folders)
+                {
+                    string demoPath = Path.Combine(folder, "demographics.json");
+
+                    if (!File.Exists(demoPath))
+                        continue;
+
+                    var demo = JsonSerializer.Deserialize<MemberModel>(
+                        await File.ReadAllTextAsync(demoPath)
+                    );
+
+                    if (demo == null || string.IsNullOrWhiteSpace(demo.PersonUniqueId))
+                        continue;
+
+                    // =========================
+                    // CHECK EXISTING
+                    // =========================
+                    string checkQuery = @"
+                                        SELECT PersonId 
+                                        FROM Demographics 
+                                        WHERE PersonUniqueId = @PersonUniqueId";
+
+                    using SqlCommand checkCmd = new SqlCommand(checkQuery, conn);
+                    checkCmd.Parameters.AddWithValue("@PersonUniqueId", demo.PersonUniqueId);
+
+                    object result = await checkCmd.ExecuteScalarAsync();
+
+                    int personId;
+
+                    // =========================
+                    // INSERT OR UPDATE
+                    // =========================
+                    if (result == null)
+                    {
+                        string insertQuery = @"
+                        INSERT INTO Demographics
+                        (
+                            UserId, OrgId,
+                            FirstName, LastName,
+                            MaritalStatus,
+                            PlaceOfIssue, PlaceOfBirth,
+                            DateOfBirth, Gender,
+                            Address, Weight,
+                            FatherName, MotherName,
+                            ExpiryDate,
+                            PersonUniqueId,
+                            CreatedOn, CreatedBy
+                        )
+                        OUTPUT INSERTED.PersonId
+                        VALUES
+                        (
+                            @UserId, @OrgId,
+                            @FirstName, @LastName,
+                            @MaritalStatus,
+                            @PlaceOfIssue, @PlaceOfBirth,
+                            @DateOfBirth, @Gender,
+                            @Address, @Weight,
+                            @FatherName, @MotherName,
+                            @ExpiryDate,
+                            @PersonUniqueId,
+                            @CreatedOn, @CreatedBy
+                        )";
+
+                        using SqlCommand insertCmd = new SqlCommand(insertQuery, conn);
+
+                        AddParams(insertCmd, demo, user.UserName,"");
+
+                        personId = (int)await insertCmd.ExecuteScalarAsync();
+                    }
+                    else
+                    {
+                        personId = Convert.ToInt32(result);
+
+                        string updateQuery = @"
+                        UPDATE Demographics
+                        SET
+                            UserId = @UserId,
+                            OrgId = @OrgId,
+                            FirstName = @FirstName,
+                            LastName = @LastName,
+                            MaritalStatus = @MaritalStatus,
+                            PlaceOfIssue = @PlaceOfIssue,
+                            PlaceOfBirth = @PlaceOfBirth,
+                            DateOfBirth = @DateOfBirth,
+                            Gender = @Gender,
+                            Address = @Address,
+                            Weight = @Weight,
+                            FatherName = @FatherName,
+                            MotherName = @MotherName,
+                            ExpiryDate = @ExpiryDate,
+                            UpdatedOn = GETDATE(),
+                            UpdatedBy = @UpdatedBy
+                        WHERE PersonId = @PersonId";
+
+                        using SqlCommand updateCmd = new SqlCommand(updateQuery, conn);
+
+                        AddParams(updateCmd, demo, "",user.UserName);
+                        updateCmd.Parameters.AddWithValue("@PersonId", personId);
+
+                        await updateCmd.ExecuteNonQueryAsync();
+                    }
+
+                    // =========================
+                    // BIOMETRICS
+                    // =========================
+                  //  await SaveBiometrics(conn, folder, personId);
+                }
+
+                return (true, "All members Saved successfully ✅");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        public void AddParams(SqlCommand cmd, MemberModel demo, string createdBy, string updatedBy)
+        {
+            cmd.Parameters.AddWithValue("@UserId", demo.UserId);
+            cmd.Parameters.AddWithValue("@OrgId", demo.OrgId);
+
+            cmd.Parameters.AddWithValue("@FirstName", demo.FirstName);
+            cmd.Parameters.AddWithValue("@LastName", demo.LastName);
+            cmd.Parameters.AddWithValue("@MaritalStatus", demo.MaritalStatus);
+
+            cmd.Parameters.AddWithValue("@PlaceOfIssue", (object?)demo.PlaceOfIssue ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@PlaceOfBirth", (object?)demo.PlaceOfBirth ?? DBNull.Value);
+
+            cmd.Parameters.AddWithValue("@DateOfBirth", (object?)demo.DateOfBirth ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Gender", demo.Gender);
+
+            cmd.Parameters.AddWithValue("@Address", demo.Address);
+
+            cmd.Parameters.AddWithValue("@Weight", (object?)demo.Weight ?? DBNull.Value);
+
+            cmd.Parameters.AddWithValue("@FatherName", demo.FatherName);
+            cmd.Parameters.AddWithValue("@MotherName", demo.MotherName);
+
+            cmd.Parameters.AddWithValue("@ExpiryDate", (object?)demo.ExpiryDate ?? DBNull.Value);
+
+            cmd.Parameters.AddWithValue("@PersonUniqueId", demo.PersonUniqueId);
+
+            cmd.Parameters.AddWithValue("@CreatedOn", demo.CreatedOn);
+            cmd.Parameters.AddWithValue("@CreatedBy", createdBy);
+            cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
+        }
+
+        public async Task SaveBiometrics(SqlConnection conn, string folder, int personId)
+        {
+            string query = @"
+                        IF EXISTS (SELECT 1 FROM Biometrics WHERE PersonId=@PersonId)
+                        BEGIN
+                            UPDATE Biometrics SET
+                                Face=@Face,
+                                UpdatedOn=GETDATE()
+                            WHERE PersonId=@PersonId
+                        END
+                        ELSE
+                        BEGIN
+                            INSERT INTO Biometrics (PersonId, Face, CreatedOn)
+                            VALUES (@PersonId, @Face, GETDATE())
+                        END";
+
+            SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@PersonId", personId);
+
+            string facePath = Path.Combine(folder, "face.png");
+
+            if (File.Exists(facePath))
+            {
+                byte[] faceBytes = await File.ReadAllBytesAsync(facePath);
+                cmd.Parameters.AddWithValue("@Face", faceBytes);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@Face", DBNull.Value);
+            }
+
+            await cmd.ExecuteNonQueryAsync();
+        }
     }
 
 }
+
+
 
 
