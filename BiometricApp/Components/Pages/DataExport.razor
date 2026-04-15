@@ -32,7 +32,7 @@
                 <input class="form-control" placeholder="e.g. localhost or 192.168.1.10" @bind="dbModel.ServerName" />
             </div>
 
-           @*  <div class="form-group">
+            @*  <div class="form-group">
                 <label>Database Name</label>
                 <input class="form-control" placeholder="e.g. BiometricDB" @bind="dbModel.DatabaseName" />
             </div> *@
@@ -64,7 +64,7 @@
         <!-- Bottom Buttons -->
         <div class="button-section">
             <button class="btn btn-success" @onclick="SaveData">Save Data</button>
-            
+
         </div>
 
         @if (!string.IsNullOrEmpty(message))
@@ -218,12 +218,20 @@
             isSetupDone = false;
             return;
         }
-        if (isDbconnection)
+
+        // sql server
+        if (isDbconnection && dbModel.DatabaseType == 1)
         {
             dbModel.DatabaseName = AppSettings.BiometricDbName;
             var result = await DatabaseService.SetupDatabaseLocal(dbModel);
             isSetupDone = true;
             message = result.Message;
+        }
+
+        // postgre sql server
+        else if (isDbconnection && dbModel.DatabaseType == 2)
+        {
+
         }
 
         else
@@ -244,13 +252,20 @@
             {
                 ResetAll("Please Database setup First ❌");
             }
-            else if (isSetupDone)
+            // sql server
+            else if (isSetupDone && dbModel.DatabaseType == 1)
             {
-                var result = await DatabaseService.ImportAllMembers(dbModel,user);
+                var result = await DatabaseService.ImportAllMembers(dbModel, user);
                 isSetupDone = true;
                 message = result.Message;
             }
-            
+
+            // postgre sql server
+            else if (isSetupDone && dbModel.DatabaseType == 2)
+            {
+
+            }
+
         }
         catch (Exception ex)
         {
@@ -272,7 +287,7 @@
         isSetupDone = false;
     }
 
-   
+
 }
 
 
