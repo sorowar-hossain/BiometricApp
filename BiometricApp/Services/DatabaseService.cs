@@ -401,7 +401,7 @@ namespace BiometricApp.Services
                     // =========================
                     // BIOMETRICS
                     // =========================
-                    await SaveBiometrics(conn, folder, personId);
+                    await SaveBiometrics(conn, folder, personId, user);
                 }
 
                 return (true, "All Members Saved Successfully ✅");
@@ -443,7 +443,7 @@ namespace BiometricApp.Services
             cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
         }
 
-        public async Task SaveBiometrics(SqlConnection conn, string folder, int personId)
+        public async Task SaveBiometrics(SqlConnection conn, string folder, int personId, UserLoginResponse user)
         {
             string query = @"
                     IF EXISTS (SELECT 1 FROM Biometrics WHERE PersonId=@PersonId)
@@ -630,10 +630,10 @@ namespace BiometricApp.Services
             // FACE FileName
             cmd.Parameters.Add("@Face_FileName", SqlDbType.NVarChar, 200).Value = "face.png";
 
-            string currentUser = "admin"; // or from login/session
+        
 
-            cmd.Parameters.Add("@CreatedBy", SqlDbType.NVarChar, 100).Value = currentUser;
-            cmd.Parameters.Add("@UpdatedBy", SqlDbType.NVarChar, 100).Value = currentUser;
+            cmd.Parameters.Add("@CreatedBy", SqlDbType.NVarChar, 100).Value = user.UserName;
+            cmd.Parameters.Add("@UpdatedBy", SqlDbType.NVarChar, 100).Value = user.UserName;
 
             await cmd.ExecuteNonQueryAsync();
         }
