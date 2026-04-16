@@ -148,6 +148,7 @@
         var id = CreateMemberId();
         model.PersonUniqueId = id;
         buttonText = "Save";
+        StateHasChanged();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -155,9 +156,9 @@
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         string? userId = query["id"];
-        buttonText = "Update";
         if (!string.IsNullOrEmpty(userId))
         {
+            buttonText = "Update";
             model = await LocalStorageService.LoadDemographicsAsync(userId);
         }
         StateHasChanged();

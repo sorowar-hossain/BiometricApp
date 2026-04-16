@@ -24,6 +24,7 @@
                 <select class="form-control" @bind="dbModel.DatabaseType">
                     <option value="0">--Select Server--</option>
                     <option value="1">SQL Server</option>
+                    <option value="2">PostgreSQL Server</option>
                 </select>
             </div>
 
@@ -203,11 +204,23 @@
             return;
         }
 
-        //dbModel.DatabaseName = "BangladeshECPS19Nov23";
-        dbModel.DatabaseName = AppSettings.MasterDb;
-        var result = await DatabaseService.TestConnectionLocal(dbModel);
-        isDbconnection = result.Success;
-        message = result.Message;
+        // sql server
+        if (dbModel.DatabaseType == 1)
+        {
+            //dbModel.DatabaseName = "BangladeshECPS19Nov23";
+            dbModel.DatabaseName = AppSettings.MasterDb;
+            var result = await DatabaseService.TestConnection(dbModel);
+            isDbconnection = result.Success;
+            message = result.Message;
+        }
+
+        // postgre sql server
+        else if (dbModel.DatabaseType == 2)
+        {
+
+        }
+
+       
     }
 
     private async Task SetupDatabase()
