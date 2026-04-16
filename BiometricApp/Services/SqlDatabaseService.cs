@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BiometricApp.Services
 {
-    public class DatabaseService
+    public class SqlDatabaseService
     {
         // ✅ Check Internet Connection
         private bool IsInternetAvailable()
