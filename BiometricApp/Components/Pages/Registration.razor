@@ -5,7 +5,7 @@
 @inject UserService UserService
 @inject ApiService ApiService
 @inject LocalStorageService LocalStorageService
-
+@inject NavigationManager Navigation
 <div class="container mt-4">
 
     <!-- HEADER -->
@@ -126,7 +126,7 @@
 
             <div class="d-flex justify-content-end mt-4">
                 <button type="submit" class="btn btn-primary px-4">
-                    Save
+                    @buttonText
                 </button>
             </div>
         </EditForm>
@@ -137,6 +137,8 @@
 @code {
     private MemberModel model = new();
     private UserLoginResponse user = new();
+    private int Id;
+    private string buttonText = "Save";
     string message = "";
     protected override async Task OnInitializedAsync()
     {
@@ -145,7 +147,20 @@
         // var id = await ApiService.GetPersonUniqueIdAsync(user.OrgId);
         var id = CreateMemberId();
         model.PersonUniqueId = id;
+        buttonText = "Save";
+    }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        string? userId = query["id"];
+        buttonText = "Update";
+        if (!string.IsNullOrEmpty(userId))
+        {
+            model = await LocalStorageService.LoadDemographicsAsync(userId);
+        }
+        StateHasChanged();
     }
 
     private async Task Save()
@@ -153,12 +168,23 @@
         model.OrgId = user.OrgId;
         model.UserId = user.UserId;
         model.CreatedBy = user.UserName;
-        var savePath = await LocalStorageService.SaveDemographicsAsync(model);
-        message = "Member saved successfully to " + savePath;
-        model = new MemberModel
+
+        if (buttonText == "Update")
         {
-            PersonUniqueId = CreateMemberId()
-        };
+            await LocalStorageService.UpdateDemographicsAsync(model);
+            buttonText = "Save";
+            Navigation.NavigateTo($"/detail-review?id=" + model.PersonUniqueId + "");
+        }
+        else
+        {
+            var savePath = await LocalStorageService.SaveDemographicsAsync(model);
+            message = "Member saved successfully to " + savePath;
+            model = new MemberModel
+            {
+                PersonUniqueId = CreateMemberId()
+            };
+        }
+      
         StateHasChanged();
         //bool result = await ApiService.CreateDemographicAsync(model);
     }

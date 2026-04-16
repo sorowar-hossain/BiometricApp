@@ -46,7 +46,26 @@ namespace BiometricApp.Services
             return memberFolder;
         }
 
-      
+
+        public async Task<bool> UpdateDemographicsAsync(MemberModel member)
+        {
+            string memberFolder = Path.Combine(baseFolder, member.PersonUniqueId);
+            string jsonPath = Path.Combine(memberFolder, "demographics.json");
+
+            // Check if file exists
+            if (!File.Exists(jsonPath))
+                return false;
+
+            string json = JsonSerializer.Serialize(member, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            await File.WriteAllTextAsync(jsonPath, json);
+
+            return true;
+        }
+
         /// Loads demographics data for a member from folder
         public async Task<MemberModel?> LoadDemographicsAsync(string personUniqueId)
         {

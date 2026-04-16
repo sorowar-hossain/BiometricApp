@@ -2,6 +2,7 @@
 @using BiometricApp.Models
 @using BiometricApp.Services
 @inject LocalStorageService LocalStorageService
+@inject NavigationManager Navigation
 
 <div class="container main-container">
     <div class="card shadow-sm">
@@ -18,13 +19,11 @@
             <!-- Member Selection -->
             <div class="member-select">
                 <label>Select Member</label>
-                <select class="form-control" @onchange="OnMemberChanged">
+                <select class="form-control" @bind="selectedMemberId">
                     <option value="">-- Select Member --</option>
                     @foreach (var item in members)
                     {
-                        <option value="@item.PersonUniqueId">
-                            @item.FullName
-                        </option>
+                        <option value="@item.PersonUniqueId">@item.FullName</option>
                     }
                 </select>
             </div>
@@ -40,14 +39,14 @@
                         <!-- FACE -->
                         <div class="mb-3 text-center">
                             <label class="biometric-label d-block text-start">Face</label>
-                             @for (int i = 14; i < 15; i++)
+                            @for (int i = 14; i < 15; i++)
                             {
                                 <div class="photo-wrapper">
                                     <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="photo-box" />
                                 </div>
-                         
+
                             }
-                            
+
                         </div>
 
                         <!-- IRIS -->
@@ -92,11 +91,11 @@
                                         }
                                     </div>
                                 </div>
-                               
+
                             </div>
 
                             <div class="hands">
-                            
+
 
                                 <!-- RIGHT HAND -->
                                 <div class="hand-container">
@@ -152,12 +151,12 @@
                             <div class="signature-container">
                                 @for (int i = 12; i < 14; i++)
                                 {
-                                    
+
                                     <div class="signature-box">
                                         <small>Signature @(i - 11)</small>
                                         <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="signature-img" />
                                     </div>
-                                   
+
                                 }
 
                             </div>
@@ -176,7 +175,7 @@
                             <label>Full Name</label>
                             <input class="form-control" value="@Model.FirstName @Model.LastName" readonly />
                         </div>
-                           <div class="info-row">
+                        <div class="info-row">
                             <label>Father Name</label>
                             <input class="form-control" value="@Model.FatherName" readonly />
                         </div>
@@ -214,14 +213,21 @@
                             <textarea class="form-control" rows="3" readonly>@Model.Address</textarea>
                         </div>
 
+                        <div class="info-row d-flex justify-content-end mt-3">
+                            <button class="btn btn-primary px-4" @onclick="UpdateInfo">Update</button>
+                        </div>
+
                     </div>
                 </div>
+
+
+
 
             </div>
 
             <!-- FOOTER -->
             <div class="d-flex justify-content-between mt-4">
-                @*   <button class="btn btn-secondary px-4">Back</button>
+                @*    <button class="btn btn-secondary px-4">Back</button>
                 <button class="btn btn-primary px-4">Done</button> *@
             </div>
 
@@ -453,25 +459,87 @@
     private string[] Fingerprints = new string[16];
     private string path = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
-    private string selectedMemberId;
+    private string? _selectedMemberId;
+
+    private string selectedMemberId
+    {
+        get => _selectedMemberId;
+        set
+        {
+            if (_selectedMemberId != value)
+            {
+                _selectedMemberId = value;
+                _ = OnMemberChanged(); // call logic
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         members = await LocalStorageService.GetMembersForDropdownAsync();
     }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        string? memberId = query["id"];
+
+        if (!string.IsNullOrEmpty(memberId))
+        {
+            // Automatic call the onchange func, because @bind call this automatically
+            selectedMemberId = memberId;
+            
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateInfo()
+    {
+        if (string.IsNullOrWhiteSpace(selectedMemberId))
+        {
+            return;
+        }
+        Navigation.NavigateTo($"/registration?id=" + selectedMemberId + "");
+    }
+
     private void SelectMember(MemberDropdown item)
     {
         selectedMemberId = item.PersonUniqueId;
     }
 
-    private async Task OnMemberChanged(ChangeEventArgs e)
+    private async Task OnMemberChanged()
     {
-        selectedMemberId = e.Value?.ToString();
-        //selectedMemberId = "BIO.admin.202604071417.000002";
+        if (!string.IsNullOrEmpty(selectedMemberId))
+        {
+            await LoadMemberInfo(selectedMemberId);
+        }
+    }
 
-        Model = await LocalStorageService.LoadDemographicsAsync(selectedMemberId);
+    private async Task LoadMemberInfo(string memberId)
+    {
+        if (string.IsNullOrEmpty(memberId))
+            return;
+
+        Model = await LocalStorageService.LoadDemographicsAsync(memberId);
         Fingerprints = new string[16];
-        string memberFolder = Path.Combine(path, selectedMemberId);
+        string memberFolder = Path.Combine(path, memberId);
+        LoadLeftFourFingerprints(memberFolder);
+        LoadRightFourFingerprints(memberFolder);
+        LoadThumbsFingerprints(memberFolder);
+        LoadIris(memberFolder);
+        LoadSignature(memberFolder);
+        LoadFace(memberFolder);
+
+        StateHasChanged();
+    }
+
+
+    private async void LoadMemberInfo2(string memberId)
+    {
+        Model = await LocalStorageService.LoadDemographicsAsync(memberId);
+        Fingerprints = new string[16];
+        string memberFolder = Path.Combine(path, memberId);
         LoadLeftFourFingerprints(memberFolder);
         LoadRightFourFingerprints(memberFolder);
         LoadThumbsFingerprints(memberFolder);
@@ -518,7 +586,7 @@
     }
 
     // Fingerprint list
-   
+
     private void LoadLeftFourFingerprints(string imagePath)
     {
         string[] files =
@@ -568,7 +636,7 @@
             }
         }
 
-        
+
     }
 
     private void LoadThumbsFingerprints(string imagePath)
@@ -664,7 +732,7 @@
         }
 
     }
-    
+
 
 
 
