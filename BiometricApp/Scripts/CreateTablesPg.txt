@@ -116,8 +116,48 @@ ON biometric_logs(person_id);
 CREATE OR REPLACE FUNCTION log_biometric_changes()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Only log if something actually changed
-    IF (OLD IS DISTINCT FROM NEW) THEN
+
+    IF (
+        OLD.left_thumb IS DISTINCT FROM NEW.left_thumb OR
+        OLD.left_thumb_file_name IS DISTINCT FROM NEW.left_thumb_file_name OR
+
+        OLD.left_index IS DISTINCT FROM NEW.left_index OR
+        OLD.left_index_file_name IS DISTINCT FROM NEW.left_index_file_name OR
+
+        OLD.left_middle IS DISTINCT FROM NEW.left_middle OR
+        OLD.left_middle_file_name IS DISTINCT FROM NEW.left_middle_file_name OR
+
+        OLD.left_ring IS DISTINCT FROM NEW.left_ring OR
+        OLD.left_ring_file_name IS DISTINCT FROM NEW.left_ring_file_name OR
+
+        OLD.left_little IS DISTINCT FROM NEW.left_little OR
+        OLD.left_little_file_name IS DISTINCT FROM NEW.left_little_file_name OR
+
+        OLD.right_thumb IS DISTINCT FROM NEW.right_thumb OR
+        OLD.right_thumb_file_name IS DISTINCT FROM NEW.right_thumb_file_name OR
+
+        OLD.right_index IS DISTINCT FROM NEW.right_index OR
+        OLD.right_index_file_name IS DISTINCT FROM NEW.right_index_file_name OR
+
+        OLD.right_middle IS DISTINCT FROM NEW.right_middle OR
+        OLD.right_middle_file_name IS DISTINCT FROM NEW.right_middle_file_name OR
+
+        OLD.right_ring IS DISTINCT FROM NEW.right_ring OR
+        OLD.right_ring_file_name IS DISTINCT FROM NEW.right_ring_file_name OR
+
+        OLD.right_little IS DISTINCT FROM NEW.right_little OR
+        OLD.right_little_file_name IS DISTINCT FROM NEW.right_little_file_name OR
+
+        OLD.left_iris IS DISTINCT FROM NEW.left_iris OR
+        OLD.left_iris_file_name IS DISTINCT FROM NEW.left_iris_file_name OR
+
+        OLD.right_iris IS DISTINCT FROM NEW.right_iris OR
+        OLD.right_iris_file_name IS DISTINCT FROM NEW.right_iris_file_name OR
+
+        OLD.face IS DISTINCT FROM NEW.face OR
+        OLD.face_file_name IS DISTINCT FROM NEW.face_file_name
+    )
+    THEN
 
         INSERT INTO biometric_logs (
             org_id, person_id, user_id,
@@ -163,6 +203,7 @@ BEGIN
 
             NOW(), OLD.created_by, OLD.updated_on, OLD.updated_by
         );
+
     END IF;
 
     RETURN NEW;

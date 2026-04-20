@@ -283,7 +283,9 @@
             // postgre sql server
             else if (isSetupDone && dbModel.DatabaseType == 2)
             {
-
+                var result = await PostgreSqlService.ImportAllMembers(dbModel, user);
+                isSetupDone = true;
+                message = result.Message;
             }
 
         }
