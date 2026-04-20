@@ -2,22 +2,27 @@
 -- DEMOGRAPHICS TABLE
 
 CREATE TABLE IF NOT EXISTS demographics (
-    person_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    person_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT,
     org_id INT,
+
     first_name VARCHAR(100),
     last_name VARCHAR(100),
     marital_status VARCHAR(50),
     place_of_issue VARCHAR(100),
     place_of_birth VARCHAR(100),
+
     date_of_birth TIMESTAMP,
     gender VARCHAR(20),
     address VARCHAR(255),
     weight DOUBLE PRECISION,
+
     father_name VARCHAR(100),
     mother_name VARCHAR(100),
     expiry_date TIMESTAMP,
+
     person_unique_id VARCHAR(100) UNIQUE NOT NULL,
+
     created_on TIMESTAMP,
     created_by VARCHAR(100),
     updated_on TIMESTAMP,
@@ -25,12 +30,13 @@ CREATE TABLE IF NOT EXISTS demographics (
 );
 
 
+
 -- BIOMETRICS TABLE
 
 CREATE TABLE IF NOT EXISTS biometrics (
-    biometric_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    biometric_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     org_id INT,
-    person_id INT NOT NULL,
+    person_id BIGINT NOT NULL,
     user_id INT,
 
     left_thumb BYTEA, left_thumb_file_name VARCHAR(200),
@@ -62,12 +68,13 @@ CREATE TABLE IF NOT EXISTS biometrics (
 );
 
 
--- BIOMETRIC LOGS TABLE
 
-CREATE TABLE IF NOT EXISTS biometric_logs (
-    biometric_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+-- BIOMETRIC LOGS TABLE (FINAL NAME)
+
+CREATE TABLE IF NOT EXISTS biometriclogs (
+    biometric_log_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     org_id INT,
-    person_id INT NOT NULL,
+    person_id BIGINT NOT NULL,
     user_id INT,
 
     left_thumb BYTEA, left_thumb_file_name VARCHAR(200),
@@ -99,7 +106,7 @@ CREATE TABLE IF NOT EXISTS biometric_logs (
 );
 
 
--- INDEXES (IMPORTANT FOR PERFORMANCE)
+-- INDEXES
 
 CREATE INDEX IF NOT EXISTS idx_demographics_person_unique_id
 ON demographics(person_unique_id);
@@ -107,11 +114,12 @@ ON demographics(person_unique_id);
 CREATE INDEX IF NOT EXISTS idx_biometrics_person_id
 ON biometrics(person_id);
 
-CREATE INDEX IF NOT EXISTS idx_logs_person_id
-ON biometric_logs(person_id);
+CREATE INDEX IF NOT EXISTS idx_biometriclogs_person_id
+ON biometriclogs(person_id);
 
 
--- TRIGGER FUNCTION
+
+-- TRIGGER FUNCTION (CHANGE LOGGER)
 
 CREATE OR REPLACE FUNCTION log_biometric_changes()
 RETURNS TRIGGER AS $$
@@ -159,7 +167,7 @@ BEGIN
     )
     THEN
 
-        INSERT INTO biometric_logs (
+        INSERT INTO biometriclogs (
             org_id, person_id, user_id,
 
             left_thumb, left_thumb_file_name,
@@ -209,6 +217,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 
 -- TRIGGER
