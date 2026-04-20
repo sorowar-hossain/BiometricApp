@@ -248,7 +248,10 @@
         // postgre sql server
         else if (isDbconnection && dbModel.DatabaseType == 2)
         {
-
+            dbModel.DatabaseName = AppSettings.BiometricDbName;
+            var result = await PostgreSqlService.SetupPostgresDatabase(dbModel);
+            isSetupDone = true;
+            message = result.Message;
         }
 
         else
