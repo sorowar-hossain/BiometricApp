@@ -48,7 +48,9 @@ namespace BiometricApp
             builder.Services.AddSingleton<LocalStorageService>();
             builder.Services.AddSingleton<LocalUserService>();
             builder.Services.AddSingleton<SqlDatabaseService>();
+            builder.Services.AddSingleton<PostgreSqlDatabaseService>();
             
+
 
 
 

@@ -4,6 +4,7 @@
 @using System.Text.Json
 @inject SqlDatabaseService DatabaseService
 @inject UserService UserService
+@inject PostgreSqlDatabaseService PostgreSqlService
 
 <div class="dataExport-wrapper">
 
@@ -217,7 +218,10 @@
         // postgre sql server
         else if (dbModel.DatabaseType == 2)
         {
-
+            dbModel.DatabaseName = AppSettings.MasterDbPg;
+            var result = await PostgreSqlService.TestConnection(dbModel);
+            isDbconnection = result.Success;
+            message = result.Message;
         }
 
        
