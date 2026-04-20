@@ -110,7 +110,7 @@ namespace BiometricApp.Services
 
                 // 5. Load SQL script
 
-                using var stream = await FileSystem.OpenAppPackageFileAsync("scripts/CreateTablesPg.txt");
+                using var stream = await FileSystem.OpenAppPackageFileAsync("scripts/CreateTablesPg.pgsql");
                 using var reader = new StreamReader(stream);
                 string script = await reader.ReadToEndAsync();
 
