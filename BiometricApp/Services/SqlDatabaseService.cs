@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace BiometricApp.Services
 {
@@ -280,21 +281,22 @@ namespace BiometricApp.Services
 
         public async Task<(bool Success, string Message)> ImportAllMembers(DbConnectionModel dbModel, UserLoginResponse user)
         {
+
+            string rootPath = AppSettings.BaseFolder;
+
+            string connStr =
+                $"Server={dbModel.ServerName};" +
+                $"Database={dbModel.DatabaseName};" +
+                $"Trusted_Connection=True;" +
+                $"TrustServerCertificate=True;" +
+                $"Connection Timeout=30;";
+            using SqlConnection conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            using SqlTransaction transaction = conn.BeginTransaction();
             try
             {
-                string rootPath = AppSettings.BaseFolder;
-
-                string connStr =
-                    $"Server={dbModel.ServerName};" +
-                    $"Database={dbModel.DatabaseName};" +
-                    $"Trusted_Connection=True;" +
-                    $"TrustServerCertificate=True;" +
-                    $"Connection Timeout=30;";
-
                 var folders = Directory.GetDirectories(rootPath);
-
-                using SqlConnection conn = new SqlConnection(connStr);
-                await conn.OpenAsync();
 
                 foreach (var folder in folders)
                 {
@@ -318,7 +320,7 @@ namespace BiometricApp.Services
                                         FROM Demographics 
                                         WHERE PersonUniqueId = @PersonUniqueId";
 
-                    using SqlCommand checkCmd = new SqlCommand(checkQuery, conn);
+                    using SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction);
                     checkCmd.Parameters.AddWithValue("@PersonUniqueId", demo.PersonUniqueId);
 
                     object result = await checkCmd.ExecuteScalarAsync();
@@ -359,9 +361,9 @@ namespace BiometricApp.Services
                             @CreatedOn, @CreatedBy
                         )";
 
-                        using SqlCommand insertCmd = new SqlCommand(insertQuery, conn);
+                        using SqlCommand insertCmd = new SqlCommand(insertQuery, conn, transaction);
 
-                        AddParams(insertCmd, demo, user.UserName,"");
+                        AddParams(insertCmd, demo, user.UserName, "");
 
                         personId = (int)await insertCmd.ExecuteScalarAsync();
                     }
@@ -390,9 +392,9 @@ namespace BiometricApp.Services
                             UpdatedBy = @UpdatedBy
                         WHERE PersonId = @PersonId";
 
-                        using SqlCommand updateCmd = new SqlCommand(updateQuery, conn);
+                        using SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction);
 
-                        AddParams(updateCmd, demo, "",user.UserName);
+                        AddParams(updateCmd, demo, "", user.UserName);
                         updateCmd.Parameters.AddWithValue("@PersonId", personId);
 
                         await updateCmd.ExecuteNonQueryAsync();
@@ -401,13 +403,15 @@ namespace BiometricApp.Services
                     // =========================
                     // BIOMETRICS
                     // =========================
-                    await SaveBiometrics(conn, folder, personId, user);
+                    await SaveBiometrics(conn, transaction, folder, personId, user);
                 }
 
+                transaction.Commit();
                 return (true, "All Members Saved Successfully ✅");
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 return (false, ex.Message);
             }
         }
@@ -443,7 +447,7 @@ namespace BiometricApp.Services
             cmd.Parameters.AddWithValue("@UpdatedBy", updatedBy);
         }
 
-        public async Task SaveBiometrics(SqlConnection conn, string folder, int personId, UserLoginResponse user)
+        public async Task SaveBiometrics(SqlConnection conn, SqlTransaction transaction, string folder, int personId, UserLoginResponse user)
         {
             string query = @"
                     IF EXISTS (SELECT 1 FROM Biometrics WHERE PersonId=@PersonId)
@@ -545,7 +549,7 @@ namespace BiometricApp.Services
                             GETDATE()
                         )
                     END";
-            using SqlCommand cmd = new SqlCommand(query, conn);
+            using SqlCommand cmd = new SqlCommand(query, conn,transaction);
             cmd.Parameters.AddWithValue("@PersonId", personId);
 
 
@@ -630,13 +634,14 @@ namespace BiometricApp.Services
             // FACE FileName
             cmd.Parameters.Add("@Face_FileName", SqlDbType.NVarChar, 200).Value = "face.png";
 
-        
+
 
             cmd.Parameters.Add("@CreatedBy", SqlDbType.NVarChar, 100).Value = user.UserName;
             cmd.Parameters.Add("@UpdatedBy", SqlDbType.NVarChar, 100).Value = user.UserName;
 
             await cmd.ExecuteNonQueryAsync();
         }
+    
     }
 
 }
