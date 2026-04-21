@@ -23,6 +23,11 @@
             </select>
         </div>
 
+        
+
+    </div>
+    <div class="hands-wrapper">
+
         <!-- HAND IMAGES -->
         <div class="hands">
             <div class="hand-container">
@@ -523,11 +528,18 @@
     }
 
     /* HAND IMAGES */
+    .hands-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center; /* ✅ center whole block */
+    }
+
     .hands {
         display: flex;
-        gap: 40px;
-        margin-bottom: 15px;
-        margin-left:10%;
+        justify-content: center; /* ✅ center inside */
+        align-items: flex-start;
+        gap: clamp(30px, 6vw, 80px); /* responsive spacing */
+        flex-wrap: wrap; /* ✅ prevents breaking */
     }
     
 
@@ -646,4 +658,9 @@
             width: 80px;
             height: 90px;
         }
+    @@media (min-width: 600px) {
+        .thumb-section .slot {
+            width: 80px;
+        }
+    }
 </style>
