@@ -208,8 +208,6 @@
         // sql server
         if (dbModel.DatabaseType == 1)
         {
-            //dbModel.DatabaseName = "BangladeshECPS19Nov23";
-            dbModel.DatabaseName = AppSettings.MasterDb;
             var result = await DatabaseService.TestConnectionLocal(dbModel);
             isDbconnection = result.Success;
             message = result.Message;
@@ -218,13 +216,12 @@
         // postgre sql server
         else if (dbModel.DatabaseType == 2)
         {
-            dbModel.DatabaseName = AppSettings.MasterDbPg;
             var result = await PostgreSqlService.TestConnection(dbModel);
             isDbconnection = result.Success;
             message = result.Message;
         }
 
-       
+
     }
 
     private async Task SetupDatabase()
@@ -241,7 +238,8 @@
         {
             dbModel.DatabaseName = AppSettings.BiometricDbName;
             var result = await DatabaseService.SetupDatabaseLocal(dbModel);
-            isSetupDone = true;
+            isSetupDone = result.Success;
+            UserService.IsSetupDone = result.Success;
             message = result.Message;
         }
 
@@ -250,7 +248,7 @@
         {
             dbModel.DatabaseName = AppSettings.BiometricDbName;
             var result = await PostgreSqlService.SetupPostgresDatabase(dbModel);
-            isSetupDone = true;
+            isSetupDone = result.Success;
             message = result.Message;
         }
 
@@ -265,15 +263,33 @@
 
     private async Task SaveData()
     {
+        bool isDbExist = false;
 
         try
         {
-            if (!isSetupDone)
+            if (!isDbconnection)
             {
-                ResetAll("Please Database setup First ❌");
+                message = "Please Test Connection First ❌";
             }
+
+            if (isDbconnection && dbModel.DatabaseType == 1)
+            {
+                dbModel.DatabaseName = AppSettings.BiometricDbName;
+                var result = await DatabaseService.IsDatabaseExist(dbModel);
+                isDbExist = result.Success;
+                message = result.Message;
+            }
+
+            else if (isDbconnection && dbModel.DatabaseType == 2)
+            {
+                dbModel.DatabaseName = AppSettings.BiometricDbName;
+                var result = await PostgreSqlService.IsDatabaseExist(dbModel);
+                isDbExist = result.Success;
+                message = result.Message;
+            }
+
             // sql server
-            else if (isSetupDone && dbModel.DatabaseType == 1)
+            if (isDbExist && dbModel.DatabaseType == 1)
             {
                 var result = await DatabaseService.ImportAllMembers(dbModel, user);
                 isSetupDone = true;
@@ -281,7 +297,7 @@
             }
 
             // postgre sql server
-            else if (isSetupDone && dbModel.DatabaseType == 2)
+            else if (isDbExist && dbModel.DatabaseType == 2)
             {
                 var result = await PostgreSqlService.ImportAllMembers(dbModel, user);
                 isSetupDone = true;

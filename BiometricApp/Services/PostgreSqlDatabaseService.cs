@@ -26,12 +26,12 @@ namespace BiometricApp.Services
                     return (false, "No internet connection ❌");
 
                 if (string.IsNullOrWhiteSpace(dbModel.ServerName))
-                    return (false, "Host cannot be empty");
+                    return (false, "Server cannot be empty");
 
                 string connStr =
                     $"Host={dbModel.ServerName};" +
                     $"Port=5432;" +
-                    $"Database={dbModel.DatabaseName};" +
+                    $"Database=postgres;" +
                     $"Username={dbModel.Username};" +
                     $"Password={dbModel.Password};" +
                     $"Timeout=5;";
@@ -50,7 +50,6 @@ namespace BiometricApp.Services
                 return (false, $"Error: {ex.Message}");
             }
         }
-
 
 
         public async Task<(bool Success, string Message)> SetupPostgresDatabase(DbConnectionModel dbModel)
@@ -128,11 +127,16 @@ namespace BiometricApp.Services
             }
         }
 
-
         public async Task<(bool Success, string Message)> ImportAllMembers(DbConnectionModel dbModel, UserLoginResponse user)
         {
             try
             {
+                var res = await AlterTablesPostgres(dbModel);
+                if (!res.Success)
+                {
+                    return res;
+                }
+
                 string rootPath = AppSettings.BaseFolder;
 
                 string connStr =
@@ -264,8 +268,6 @@ namespace BiometricApp.Services
                 return (false, ex.Message);
             }
         }
-
-
 
         public void AddParamsPg(NpgsqlCommand cmd, MemberModel demo, string createdBy, string updatedBy)
         {
@@ -469,7 +471,85 @@ namespace BiometricApp.Services
             await cmd.ExecuteNonQueryAsync();
         }
 
+        public async Task<(bool Success, string Message)> IsDatabaseExist(DbConnectionModel dbModel)
+        {
+            try
+            {
+                if (!IsInternetAvailable())
+                    return (false, "No network connection ❌");
 
+
+                // 1. Connect to default DB
+
+                var masterConnStr =
+                    $"Host={dbModel.ServerName};Port=5432;" +
+                    $"Username={dbModel.Username};Password={dbModel.Password};" +
+                    $"Database=postgres";
+
+                using (var masterConn = new NpgsqlConnection(masterConnStr))
+                {
+                    await masterConn.OpenAsync();
+
+
+                    // 2. Check if DB exists
+
+                    var checkCmd = new NpgsqlCommand(
+                        "SELECT 1 FROM pg_database WHERE datname = @db",
+                        masterConn);
+
+                    checkCmd.Parameters.AddWithValue("@db", dbModel.DatabaseName);
+
+                    var exists = await checkCmd.ExecuteScalarAsync();
+
+
+                    // 3. Create DB if not exists
+
+                    if (exists == null)
+                    {
+                        return (false, $"Database '{dbModel.DatabaseName}' Not Found, Please Setup Database ❌");
+                    }
+                }
+
+
+                return (true, $"Database '{dbModel.DatabaseName}' Found");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+
+
+        public async Task<(bool Success, string Message)> AlterTablesPostgres(DbConnectionModel dbModel)
+        {
+            try
+            {
+                string connStr =
+                    $"Host={dbModel.ServerName};" +
+                    $"Database={dbModel.DatabaseName};" +
+                    $"Username={dbModel.Username};" +
+                    $"Password={dbModel.Password};" +
+                    $"Timeout=5;";
+
+                await using var conn = new NpgsqlConnection(connStr);
+                await conn.OpenAsync();
+
+                // Load SQL script from MAUI app package
+                await using var stream = await FileSystem.OpenAppPackageFileAsync("Scripts/AlterTablesPg.pgsql");
+                using var reader = new StreamReader(stream);
+                string alterScript = await reader.ReadToEndAsync();
+
+                await using var cmd = new NpgsqlCommand(alterScript, conn);
+                await cmd.ExecuteNonQueryAsync();
+
+                return (true, "Database setup/updated successfully ✅");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
 
     }
 }

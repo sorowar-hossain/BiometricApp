@@ -10,5 +10,6 @@ namespace BiometricApp.Services
     public class UserService
     {
         public UserLoginResponse CurrentUser { get; set; }
+        public bool IsSetupDone { get; set; } 
     }
 }

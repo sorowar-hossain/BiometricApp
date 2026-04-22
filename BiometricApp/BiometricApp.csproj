@@ -88,7 +88,9 @@
         <HintPath>Natives\Device_Wrapper.dll</HintPath>
       </Reference>
 		<MauiAsset Include="Scripts\CreateTables.sql" />
+		<MauiAsset Include="Scripts\AlterTablesSql.sql" />
 		<MauiAsset Include="Scripts\CreateTablesPg.pgsql" />
+		<MauiAsset Include="Scripts\AlterTablesPg.pgsql" />
 		
     </ItemGroup>
 

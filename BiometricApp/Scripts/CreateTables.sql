@@ -24,6 +24,7 @@ BEGIN
         CreatedBy NVARCHAR(100),
         UpdatedOn DATETIME NULL,
         UpdatedBy NVARCHAR(100) NULL
+        
     );
 END
 

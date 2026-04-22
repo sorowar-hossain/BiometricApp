@@ -82,7 +82,7 @@ namespace BiometricApp.Services
                 // Step 3: Windows Authentication connection string
                 string connStr =
                     $"Server={dbModel.ServerName};" +
-                    $"Database={dbModel.DatabaseName};" +
+                    $"Database=master;" +
                     $"Trusted_Connection=True;" +
                     $"TrustServerCertificate=True;" +
                     $"Connection Timeout=5;";
@@ -281,6 +281,12 @@ namespace BiometricApp.Services
 
         public async Task<(bool Success, string Message)> ImportAllMembers(DbConnectionModel dbModel, UserLoginResponse user)
         {
+
+            var res = await AlterTables(dbModel);
+            if (!res.Success)
+            {
+                return res;
+            }
 
             string rootPath = AppSettings.BaseFolder;
 
@@ -549,7 +555,7 @@ namespace BiometricApp.Services
                             GETDATE()
                         )
                     END";
-            using SqlCommand cmd = new SqlCommand(query, conn,transaction);
+            using SqlCommand cmd = new SqlCommand(query, conn, transaction);
             cmd.Parameters.AddWithValue("@PersonId", personId);
 
 
@@ -641,9 +647,86 @@ namespace BiometricApp.Services
 
             await cmd.ExecuteNonQueryAsync();
         }
-    
-    }
 
+        public async Task<(bool Success, string Message)> AlterTables(DbConnectionModel dbModel)
+        {
+            try
+            {
+                string connStr =
+                    $"Server={dbModel.ServerName};" +
+                    $"Database={dbModel.DatabaseName};" +
+                    $"Trusted_Connection=True;" +
+                    $"TrustServerCertificate=True;" +
+                    $"Connection Timeout=5;";
+
+                using SqlConnection conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+
+                // Run AlterTables (safe for updates)
+                using var stream = await FileSystem.OpenAppPackageFileAsync("Scripts/AlterTablesSql.sql");
+
+                using var reader = new StreamReader(stream);
+                string alterScript = await reader.ReadToEndAsync();
+                await new SqlCommand(alterScript, conn).ExecuteNonQueryAsync();
+
+                return (true, "Database setup/updated successfully ✅");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        public async Task<(bool Success, string Message)> IsDatabaseExist(DbConnectionModel dbModel) 
+        {
+            try
+            {
+                // Step 1: Check network (optional for local, you can remove if needed)
+                if (!IsInternetAvailable())
+                    return (false, "No network connection ❌");
+
+                // Step 2: Build connection string (Windows Authentication)
+                string dbConnStr =
+                    $"Server={dbModel.ServerName};Database=master;" +
+                    $"Trusted_Connection=True;" +
+                    $"TrustServerCertificate=True;" +
+                    $"Connection Timeout=5;";
+
+                using (SqlConnection conn = new SqlConnection(dbConnStr))
+                {
+                    await conn.OpenAsync();
+
+                    // Step 3: Check if database exists
+                    string checkDbQuery =
+                        "SELECT COUNT(*) FROM sys.databases WHERE name = @db";
+
+                    using (SqlCommand cmd = new SqlCommand(checkDbQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@db", dbModel.DatabaseName);
+
+                        int exists = (int)await cmd.ExecuteScalarAsync();
+
+                        if (exists <= 0)
+                        {
+                            return (false, $"Database '{dbModel.DatabaseName}' Not Found, Please Setup Database ❌");
+
+                        }
+                    }
+
+                }
+
+                return (true, $"Database '{dbModel.DatabaseName}' Found");
+
+            }
+
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+    }
 }
 
 
