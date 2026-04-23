@@ -42,7 +42,11 @@
                             @for (int i = 14; i < 15; i++)
                             {
                                 <div class="photo-wrapper">
-                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="photo-box" />
+                                    @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                                    {
+                                        <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="photo-box" />
+                                    }
+
                                 </div>
 
                             }
@@ -55,8 +59,17 @@
                             <div class="iris-container">
                                 @for (int i = 10; i < 12; i++)
                                 {
-                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="iris-img" />
+                                    var label = (i == 10) ? "Left Iris" : "Right Iris";
+                                    <div class="iris-item">
+                                        <p class="iris-label">@label</p>
 
+                                        <div class="iris-box">
+                                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                                            {
+                                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="iris-img" />
+                                            }
+                                        </div>
+                                    </div>
                                 }
 
 
@@ -154,7 +167,10 @@
 
                                     <div class="signature-box">
                                         <small>Signature @(i - 11)</small>
-                                        <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="signature-img" />
+                                        @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                                        {
+                                            <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="signature-img" />
+                                        }
                                     </div>
 
                                 }
@@ -242,6 +258,33 @@
         padding: 20px;
     }
 
+    .iris-box {
+        width: 220px;
+        height: 120px;
+        border: 2px solid #2f5fa4;
+        border-radius: 6px;
+        background: #f8f9fa;
+        overflow: hidden;
+        padding: 4px; /* 👈 controls inner space */
+    }
+
+    .iris-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .iris-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .iris-label {
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 13px;
+    }
     /* HEADER */
     .header-title {
         background: linear-gradient(135deg, #2f5ea8, #4a7bd0);
@@ -393,12 +436,6 @@
         justify-content: center;
     }
 
-    .iris-img {
-        width: 48%;
-        height: 80px;
-        object-fit: cover;
-        border: 1px solid #ccc;
-    }
 
     /* SIGNATURE */
     .signature-container {
@@ -489,7 +526,7 @@
         {
             // Automatic call the onchange func, because @bind call this automatically
             selectedMemberId = memberId;
-            
+
         }
         StateHasChanged();
     }

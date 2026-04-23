@@ -51,27 +51,47 @@
 
             <!-- Left Preview -->
             <div class="iris-side">
-                <img src="@LeftPreviewImage" class="thumb-img" />
+                @if (!string.IsNullOrEmpty(LeftPreviewImage))
+                {
+                    <img src="@LeftPreviewImage" class="thumb-img" />
+                }
             </div>
 
             <!-- Left Iris -->
             <div class="iris-main">
                 <p class="fw-semibold">Left Iris</p>
-                <img src="@LeftIrisImage" class="iris-img" />
+                <div class="iris-box">
+                    @if (!string.IsNullOrEmpty(LeftIrisImage))
+                    {
+                        <img src="@LeftIrisImage" class="iris-img" />
+                    }
+                </div>
+               
                 <p class="capture-status text-success">@LeftCaptureStatus</p>
             </div>
 
             <!-- Right Iris -->
             <div class="iris-main">
                 <p class="fw-semibold">Right Iris</p>
-                <img src="@RightIrisImage" class="iris-img" />
+                <div class="iris-box">
+                    @if (!string.IsNullOrEmpty(RightIrisImage))
+                    {
+                        <img src="@RightIrisImage" class="iris-img" />
+                    }
+                </div>
+
                 <p class="capture-status text-success">@RightCaptureStatus</p>
             </div>
 
             <!-- Right Preview -->
             <div class="iris-side">
-                <img src="@RightPreviewImage" class="thumb-img" />
+                @if (!string.IsNullOrEmpty(RightPreviewImage))
+                {
+                    <img src="@RightPreviewImage" class="thumb-img" />
+                }
             </div>
+
+            
 
         </div>
 
@@ -90,10 +110,10 @@
 @code {
     // Image sources as Base64 strings
     private string message = "";
-    private string LeftIrisImage = "images/Iris-Left.jpg";
-    private string RightIrisImage = "images/Iris-Right.jpg";
-    private string LeftPreviewImage = "images/Iris-Left.jpg";
-    private string RightPreviewImage = "images/Iris-Right.jpg";
+    private string LeftIrisImage = "";
+    private string RightIrisImage = "";
+    private string LeftPreviewImage = "";
+    private string RightPreviewImage = "";
 
     private string LeftCaptureStatus = "";
     private string RightCaptureStatus = "";
@@ -192,10 +212,10 @@
     private void Retake()
     {
         // Reset UI to placeholder
-        LeftIrisImage = "images/Iris-Left.jpg";
-        RightIrisImage = "images/Iris-Right.jpg";
-        LeftPreviewImage = "images/Iris-Left.jpg";
-        RightPreviewImage = "images/Iris-Right.jpg";
+        LeftIrisImage = "";
+        RightIrisImage = "";
+        LeftPreviewImage = "";
+        RightPreviewImage = "";
         LeftCaptureStatus = "";
         RightCaptureStatus = "";
         message = "";
@@ -207,6 +227,14 @@
     .iris-wrapper {
         background-color: #f5f6f8;
         min-height: 100vh;
+    }
+
+    .iris-box {
+        width: 220px;
+        height: 120px;
+        border: 2px solid #2f5fa4;
+        border-radius: 6px;
+        background: #f8f9fa;
     }
 
     .header-bar {
@@ -255,11 +283,28 @@
     }
 
     /* Side Preview (Small Image) */
+
     .iris-side {
+        width: 100px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
+        border: 2px solid #2f5fa4;
+        border-radius: 6px;
+        background: #f8f9fa;
+        overflow: hidden;
     }
+
+    /* Small Preview Image */
+    .thumb-img {
+        width: calc(100% - 4px); /* 2px margin each side */
+        height: calc(100% - 4px);
+        margin: 2px;
+        object-fit: cover; /* 🔥 this removes empty space */
+    }
+
+    
 
     /* Large Iris Image */
     .iris-img {
@@ -271,14 +316,8 @@
         padding: 5px;
     }
 
-    /* Small Preview Image */
-    .thumb-img {
-        width: 80px;
-        border: 2px solid #2f5fa4;
-        border-radius: 4px;
-        background: #f8f9fa;
-        padding: 3px;
-    }
+
+    
 
     /* Capture Status Text */
     .capture-status {
