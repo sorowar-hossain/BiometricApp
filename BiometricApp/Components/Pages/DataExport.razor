@@ -292,7 +292,7 @@
             if (isDbExist && dbModel.DatabaseType == 1)
             {
                 var result = await DatabaseService.ImportAllMembers(dbModel, user);
-                isSetupDone = true;
+                isSetupDone = result.Success;
                 message = result.Message;
             }
 
@@ -300,7 +300,7 @@
             else if (isDbExist && dbModel.DatabaseType == 2)
             {
                 var result = await PostgreSqlService.ImportAllMembers(dbModel, user);
-                isSetupDone = true;
+                isSetupDone = result.Success;
                 message = result.Message;
             }
 
