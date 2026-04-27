@@ -1,10 +1,5 @@
-﻿using FingerprintWrapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
+using FingerprintWrapper;
 namespace BiometricApp.Services
 {
     public class FaceCaptureHcService
@@ -34,9 +29,20 @@ namespace BiometricApp.Services
 
             string filePath = Path.Combine(FileSystem.CacheDirectory, "face.jpg");
 
+            //SetResolution(index, resIndex);
+            //index → which camera device(e.g., 0 = first camera, 1 = second)
+            //resIndex → which resolution option(not width / height directly, but a preset index)
+            //resIndex = 0 → 640x480
+            //resIndex = 1 → 1280x720
+            //resIndex = 2 → 1920x1080
             cam.SetResolution(0, 0);
-            cam.EnableAutoCrop(0, true);
 
+            //EnableAutoCrop(int index, bool enable)
+            //index → camera device
+            //enable = true → auto - crop ON
+            //enable = false → auto - crop OFF
+
+            cam.EnableAutoCrop(0, true);
             cam.Capture(0, filePath);
 
             return filePath;
