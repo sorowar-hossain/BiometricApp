@@ -23,7 +23,8 @@ namespace BiometricApp.Services
                 // Example: check device status
                 // dev.GetSignatureStatus(out done);
 
-                await Task.Delay(200); // VERY IMPORTANT (non-blocking)
+                await Task.Delay(30000); // VERY IMPORTANT (non-blocking)
+                done = true;
             }
             int isConfirm = dev.ConfirmSignature();
 
