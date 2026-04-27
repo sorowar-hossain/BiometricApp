@@ -1,0 +1,186 @@
+﻿@page "/face-capture-hc"
+@using BiometricApp.Models
+@using BiometricApp.Services
+
+@inject FaceCaptureHcService FaceCaptureService
+@inject LocalStorageService LocalStorageService
+
+<div class="container-fluid biometric-container">
+
+    <!-- HEADER -->
+    <div class="header-bar text-center">
+        <h4>Biometric Enrollment System</h4>
+    </div>
+
+    <div class="row mt-3">
+
+        <!-- LEFT PANEL -->
+        <div class="col-lg-3 col-md-4 col-sm-12 control-panel">
+
+            <label>Select Member</label>
+            <select class="form-control" @bind="selectedMemberId">
+                <option value="">-- Select Member --</option>
+                @foreach (var item in members)
+                {
+                    <option value="@item.PersonUniqueId">
+                        @item.FullName
+                    </option>
+                }
+            </select>
+
+            <div class="instructions mt-3">
+                <h6>Capture Instructions</h6>
+                <ul>
+                    <li>Face centered properly</li>
+                    <li>Good lighting required</li>
+                    <li>No glasses or hats</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- CAMERA PANEL -->
+        <div class="col-lg-6 col-md-8 col-sm-12 text-center">
+
+            <h6 class="panel-title">Camera Control</h6>
+
+            <div class="camera-wrapper d-flex justify-content-center align-items-center">
+
+                @if (CameraState == 1)
+                {
+                    <span class="text-success">Camera Active (Native SDK)</span>
+                }
+                else if (CameraState == 2)
+                {
+                    <span class="text-danger">Camera Stopped</span>
+                }
+
+                else if (CameraState == 3)
+                {
+                    <span class="text-danger">Camera Not Started</span>
+                }
+
+            </div>
+
+            <div class="camera-buttons mt-3">
+
+                <button class="btn btn-primary" @onclick="ToggleCamera">
+                    @(CameraConnected ? "Close Camera" : "Open Camera")
+                </button>
+
+                <button class="btn btn-success"
+                        @onclick="Capture"
+                        disabled="@(!CameraConnected)">
+                    Capture
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="col-lg-3 col-md-12 text-center preview-panel">
+
+            <h6 class="panel-title">Captured Image</h6>
+
+            <div class="preview-box">
+                @if (!string.IsNullOrEmpty(CapturedImage))
+                {
+                    <img src="@CapturedImage" />
+                }
+                else
+                {
+                    <span>No Image</span>
+                }
+            </div>
+
+            <button class="btn btn-success mt-3 w-100"
+                    @onclick="SaveFace"
+                    disabled="@string.IsNullOrEmpty(CapturedImage)">
+                Save Face
+            </button>
+
+            <div class="status-box mt-2">
+                <small>@Status</small>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+@code {
+
+    private List<MemberDropdown> members = new();
+    private string selectedMemberId;
+
+    private bool CameraConnected = false;
+    private string CapturedImage;
+    private string Status = "Idle";
+    private int CameraState = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        members = await LocalStorageService.GetMembersForDropdownAsync();
+    }
+
+    async Task ToggleCamera()
+    {
+        try
+        {
+            if (CameraState == 0 || CameraState == 2)
+            {
+                FaceCaptureService.StartCamera();
+
+                CameraState = 1;
+                CameraConnected = true;
+                Status = "Camera started";
+            }
+            else
+            {
+                FaceCaptureService.StopCamera();
+
+                CameraState = 2;
+                CameraConnected = false;
+                Status = "Camera stopped";
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            CameraState = 3;
+            Status = ex.Message;
+        }
+    }
+
+    async Task Capture()
+    {
+        if (string.IsNullOrWhiteSpace(selectedMemberId))
+        {
+            Status = "Select member first";
+            return;
+        }
+
+        try
+        {
+            var path = FaceCaptureService.CaptureFace();
+
+            CapturedImage = path;
+
+            Status = "Face captured";
+        }
+        catch (Exception ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    async Task SaveFace()
+    {
+        if (string.IsNullOrEmpty(CapturedImage))
+            return;
+
+        Status = $"Saved: {CapturedImage}";
+    }
+}

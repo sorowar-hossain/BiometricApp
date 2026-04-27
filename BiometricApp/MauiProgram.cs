@@ -45,7 +45,10 @@ namespace BiometricApp
             builder.Services.AddSingleton<IrisService>(); 
             builder.Services.AddSingleton<FaceService>();
             builder.Services.AddSingleton<SignatureService>();
+            builder.Services.AddSingleton<FaceCaptureHcService>();
             
+
+
 
             builder.Services.AddSingleton<LocalStorageService>();
             builder.Services.AddSingleton<LocalUserService>();
