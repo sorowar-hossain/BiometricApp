@@ -1,6 +1,8 @@
 ﻿@page "/signature"
+@using BiometricApp.Services
 
 @inject IJSRuntime JS
+@inject SignatureService signatureService
 
 <div class="container mt-4 main-box">
 
@@ -145,6 +147,7 @@
 
 
 @code {
+    private string? signaturePath;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -154,16 +157,17 @@
         }
     }
 
+    private async Task SaveSignature()
+    {
+        signaturePath = await signatureService.CaptureSignatureAsync();
+
+        Console.WriteLine(signaturePath);
+    }
+
     private async Task ClearSignature()
     {
         await JS.InvokeVoidAsync("clearPad");
     }
 
-    private async Task SaveSignature()
-    {
-        var base64 = await JS.InvokeAsync<string>("getSignature");
-
-        // Save to DB or show preview
-        Console.WriteLine(base64);
-    }
+  
 }
