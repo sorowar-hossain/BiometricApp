@@ -4,6 +4,7 @@
 @inject IJSRuntime JS
 @inject FaceService FaceService
 @inject LocalStorageService LocalStorageService
+@inject NavigationManager Navigation
 
 <div class="container-fluid biometric-container">
 
@@ -91,7 +92,7 @@
 
                 <button class="btn btn-warning"
                         @onclick="Retake"
-                        disabled="@string.IsNullOrEmpty(CapturedImage)">
+                        disabled="@string.IsNullOrEmpty(CapturedImage) || isSaving">
                     <i class="bi bi-arrow-repeat"></i>
                     Retake
                 </button>
@@ -146,8 +147,8 @@
             <button class="btn btn-success mt-3 w-100"
                     @onclick="SaveFace"
                     disabled="@string.IsNullOrEmpty(CapturedImage)">
-                <i class="bi bi-save me-2"></i>
-                Save Photo
+                @* <i class="bi bi-save me-2"></i> *@
+                Next <i class="bi bi-arrow-right"></i>
             </button>
 
             <div class="status-box">
@@ -173,20 +174,36 @@
 
     string CapturedImage;
     string Status = "Idle";
+    bool isSaving = false;
 
     private string path = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
     private string selectedMemberId;
+
+        protected override async Task OnParametersSetAsync()
+{
+    var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+    var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+    string? memberId = query["id"];
+
+    if (!string.IsNullOrEmpty(memberId))
+    {
+        selectedMemberId = memberId;
+    }
+}
 
     protected override async Task OnInitializedAsync()
     {
 
         members = await LocalStorageService.GetMembersForDropdownAsync();
     }
-    private void SelectMember(MemberDropdown item)
-    {
-        selectedMemberId = item.PersonUniqueId;
-    }
+
+
+
+    private void OnMemberChanged(ChangeEventArgs e)
+{
+    selectedMemberId = e.Value?.ToString();
+}
 
     async Task ConnectCamera()
     {
@@ -228,20 +245,44 @@
 
     async Task SaveFace()
     {
+        if (isSaving) return;
+        isSaving = true;
+
         if (string.IsNullOrEmpty(CapturedImage))
         {
             Status = "No image captured";
+            isSaving = false;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(selectedMemberId))
+        {
+            Status = "No member selected";
+            isSaving = false;
             return;
         }
 
         try
         {
+            Status = "Saving...";
             var path = await FaceService.SaveFaceAsync(CapturedImage, selectedMemberId);
             Status = $"Saved: {path}";
+
+            await JS.InvokeVoidAsync("webcam.stop");
+
+            CameraConnected = false;
+
+
+            await Task.Delay(500);
+            Navigation.NavigateTo($"/fingerprint?id={selectedMemberId}");
         }
         catch (Exception ex)
         {
             Status = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
         }
     }
 
