@@ -21,7 +21,7 @@
 
         <EditForm Model="model" OnValidSubmit="Save">
             <DataAnnotationsValidator />
-            <ValidationSummary />
+           
 
             <div class="row mt-4">
                 <div class="col-md-12 mb-3">
@@ -124,11 +124,24 @@
 
             </div>
 
-            <div class="d-flex justify-content-end mt-4">
-                <button type="submit" class="btn btn-primary px-4">
-                    @buttonText
-                </button>
-            </div>
+            <div class="d-flex justify-content-end mt-4 gap-2">
+
+    @if (isEditMode)
+    {
+        <button type="submit" class="btn btn-primary px-4">
+            Update
+        </button>
+    }
+
+    @if (!isEditMode)
+    {
+                    <button type="button"
+                            class="btn btn-success"
+                @onclick="SaveAndNext">
+                        Next <i class="bi bi-arrow-right"></i>
+        </button>
+    }
+</div>
         </EditForm>
 
     </div>
@@ -140,6 +153,7 @@
     private int Id;
     private string buttonText = "Save";
     string message = "";
+    private bool isEditMode = false;
     protected override async Task OnInitializedAsync()
     {
         // Get current user
@@ -160,7 +174,12 @@
         {
             buttonText = "Update";
             model = await LocalStorageService.LoadDemographicsAsync(userId);
+            isEditMode = true;
         }
+        else
+    {
+        isEditMode = false;
+    }
         StateHasChanged();
     }
 
@@ -189,6 +208,24 @@
         StateHasChanged();
         //bool result = await ApiService.CreateDemographicAsync(model);
     }
+    private async Task SaveAndNext()
+{
+    model.OrgId = user.OrgId;
+    model.UserId = user.UserId;
+    model.CreatedBy = user.UserName;
+
+    if (buttonText == "Update")
+    {
+        await LocalStorageService.UpdateDemographicsAsync(model);
+    }
+    else
+    {
+        await LocalStorageService.SaveDemographicsAsync(model);
+    }
+
+    //Redirect to face capture with ID
+    Navigation.NavigateTo($"/face-capture?id={model.PersonUniqueId}");
+}
 
     private int GetNextMemberSequence()
     {

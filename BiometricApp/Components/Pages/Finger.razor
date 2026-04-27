@@ -5,6 +5,7 @@
 @inject BiometricApp.Services.ScannerService ScannerService
 @inject BiometricApp.Services.ApiService ApiService
 @inject LocalStorageService LocalStorageService
+@inject NavigationManager Navigation
 
 <div class="content">
     <div class="top-row">
@@ -12,7 +13,7 @@
         <!-- Member Selection -->
         <div class="member-select">
             <label>Select Member</label>
-            <select class="form-control" @bind="selectedMemberId">
+            <select class="form-control" @bind="selectedMemberId" disabled="@(isProcessing)">
                 <option value="">-- Select Member --</option>
                 @foreach (var item in members)
                 {
@@ -62,7 +63,7 @@
                 }
             </div>
 
-            <button class="btn btn-success mt-2" @onclick="StartScanLeft">
+            <button class="btn btn-success mt-2" @onclick="StartScanLeft" disabled="@(isProcessing)">
                 Scan Left 4
             </button>
         </div>
@@ -83,7 +84,7 @@
                 }
             </div>
 
-            <button class="btn btn-success mt-2" @onclick="StartScanRight">
+            <button class="btn btn-success mt-2" @onclick="StartScanRight" disabled="@(isProcessing)">
                 Scan Right 4
             </button>
         </div>
@@ -115,10 +116,30 @@
             </div>
         </div>
 
-        <!-- Scan Thumb -->
-        <button class="btn btn-success mt-2" @onclick="StartScanThums">
-            Scan Thumb 2
-        </button>
+        <div class="d-flex align-items-center mt-2 w-100">
+
+            <!-- LEFT EMPTY (for balance) -->
+            <div style="flex:1"></div>
+
+            <!-- CENTER: Scan Thumb -->
+            <div style="flex:1; text-align:center;">
+                <button class="btn btn-success"
+                        @onclick="StartScanThums" disabled="@(isProcessing)">
+                    Scan Thumb 2
+                </button>
+            </div>
+
+            <!-- RIGHT: Next -->
+            <div style="flex:1; text-align:right;">
+                <button class="btn btn-success"
+                        @onclick="GoNext"
+                        disabled="@(!IsAllCompleted() || isProcessing)">
+                    Next <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+
+        </div>
+
 
         <!-- ✅ SAVE BUTTON NOW HERE -->
        @*  <button class="btn btn-primary mt-2" @onclick="SaveFinger">
@@ -127,6 +148,9 @@
 
         <!-- MESSAGE -->
         <p class="mt-2">@message</p>
+
+            
+
 
     </div>
    
@@ -144,12 +168,58 @@
     string folder = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
     private string selectedMemberId;
+    bool isProcessing = false;
 
     protected override async Task OnInitializedAsync()
     {
         message = "";
         members = await LocalStorageService.GetMembersForDropdownAsync();
     }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        string? memberId = query["id"];
+
+        if (!string.IsNullOrEmpty(memberId))
+        {
+            selectedMemberId = memberId;
+        }
+    }
+
+    private bool IsAllCompleted()
+    {
+        return lFingerDone && rFingerDone && tFingerDone;
+    }
+
+    private async Task GoNext()
+    {
+        if (isProcessing) return;
+
+        if (!IsAllCompleted())
+        {
+            message = "Please complete all fingerprint scans first";
+            return;
+        }
+
+        isProcessing = true;
+
+        try
+        {
+            message = "Moving to iris capture...";
+            StateHasChanged();
+
+            await Task.Delay(500);
+
+            Navigation.NavigateTo($"/iris-capture?id={selectedMemberId}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
     private void SelectMember(MemberDropdown item)
     {
         selectedMemberId = item.PersonUniqueId;

@@ -3,6 +3,7 @@
 @using BiometricApp.Services
 @inject BiometricApp.Services.IrisService IrisService
 @inject LocalStorageService LocalStorageService
+@inject NavigationManager Navigation
 
 <div class="iris-wrapper">
 
@@ -35,7 +36,7 @@
         <div class="member-select">
            
             <label>Select Member</label>
-            <select class="form-control" @bind="selectedMemberId">
+            <select class="form-control" @bind="selectedMemberId" disabled="@isProcessing">
                 <option value="">-- Select Member --</option>
                 @foreach (var item in members)
                 {
@@ -96,12 +97,38 @@
         </div>
 
         <!-- Buttons -->
-        <div class="button-group">
-            <button class="btn btn-outline-primary me-2" @onclick="Retake">Retake</button>
-            <button class="btn btn-dark me-2" @onclick="CaptureIris">
-                <i class="bi bi-camera-fill"></i> Capture
-            </button>
-            @* <button class="btn btn-primary" @onclick="SaveIrisImages">Save</button> *@
+        <div class="button-group d-flex align-items-center">
+
+            <!-- LEFT SPACE (keeps center truly centered) -->
+            <div style="flex:1"></div>
+
+            <!-- CENTER BUTTONS -->
+            <div class="d-flex justify-content-center gap-2">
+                
+                <button class="btn btn-success"
+                        @onclick="CaptureIris"
+                        disabled="@isProcessing">
+                    <i class="bi bi-camera-fill"></i> Capture
+                </button>
+
+                <button class="btn btn-warning"
+                        @onclick="Retake"
+                        disabled="@isProcessing">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Retake
+                </button>
+
+            </div>
+
+            <!-- RIGHT SIDE (NEXT BUTTON) -->
+            <div style="flex:1" class="d-flex justify-content-end">
+                <button class="btn btn-success"
+                        @onclick="GoNext"
+                        disabled="@isProcessing">
+                    Next <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+
         </div>
 
     </div>
@@ -124,12 +151,27 @@
     private string path = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
     private string selectedMemberId;
+    bool isProcessing = false;
 
     protected override async Task OnInitializedAsync()
     {
         message = "";
         members = await LocalStorageService.GetMembersForDropdownAsync();
     }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        string? memberId = query["id"];
+
+        if (!string.IsNullOrWhiteSpace(memberId))
+        {
+            selectedMemberId = memberId;
+        }
+    }
+
     private void SelectMember(MemberDropdown item)
     {
         selectedMemberId = item.PersonUniqueId;
@@ -188,6 +230,14 @@
         }
 
         StateHasChanged();
+    }
+
+    private void GoNext()
+    {
+        if (string.IsNullOrWhiteSpace(selectedMemberId))
+            return;
+
+        Navigation.NavigateTo($"/signature?id={selectedMemberId}");
     }
 
     private void SaveIrisImages()
