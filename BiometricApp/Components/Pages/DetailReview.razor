@@ -89,6 +89,7 @@
                                     <div class="slots">
                                         @for (int i = 0; i < 4; i++)
                                         {
+                                            var index = i;
                                             <div class="slot @(GetSlotClass(i))">
 
                                                 <!-- Label -->
@@ -97,7 +98,7 @@
                                                 <!-- Image -->
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
-                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" @onclick="() => ShowPreview(Fingerprints[i])" />
+                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" @onclick="() => ShowPreview(index)" />
                                                 }
 
                                             </div>
@@ -116,11 +117,12 @@
                                     <div class="slots">
                                         @for (int i = 6; i < 10; i++)
                                         {
+                                            var index = i;
                                             <div class="slot @(GetSlotClass(i))">
                                                 <div class="finger-label">@GetFingerLabel(i)</div>
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
-                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" @onclick="() => ShowPreview(Fingerprints[i])" />
+                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" @onclick="() => ShowPreview(index)" />
                                                 }
                                             </div>
                                         }
@@ -140,7 +142,7 @@
 
                                         @if (!string.IsNullOrEmpty(Fingerprints[4]))
                                         {
-                                            <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")" class="finger-img" @onclick="() => ShowPreview(Fingerprints[4])" />
+                                            <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")" class="finger-img" @onclick="() => ShowPreview(4)" />
                                         }
                                     </div>
 
@@ -150,7 +152,7 @@
 
                                         @if (!string.IsNullOrEmpty(Fingerprints[5]))
                                         {
-                                            <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")" class="finger-img" @onclick="() => ShowPreview(Fingerprints[5])" />
+                                            <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")" class="finger-img" @onclick="() => ShowPreview(5)" />
                                         }
                                     </div>
                                 </div>
@@ -538,9 +540,9 @@
     string? previewImage;
     bool isPreviewVisible = false;
 
-    void ShowPreview(string base64)
+    void ShowPreview(int index)
     {
-        previewImage = base64;
+        previewImage = Fingerprints[index];
         isPreviewVisible = true;
     }
 
