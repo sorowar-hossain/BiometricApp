@@ -9,30 +9,36 @@ namespace BiometricApp.Services
 {
     public class SignatureService
     {
-        IMDWrapper dev =new IMDWrapper();
+        IMDWrapper dev = new IMDWrapper();
         // 1. Start
 
         public async Task<string> CaptureSignatureAsync()
         {
-           int start= dev.StartSignature();
-
-            bool done = false;
-
-            while (!done)
+            try
             {
-                // Example: check device status
-                // dev.GetSignatureStatus(out done);
+                Console.WriteLine("Device Reset");
+                int reset = dev.DeviceReset();
+                Console.WriteLine($"Reset: {reset}");
 
-                await Task.Delay(30000); // VERY IMPORTANT (non-blocking)
-                done = true;
+                await Task.Delay(2000);
+
+                Console.WriteLine("Checking Busy");
+                bool busy = dev.IsScanBusy();
+                Console.WriteLine($"Busy: {busy}");
+
+                Console.WriteLine("Starting Signature");
+
+                int start = dev.StartSignature();
+
+                Console.WriteLine($"Start Result: {start}");
+
+                return "";
             }
-            int isConfirm = dev.ConfirmSignature();
-
-            string path = "C:\\sign.png";
-            int isSaved = dev.SaveSignature(path);
-
-            return path;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return "";
+            }
         }
-    }
-       
+    } 
 }

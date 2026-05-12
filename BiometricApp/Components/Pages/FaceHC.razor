@@ -79,31 +79,32 @@
         </div>
 
         <!-- RIGHT PANEL -->
-        <div class="col-lg-3 col-md-12 text-center preview-panel">
+        
 
-            <h6 class="panel-title">Captured Image</h6>
+    </div>
+    <div class="col-lg-3 col-md-12 preview-panel">
 
-            <div class="preview-box">
-                @if (!string.IsNullOrEmpty(CapturedImage))
-                {
-                    <img src="@CapturedImage" />
-                }
-                else
-                {
-                    <span>No Image</span>
-                }
-            </div>
+        <h6 class="panel-title">Captured Image</h6>
 
-            <button class="btn btn-success mt-3 w-100"
-                    @onclick="SaveFace"
-                    disabled="@string.IsNullOrEmpty(CapturedImage)">
-                Save Face
-            </button>
+        <div class="preview-box">
+            @if (!string.IsNullOrEmpty(CapturedImage))
+            {
+                <img src="@($"data:image/jpg;base64,{CapturedImage}")" style="width:100%;height:auto;" />
+            }
+            else
+            {
+                <span>No Image</span>
+            }
+        </div>
 
-            <div class="status-box mt-2">
-                <small>@Status</small>
-            </div>
+        <button class="btn btn-success mt-3 w-100"
+                @onclick="SaveFace"
+                disabled="@string.IsNullOrEmpty(CapturedImage)">
+            Save Face
+        </button>
 
+        <div class="status-box mt-2">
+            <small>@Status</small>
         </div>
 
     </div>
@@ -118,6 +119,7 @@
     private string CapturedImage;
     private string Status = "Idle";
     private int CameraState = 0;
+    private System.Timers.Timer _uiTimer;
 
     protected override async Task OnInitializedAsync()
     {
@@ -139,7 +141,7 @@
             else
             {
                 FaceCaptureService.StopCamera();
-
+                CapturedImage = null;
                 CameraState = 2;
                 CameraConnected = false;
                 Status = "Camera stopped";
@@ -182,5 +184,20 @@
             return;
 
         Status = $"Saved: {CapturedImage}";
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _uiTimer = new System.Timers.Timer(500);
+            _uiTimer.Elapsed += async (s, e) =>
+            {
+                CapturedImage = FaceCaptureService.GetLiveBase64();
+
+                await InvokeAsync(StateHasChanged);
+            };
+
+            _uiTimer.Start();
+        }
     }
 }

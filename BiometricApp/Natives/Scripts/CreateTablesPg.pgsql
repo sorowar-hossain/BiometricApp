@@ -1,0 +1,230 @@
+
+-- DEMOGRAPHICS TABLE
+
+CREATE TABLE IF NOT EXISTS demographics (
+    person_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INT,
+    org_id INT,
+
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    marital_status VARCHAR(50),
+    place_of_issue VARCHAR(100),
+    place_of_birth VARCHAR(100),
+
+    date_of_birth TIMESTAMP,
+    gender VARCHAR(20),
+    address VARCHAR(255),
+    weight DOUBLE PRECISION,
+
+    father_name VARCHAR(100),
+    mother_name VARCHAR(100),
+    expiry_date TIMESTAMP,
+
+    person_unique_id VARCHAR(100) UNIQUE NOT NULL,
+
+    created_on TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_on TIMESTAMP,
+    updated_by VARCHAR(100)
+);
+
+
+
+-- BIOMETRICS TABLE
+
+CREATE TABLE IF NOT EXISTS biometrics (
+    biometric_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    org_id INT,
+    person_id BIGINT NOT NULL,
+    user_id INT,
+
+    left_thumb BYTEA, left_thumb_file_name VARCHAR(200),
+    left_index BYTEA, left_index_file_name VARCHAR(200),
+    left_middle BYTEA, left_middle_file_name VARCHAR(200),
+    left_ring BYTEA, left_ring_file_name VARCHAR(200),
+    left_little BYTEA, left_little_file_name VARCHAR(200),
+
+    right_thumb BYTEA, right_thumb_file_name VARCHAR(200),
+    right_index BYTEA, right_index_file_name VARCHAR(200),
+    right_middle BYTEA, right_middle_file_name VARCHAR(200),
+    right_ring BYTEA, right_ring_file_name VARCHAR(200),
+    right_little BYTEA, right_little_file_name VARCHAR(200),
+
+    left_iris BYTEA, left_iris_file_name VARCHAR(200),
+    right_iris BYTEA, right_iris_file_name VARCHAR(200),
+
+    face BYTEA, face_file_name VARCHAR(200),
+
+    created_on TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_on TIMESTAMP,
+    updated_by VARCHAR(100),
+
+    CONSTRAINT fk_biometrics_demographics
+    FOREIGN KEY (person_id)
+    REFERENCES demographics(person_id)
+    ON DELETE CASCADE
+);
+
+
+
+-- BIOMETRIC LOGS TABLE (FINAL NAME)
+
+CREATE TABLE IF NOT EXISTS biometriclogs (
+    biometric_log_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    org_id INT,
+    person_id BIGINT NOT NULL,
+    user_id INT,
+
+    left_thumb BYTEA, left_thumb_file_name VARCHAR(200),
+    left_index BYTEA, left_index_file_name VARCHAR(200),
+    left_middle BYTEA, left_middle_file_name VARCHAR(200),
+    left_ring BYTEA, left_ring_file_name VARCHAR(200),
+    left_little BYTEA, left_little_file_name VARCHAR(200),
+
+    right_thumb BYTEA, right_thumb_file_name VARCHAR(200),
+    right_index BYTEA, right_index_file_name VARCHAR(200),
+    right_middle BYTEA, right_middle_file_name VARCHAR(200),
+    right_ring BYTEA, right_ring_file_name VARCHAR(200),
+    right_little BYTEA, right_little_file_name VARCHAR(200),
+
+    left_iris BYTEA, left_iris_file_name VARCHAR(200),
+    right_iris BYTEA, right_iris_file_name VARCHAR(200),
+
+    face BYTEA, face_file_name VARCHAR(200),
+
+    created_on TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_on TIMESTAMP,
+    updated_by VARCHAR(100),
+
+    CONSTRAINT fk_logs_demographics
+    FOREIGN KEY (person_id)
+    REFERENCES demographics(person_id)
+    ON DELETE CASCADE
+);
+
+
+-- INDEXES
+
+CREATE INDEX IF NOT EXISTS idx_demographics_person_unique_id
+ON demographics(person_unique_id);
+
+CREATE INDEX IF NOT EXISTS idx_biometrics_person_id
+ON biometrics(person_id);
+
+CREATE INDEX IF NOT EXISTS idx_biometriclogs_person_id
+ON biometriclogs(person_id);
+
+
+
+-- TRIGGER FUNCTION (CHANGE LOGGER)
+
+CREATE OR REPLACE FUNCTION log_biometric_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+
+    IF (
+        OLD.left_thumb IS DISTINCT FROM NEW.left_thumb OR
+        OLD.left_thumb_file_name IS DISTINCT FROM NEW.left_thumb_file_name OR
+
+        OLD.left_index IS DISTINCT FROM NEW.left_index OR
+        OLD.left_index_file_name IS DISTINCT FROM NEW.left_index_file_name OR
+
+        OLD.left_middle IS DISTINCT FROM NEW.left_middle OR
+        OLD.left_middle_file_name IS DISTINCT FROM NEW.left_middle_file_name OR
+
+        OLD.left_ring IS DISTINCT FROM NEW.left_ring OR
+        OLD.left_ring_file_name IS DISTINCT FROM NEW.left_ring_file_name OR
+
+        OLD.left_little IS DISTINCT FROM NEW.left_little OR
+        OLD.left_little_file_name IS DISTINCT FROM NEW.left_little_file_name OR
+
+        OLD.right_thumb IS DISTINCT FROM NEW.right_thumb OR
+        OLD.right_thumb_file_name IS DISTINCT FROM NEW.right_thumb_file_name OR
+
+        OLD.right_index IS DISTINCT FROM NEW.right_index OR
+        OLD.right_index_file_name IS DISTINCT FROM NEW.right_index_file_name OR
+
+        OLD.right_middle IS DISTINCT FROM NEW.right_middle OR
+        OLD.right_middle_file_name IS DISTINCT FROM NEW.right_middle_file_name OR
+
+        OLD.right_ring IS DISTINCT FROM NEW.right_ring OR
+        OLD.right_ring_file_name IS DISTINCT FROM NEW.right_ring_file_name OR
+
+        OLD.right_little IS DISTINCT FROM NEW.right_little OR
+        OLD.right_little_file_name IS DISTINCT FROM NEW.right_little_file_name OR
+
+        OLD.left_iris IS DISTINCT FROM NEW.left_iris OR
+        OLD.left_iris_file_name IS DISTINCT FROM NEW.left_iris_file_name OR
+
+        OLD.right_iris IS DISTINCT FROM NEW.right_iris OR
+        OLD.right_iris_file_name IS DISTINCT FROM NEW.right_iris_file_name OR
+
+        OLD.face IS DISTINCT FROM NEW.face OR
+        OLD.face_file_name IS DISTINCT FROM NEW.face_file_name
+    )
+    THEN
+
+        INSERT INTO biometriclogs (
+            org_id, person_id, user_id,
+
+            left_thumb, left_thumb_file_name,
+            left_index, left_index_file_name,
+            left_middle, left_middle_file_name,
+            left_ring, left_ring_file_name,
+            left_little, left_little_file_name,
+
+            right_thumb, right_thumb_file_name,
+            right_index, right_index_file_name,
+            right_middle, right_middle_file_name,
+            right_ring, right_ring_file_name,
+            right_little, right_little_file_name,
+
+            left_iris, left_iris_file_name,
+            right_iris, right_iris_file_name,
+
+            face, face_file_name,
+
+            created_on, created_by, updated_on, updated_by
+        )
+        VALUES (
+            OLD.org_id, OLD.person_id, OLD.user_id,
+
+            OLD.left_thumb, OLD.left_thumb_file_name,
+            OLD.left_index, OLD.left_index_file_name,
+            OLD.left_middle, OLD.left_middle_file_name,
+            OLD.left_ring, OLD.left_ring_file_name,
+            OLD.left_little, OLD.left_little_file_name,
+
+            OLD.right_thumb, OLD.right_thumb_file_name,
+            OLD.right_index, OLD.right_index_file_name,
+            OLD.right_middle, OLD.right_middle_file_name,
+            OLD.right_ring, OLD.right_ring_file_name,
+            OLD.right_little, OLD.right_little_file_name,
+
+            OLD.left_iris, OLD.left_iris_file_name,
+            OLD.right_iris, OLD.right_iris_file_name,
+
+            OLD.face, OLD.face_file_name,
+
+            NOW(), OLD.created_by, OLD.updated_on, OLD.updated_by
+        );
+
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+-- TRIGGER
+
+DROP TRIGGER IF EXISTS trg_biometric_update_log ON biometrics;
+
+CREATE TRIGGER trg_biometric_update_log
+AFTER UPDATE ON biometrics
+FOR EACH ROW
+EXECUTE FUNCTION log_biometric_changes();

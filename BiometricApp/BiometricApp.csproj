@@ -76,22 +76,31 @@
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+        <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
         <PackageReference Include="Npgsql" Version="10.0.2" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
         <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
         <!--<PackageReference Include="System.Runtime" Version="4.3.1" />-->
 		<PackageReference Include="System.Formats.Nrbf" Version="9.0.0" />
+
+    </ItemGroup>
+
+    <ItemGroup>
+		<MauiAsset Include="Scripts\CreateTables.sql" />
+		<MauiAsset Include="Scripts\AlterTablesSql.sql" />
+		<MauiAsset Include="Scripts\CreateTablesPg.pgsql" />
+		<MauiAsset Include="Scripts\AlterTablesPg.pgsql" />
+		
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Natives\Components\Layout\" />
     </ItemGroup>
 
     <ItemGroup>
       <Reference Include="Device_Wrapper">
         <HintPath>Natives\Device_Wrapper.dll</HintPath>
       </Reference>
-		<MauiAsset Include="Scripts\CreateTables.sql" />
-		<MauiAsset Include="Scripts\AlterTablesSql.sql" />
-		<MauiAsset Include="Scripts\CreateTablesPg.pgsql" />
-		<MauiAsset Include="Scripts\AlterTablesPg.pgsql" />
-		
     </ItemGroup>
 
 	<!--<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows10.0.19041.0'">
