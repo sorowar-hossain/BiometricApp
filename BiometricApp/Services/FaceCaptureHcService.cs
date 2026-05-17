@@ -2,112 +2,209 @@
 
 #if WINDOWS
 using WinRT.Interop;
-using Microsoft.UI.Xaml;
 #endif
 
-namespace BiometricApp.Services
+namespace BiometricApp.Services;
+
+public class FaceCaptureHcService
 {
-    public class FaceCaptureHcService
+    private readonly IMDHighCamera cam = new();
+
+    private bool isStarted = false;
+
+    private int cameraIndex = 0;
+
+    private string _latestBase64;
+
+    private CancellationTokenSource _previewCts;
+
+    private bool _autoCropEnabled = false;
+
+    public void StartCamera()
     {
-        private readonly IMDHighCamera cam = new IMDHighCamera();
-        private bool isStarted = false;
+        if (isStarted)
+            return;
 
-        private int cameraIndex = 0;
-        private IntPtr hwnd;
-        private CancellationTokenSource _previewCts;
-        private string _latestBase64;
+        cam.Init();
 
-#if WINDOWS
-        public void Initialize(IntPtr windowHandle)
-        {
-            hwnd = windowHandle;
-        }
-#endif
+        int count = cam.GetCameraCount();
 
-        public void StartCamera()
-        {
-            if (isStarted) return;
-
-            cam.Init();
-
-            int count = cam.GetCameraCount();
-            if (count <= 0)
-                throw new Exception("No camera found");
+        if (count <= 0)
+            throw new Exception("No camera found");
 
 #if WINDOWS
-    var window = (Microsoft.UI.Xaml.Window)App.Current.Windows[0].Handler.PlatformView;
-    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+        var window =
+            (Microsoft.UI.Xaml.Window)App.Current.Windows[0]
+            .Handler.PlatformView;
 
-    cam.OpenCamera(cameraIndex, hwnd);
+        var hwnd =
+            WindowNative.GetWindowHandle(window);
+
+        cam.OpenCamera(cameraIndex, hwnd);
 #endif
 
-            isStarted = true;
+        isStarted = true;
 
-            StartPreviewSync(); // 🔥 start base64 sync
-        }
+        StartPreviewSync();
+    }
 
-        public string CaptureFace()
+    public void StopCamera()
+    {
+        try
         {
             _previewCts?.Cancel();
-            if (!isStarted)
-                throw new Exception("Camera not started");
 
-            string filePath = Path.Combine(
-                FileSystem.CacheDirectory,
-                $"{DateTime.Now:yyyyMMdd_HHmmss}_face.jpg"
-            );
+            cam.CloseCamera(cameraIndex);
 
-            cam.SetResolution(cameraIndex, 0); // 1280x720 recommended
-            cam.EnableAutoCrop(cameraIndex, true);
-
-            cam.Capture(cameraIndex, filePath);
-
-            return cam.CaptureBase64(cameraIndex);
+            cam.Uninit();
+        }
+        catch
+        {
         }
 
-        public void StopCamera()
+        isStarted = false;
+    }
+
+    private void StartPreviewSync()
+    {
+        _previewCts?.Cancel();
+
+        _previewCts = new CancellationTokenSource();
+
+        var token = _previewCts.Token;
+
+        Task.Run(async () =>
         {
-            try
+            while (!token.IsCancellationRequested)
             {
-                _previewCts?.Cancel();
-
-                cam.CloseCamera(cameraIndex);
-                cam.Uninit();
-            }
-            catch { }
-
-            isStarted = false;
-        }
-        private void StartPreviewSync()
-        {
-            _previewCts?.Cancel();
-            _previewCts = new CancellationTokenSource();
-
-            var token = _previewCts.Token;
-
-            Task.Run(async () =>
-            {
-                while (!token.IsCancellationRequested)
+                try
                 {
-                    try
+                    if (isStarted)
                     {
-                        if (isStarted)
-                        {
-                            _latestBase64 = cam.CaptureBase64(cameraIndex);
-                        }
+                        _latestBase64 =
+                            cam.CaptureBase64(cameraIndex);
                     }
-                    catch
-                    {
-                        // ignore frame errors (camera busy etc.)
-                    }
-
-                    await Task.Delay(300, token); // adjust: 300–800ms
                 }
-            }, token);
-        }
-        public string GetLiveBase64()
+                catch
+                {
+                }
+
+                await Task.Delay(1000, token);
+            }
+        }, token);
+    }
+
+    public string GetLiveBase64()
+    {
+        return _latestBase64;
+    }
+
+    // =============================
+    // CAPTURE
+    // =============================
+
+    public string CaptureFace()
+    {
+        if (!isStarted)
+            throw new Exception("Camera not started");
+
+        cam.EnableAutoCrop(1, _autoCropEnabled);
+
+        return cam.CaptureBase64(cameraIndex);
+    }
+
+    // =============================
+    // AUTO CROP
+    // =============================
+
+    public void SetAutoCrop(bool enabled)
+    {
+        _autoCropEnabled = enabled;
+    }
+
+    // =============================
+    // ROTATE
+    // =============================
+
+    public void RotateLeft()
+    {
+        if (!isStarted)
+            return;
+
+        cam.RotateLeft(cameraIndex);
+
+        RefreshPreview();
+    }
+
+    public void RotateRight()
+    {
+        if (!isStarted)
+            return;
+
+        cam.RotateRight(cameraIndex);
+
+        RefreshPreview();
+    }
+
+    // =============================
+    // ZOOM
+    // =============================
+
+    public void ZoomIn()
+    {
+        if (!isStarted)
+            return;
+
+        cam.ZoomIn(0);
+
+        RefreshPreview();
+    }
+
+    public void ZoomOut()
+    {
+        if (!isStarted)
+            return;
+
+        cam.ZoomOut(cameraIndex);
+
+        RefreshPreview();
+    }
+
+    // =============================
+    // RESOLUTION
+    // =============================
+
+
+    public void SetResolution(int resIndex)
+    {
+        if (!isStarted)
+            return;
+
+        cam.SetResolution(cameraIndex, resIndex);
+
+        try
         {
-            return _latestBase64;
+            _latestBase64 =
+                cam.CaptureBase64(cameraIndex);
+        }
+        catch
+        {
+        }
+    }
+
+    // =============================
+    // INTERNAL
+    // =============================
+
+    private void RefreshPreview()
+    {
+        try
+        {
+            _latestBase64 =
+                cam.CaptureBase64(cameraIndex);
+        }
+        catch
+        {
         }
     }
 }

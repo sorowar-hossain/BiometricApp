@@ -18,17 +18,12 @@ namespace BiometricApp.Services
             {
                 Console.WriteLine("Device Reset");
                 int reset = dev.DeviceReset();
-                Console.WriteLine($"Reset: {reset}");
-
-                await Task.Delay(2000);
-
-                Console.WriteLine("Checking Busy");
-                bool busy = dev.IsScanBusy();
-                Console.WriteLine($"Busy: {busy}");
 
                 Console.WriteLine("Starting Signature");
 
                 int start = dev.StartSignature();
+
+                int savesig = dev.SaveSignature(@"C:\Signature____\signature.png");
 
                 Console.WriteLine($"Start Result: {start}");
 

@@ -1,14 +1,14 @@
 ﻿@page "/face-capture"
+
 @using BiometricApp.Models
 @using BiometricApp.Services
-@inject IJSRuntime JS
-@inject FaceService FaceService
+
+@inject FaceCaptureHcService FaceCaptureService
 @inject LocalStorageService LocalStorageService
-@inject NavigationManager Navigation
 
 <div class="container-fluid biometric-container">
 
-    <!-- Header -->
+    <!-- HEADER -->
     <div class="header-bar text-center">
         <h4>Biometric Enrollment System</h4>
     </div>
@@ -16,42 +16,94 @@
     <div class="row mt-3">
 
         <!-- LEFT PANEL -->
-        <div class="col-lg-3 col-md-4 col-sm-12 control-panel">
+        <div class="col-lg-3 col-md-12 control-panel">
 
-            <!-- Member Selection -->
-            <div class="member-select">
+            <h6>Select Member</h6>
 
-                <label>Select Member</label>
-                <select class="form-control" @bind="selectedMemberId">
-                    <option value="">-- Select Member --</option>
-                    @foreach (var item in members)
-                    {
-                        <option value="@item.PersonUniqueId">
-                            @item.FullName
-                        </option>
-                    }
-                </select>
+            <select class="form-control" @bind="selectedMemberId">
+                <option value="">-- Select Member --</option>
+
+                @foreach (var item in members)
+                {
+                    <option value="@item.PersonUniqueId">
+                        @item.FullName
+                    </option>
+                }
+            </select>
+
+            <!-- CONTROLS -->
+            <div class="mt-3">
+
+                <div class="mt-3">
+                    <button class="btn btn-success"
+                            @onclick="EnableAutoCrop">
+                        Enable Auto Crop
+                    </button>
+
+                    <button class="btn btn-danger"
+                            @onclick="DisableAutoCrop">
+                        Disable Auto Crop
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-primary"
+                            @onclick="RotateLeft">
+                        Rotate Left
+                    </button>
+
+                    <button class="btn btn-primary"
+                            @onclick="RotateRight">
+                        Rotate Right
+                    </button>
+                </div>
+                       
+
+                <div class="mt-3">
+                    <button class="btn btn-primary"
+                            @onclick="ZoomIn">
+                        Zoom In
+                    </button>
+
+                    <button class="btn btn-primary"
+                            @onclick="ZoomOut">
+                        Zoom Out
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-primary">Portrait Orientation</button>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary">Landescape Orientation</button>
+                </div>
+
+                <div class="mt-3">
+                    <select class="form-control"
+                            @onchange="ChangeResolution">
+
+                        <option value="">Select Resolution</option>
+
+                        <option value="0">640×480</option>
+
+                        <option value="1">800×600</option>
+
+                        <option value="2">1280×720</option>
+
+                        <option value="3">1920×1080</option>
+
+                    </select>
+                </div>
             </div>
 
-            @* <h6 class="panel-title">Camera Controls</h6>
+            <button class="btn btn-secondary w-100 mt-3"
+                    @onclick="Retake">
+                Undo
+            </button>
 
-            <div class="control-item">
-                <label>Brightness</label>
-                <input type="range" min="0" max="100" @bind="Brightness" class="form-range">
-            </div>
-
-            <div class="control-item">
-                <label>Sharpness</label>
-                <input type="range" min="0" max="100" @bind="Sharpness" class="form-range">
-            </div>
-
-            <div class="control-item">
-                <label>Zoom</label>
-                <input type="range" min="0" max="100" @bind="Zoom" class="form-range">
-            </div> *@
-
-            <div class="instructions">
+            <div class="instructions mt-4">
                 <h6>Capture Instructions</h6>
+
                 <ul>
                     <li>Face centered inside frame</li>
                     <li>Good lighting required</li>
@@ -62,266 +114,152 @@
 
         </div>
 
-        <!-- CAMERA PANEL -->
-        <div class="col-lg-6 col-md-8 col-sm-12 text-center">
+        <!-- CENTER CAMERA -->
+        <div class="col-lg-6 col-md-12">
 
-            <h6 class="panel-title">Live Camera</h6>
+            <h5 class="panel-title text-center">Live Camera</h5>
 
-            <div class="camera-wrapper">
+            <div class="live-camera-box">
 
-                <video id="video" autoplay></video>
-
-                <!-- Face Guide -->
-                <div class="face-guide"></div>
+                @if (CameraConnected &&
+                                !string.IsNullOrEmpty(LiveImage))
+                {
+                    <img class="w-100 h-100 object-fit-contain"
+                         src="@($"data:image/jpeg;base64,{LiveImage}")" />
+                }
+                else
+                {
+                    <div class="camera-placeholder">
+                        Camera Not Started
+                    </div>
+                }
 
             </div>
 
-            <div class="camera-buttons">
+            <div class="camera-buttons mt-3">
 
-                <button class="btn btn-primary" @onclick="ToggleCamera">
-                    <i class="bi @(CameraConnected ? "bi-camera-video-off" : "bi-camera-video")"></i>
-                    @(CameraConnected ? " Close Camera" : " Open Camera")
+                <button class="btn btn-primary"
+                        @onclick="ToggleCamera">
+                    @(CameraConnected ? "Close Camera" : "Open Camera")
                 </button>
 
                 <button class="btn btn-success"
                         @onclick="Capture"
                         disabled="@(!CameraConnected)">
-                    <i class="bi bi-camera"></i>
                     Capture
                 </button>
 
                 <button class="btn btn-warning"
                         @onclick="Retake"
-                        disabled="@string.IsNullOrEmpty(CapturedImage) || isSaving">
-                    <i class="bi bi-arrow-repeat"></i>
+                        disabled="@string.IsNullOrEmpty(CapturedImage)">
                     Retake
                 </button>
 
             </div>
-
+            <div class="mt-3">
+                <h5>Image Quality Score: 20%</h5>
+            </div>
+            <div class="row mt-3">
+                <h4>Face Recognition</h4>
+                <hr />
+                <div class="col-lg-6 col-md-12">
+                    <h6>Emotion: Neutral</h6>
+                </div>
+                <div class="col-lg-6 col-md-12">
+                    <h6>Confidence: 70%</h6>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <h4>Gender</h4>
+                <hr />
+                <div class="col-lg-6 col-md-12">
+                    <h6>Male: 99%</h6>
+                </div>
+                <div class="col-lg-6 col-md-12">
+                    <h6>Female: 0%</h6>
+                </div>
+            </div>
         </div>
 
-        <!-- RIGHT PANEL -->
-        <div class="col-lg-3 col-md-12 text-center preview-panel">
+        <!-- RIGHT PREVIEW -->
+        <div class="col-lg-3 col-md-12 preview-panel">
 
-            <h6 class="panel-title">Captured Face</h6>
+            <h5 class="panel-title">Captured Face</h5>
 
             <div class="preview-box">
 
                 @if (!string.IsNullOrEmpty(CapturedImage))
                 {
-                    <img src="@CapturedImage" />
+                    <img class="w-100 h-100 object-fit-contain"
+                         src="@($"data:image/jpeg;base64,{CapturedImage}")" />
                 }
                 else
                 {
-                    <span class="placeholder">No Image</span>
+                    <div class="camera-placeholder">
+                        No Captured Image
+                    </div>
                 }
 
             </div>
 
-            <label>Brightness</label>
-            <input type="range" min="-100" max="100"
-                   value="@Brightness"
-                   disabled="@string.IsNullOrEmpty(CapturedImage)"
-                   @oninput="async e => await ChangeBrightness(e.Value.ToString())" />
+            
 
-            <label>Rotate</label>
-            <input type="range" min="-180" max="180"
-                   value="@Rotation"
-                   disabled="@string.IsNullOrEmpty(CapturedImage)"
-                   @oninput="async e => await RotateImage(e.Value.ToString())" />
-
-            <label>Zoom</label>
-            <input type="range" min="1" max="3" step="0.1"
-                   value="@ZoomLevel"
-                   disabled="@string.IsNullOrEmpty(CapturedImage)"
-                   @oninput="async e => await ZoomImage(e.Value.ToString())" />
-
-            <button class="btn btn-secondary mt-2 w-100"
-                    @onclick="Undo"
-                    disabled="@string.IsNullOrEmpty(CapturedImage)">
-                <i class="bi bi-arrow-counterclockwise me-2"></i>
-                Undo
-            </button>
-
-            <button class="btn btn-success mt-3 w-100"
+            <button class="btn btn-success w-100 mt-2"
                     @onclick="SaveFace"
                     disabled="@string.IsNullOrEmpty(CapturedImage)">
-                @* <i class="bi bi-save me-2"></i> *@
-                Next <i class="bi bi-arrow-right"></i>
+                Save Photo
             </button>
 
-            <div class="status-box">
-                <small>Status: @Status</small>
+            <div class="status-box mt-3">
+                <h6>Status: @Status</h6>
             </div>
-
+            <div class="row mt-3"></div>
+            <div class="row mt-3"></div>
+            <div class="row mt-3"></div>
+            <div class="row mt-3"></div>
+            <div class="row mt-3 face_recog_second_column">
+                <div class="mt-3"></div>
+                <div class="col-lg-6 col-md-12">
+                    <h6>Happy: 10%</h6>
+                </div>
+                <div class="col-lg-6 col-md-12">
+                    <h6>Angry: 0%</h6>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-lg-6 col-md-12">
+                    <h6>Surprised: 5%</h6>
+                </div>
+                <div class="col-lg-6 col-md-12">
+                    <h6>Sad: 3%</h6>
+                </div>
+            </div>
         </div>
-
     </div>
 
 </div>
 
-
-
 @code {
 
-    int Sharpness;
-    int Zoom;
-
-    int Brightness = 0;
-    int Rotation = 0;
-    double ZoomLevel = 1;
-
-    string CapturedImage;
-    string Status = "Idle";
-    bool isSaving = false;
-
-    private string path = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
+
     private string selectedMemberId;
 
-        protected override async Task OnParametersSetAsync()
-{
-    var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-    var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-    string? memberId = query["id"];
+    private bool CameraConnected;
 
-    if (!string.IsNullOrEmpty(memberId))
-    {
-        selectedMemberId = memberId;
-    }
-}
+    private string LiveImage;
+
+    private string CapturedImage;
+
+    private string Status = "Idle";
+
+    private System.Timers.Timer _uiTimer;
 
     protected override async Task OnInitializedAsync()
     {
-
-        members = await LocalStorageService.GetMembersForDropdownAsync();
+        members = await LocalStorageService
+            .GetMembersForDropdownAsync();
     }
-
-
-
-    private void OnMemberChanged(ChangeEventArgs e)
-{
-    selectedMemberId = e.Value?.ToString();
-}
-
-    async Task ConnectCamera()
-    {
-        await JS.InvokeVoidAsync("webcam.start");
-        Status = "Camera connected";
-    }
-
-    async Task Capture()
-    {
-
-        if (string.IsNullOrWhiteSpace(selectedMemberId))
-        {
-            return;
-        }
-        CapturedImage = await JS.InvokeAsync<string>("webcam.capture");
-
-        Brightness = 0;
-        Rotation = 0;
-        ZoomLevel = 1;
-
-        Status = "Face captured";
-    }
-
-    void Retake()
-    {
-        CapturedImage = null;
-        Status = "Retake photo";
-
-        Brightness = 0;
-        Rotation = 0;
-        ZoomLevel = 1;
-    }
-
-    async Task DisconnectCamera()
-    {
-        await JS.InvokeVoidAsync("webcam.stop");
-        Status = "Camera disconnected";
-    }
-
-    async Task SaveFace()
-    {
-        if (isSaving) return;
-        isSaving = true;
-
-        if (string.IsNullOrEmpty(CapturedImage))
-        {
-            Status = "No image captured";
-            isSaving = false;
-            return;
-        }
-
-        if (string.IsNullOrEmpty(selectedMemberId))
-        {
-            Status = "No member selected";
-            isSaving = false;
-            return;
-        }
-
-        try
-        {
-            Status = "Saving...";
-            var path = await FaceService.SaveFaceAsync(CapturedImage, selectedMemberId);
-            Status = $"Saved: {path}";
-
-            await JS.InvokeVoidAsync("webcam.stop");
-
-            CameraConnected = false;
-
-
-            await Task.Delay(500);
-            Navigation.NavigateTo($"/fingerprint?id={selectedMemberId}");
-        }
-        catch (Exception ex)
-        {
-            Status = ex.Message;
-        }
-        finally
-        {
-            isSaving = false;
-        }
-    }
-
-    async Task ChangeBrightness(string value)
-    {
-        Brightness = int.Parse(value);
-        await ApplyEdit();
-    }
-
-    async Task RotateImage(string value)
-    {
-        Rotation = int.Parse(value);
-        await ApplyEdit();
-    }
-
-    async Task ZoomImage(string value)
-    {
-        ZoomLevel = double.Parse(value);
-        await ApplyEdit();
-    }
-
-    async Task ApplyEdit()
-    {
-        if (string.IsNullOrEmpty(CapturedImage)) return;
-
-        CapturedImage = await JS.InvokeAsync<string>(
-            "webcam.applyEdit",
-            Brightness,
-            Rotation,
-            ZoomLevel
-        );
-    }
-
-    async Task Undo()
-    {
-        CapturedImage = await JS.InvokeAsync<string>("webcam.undo");
-    }
-
-    bool CameraConnected = false;
 
     async Task ToggleCamera()
     {
@@ -329,184 +267,297 @@
         {
             if (!CameraConnected)
             {
-                await JS.InvokeVoidAsync("webcam.start");
+                FaceCaptureService.StartCamera();
 
                 CameraConnected = true;
-                Status = "Camera connected";
+
+                Status = "Camera Started";
             }
             else
             {
-                await JS.InvokeVoidAsync("webcam.stop");
+                FaceCaptureService.StopCamera();
 
                 CameraConnected = false;
-                Status = "Camera disconnected";
+
+                LiveImage = null;
+
+                CapturedImage = null;
+
+                Status = "Camera Closed";
             }
+
+            await InvokeAsync(StateHasChanged);
         }
-        catch
+        catch (Exception ex)
         {
-            CameraConnected = false;
-            Status = "Failed to connect camera";
+            Status = ex.Message;
         }
     }
 
+    // async Task Capture()
+    // {
+    //     try
+    //     {
+    //         if (string.IsNullOrWhiteSpace(selectedMemberId))
+    //         {
+    //             Status = "Select member first";
+    //             return;
+    //         }
+
+    //         CapturedImage = LiveImage;
+
+    //         Status = "Face Captured";
+
+    //         await InvokeAsync(StateHasChanged);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Status = ex.Message;
+    //     }
+    // }
+
+    async Task Capture()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(selectedMemberId))
+            {
+                Status = "Select member first";
+                return;
+            }
+
+            CapturedImage =
+                FaceCaptureService.CaptureFace();
+
+            Status = "Face Captured";
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    void Retake()
+    {
+        CapturedImage = null;
+
+        Status = "Retake Image";
+    }
+
+    async Task SaveFace()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(CapturedImage))
+                return;
+
+            // await FaceCaptureService.SaveFaceAsync(
+            //     selectedMemberId,
+            //     CapturedImage);
+
+            Status = "Photo Saved Successfully";
+        }
+        catch (Exception ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    // async Task AutoCropEnabled()
+    // {
+    //     try
+    //     {
+    //         bool isAutoCropEnable = true;
+    //         if (string.IsNullOrEmpty(CapturedImage))
+    //             return;
+
+    //         FaceCaptureService.AutoCropService(
+    //             isAutoCropEnable);
+
+    //         CapturedImage = LiveImage;
+    //         if (isAutoCropEnable)
+    //         {
+    //             Status = "Auto crop enabled";
+    //         }
+    //         else
+    //         {
+    //             Status = "Auto crop disabled";
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Status = ex.Message;
+    //     }
+    // }
+
+    // async Task AutoCropDisabled()
+    // {
+    //     try
+    //     {
+    //         bool isAutoCropEnable = false;
+    //         if (string.IsNullOrEmpty(CapturedImage))
+    //             return;
+
+    //         FaceCaptureService.AutoCropService(
+    //             isAutoCropEnable);
+
+    //         CapturedImage = LiveImage;
+    //         if (isAutoCropEnable)
+    //         {
+    //             Status = "Auto crop enabled";
+    //         }
+    //         else
+    //         {
+    //             Status = "Auto crop disabled";
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Status = ex.Message;
+    //     }
+    // }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _uiTimer = new System.Timers.Timer(100);
+
+            _uiTimer.Elapsed += async (s, e) =>
+            {
+                if (CameraConnected)
+                {
+                    LiveImage =
+                        FaceCaptureService.GetLiveBase64();
+
+                    await InvokeAsync(StateHasChanged);
+                }
+            };
+
+            _uiTimer.Start();
+        }
+    }
+
+    void RotateLeft()
+    {
+        FaceCaptureService.RotateLeft();
+
+        Status = "Rotated Left";
+    }
+
+    void RotateRight()
+    {
+        FaceCaptureService.RotateRight();
+
+        Status = "Rotated Right";
+    }
+
+    void ZoomIn()
+    {
+        FaceCaptureService.ZoomIn();
+
+        Status = "Zoom In";
+    }
+
+    void ZoomOut()
+    {
+        FaceCaptureService.ZoomOut();
+
+        Status = "Zoom Out";
+    }
+
+    void EnableAutoCrop()
+    {
+        FaceCaptureService.SetAutoCrop(true);
+
+        Status = "Auto Crop Enabled";
+    }
+
+    void DisableAutoCrop()
+    {
+        FaceCaptureService.SetAutoCrop(false);
+
+        Status = "Auto Crop Disabled";
+    }
+
+    async Task ChangeResolution(ChangeEventArgs e)
+    {
+        try
+        {
+            if (e.Value == null)
+                return;
+
+            int resIndex =
+                Convert.ToInt32(e.Value);
+
+            FaceCaptureService
+                .SetResolution(resIndex);
+
+            Status =
+                $"Resolution Changed";
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    public void Dispose()
+    {
+        _uiTimer?.Stop();
+
+        _uiTimer?.Dispose();
+
+        FaceCaptureService.StopCamera();
+    }
 }
 
 <style>
-
     .biometric-container {
-        min-height: 87vh; /* ✅ instead of fixed height */
-        display: flex;
-        flex-direction: column;
+        padding: 20px;
     }
 
-    /* HEADER */
     .header-bar {
-        background: #355c9a;
+        background: #4868a8;
         color: white;
-        padding: 10px;
-        border-radius: 5px;
-        flex-shrink: 0;
+        padding: 12px;
+        border-radius: 8px;
     }
 
-    /* ROW FIX */
-    .row {
-        flex: 1;
-        margin-top: 10px;
-    }
-
-    /* PANELS */
-    .control-panel,
-    .preview-panel,
-    .col-lg-6 {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    /* CAMERA SECTION */
-    .camera-wrapper {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 4 / 3; /* 🔥 FIXED RATIO */
-        border: 2px solid #cbd5e1;
-        border-radius: 6px;
-        overflow: hidden;
-        background: black;
-    }
-
-        /* VIDEO */
-        .camera-wrapper video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    /* FACE GUIDE */
-    .face-guide {
-        position: absolute;
-        top: 45%;
-        left: 50%;
-        width: 40%;
-        height: 70%;
-        transform: translate(-50%, -50%);
-        border: 3px dashed #00ffcc;
-        border-radius: 50%;
-        pointer-events: none;
-    }
-
-    /* BUTTONS */
-    .camera-buttons {
-        margin-top: 10px;
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        flex-wrap: wrap;
-        flex-shrink: 0;
-    }
-
-    /* PREVIEW */
+    .live-camera-box,
     .preview-box {
-        width: 100%;
-        aspect-ratio: 4 / 3; /* keep camera aspect ratio */
-        max-height: 400px; /* increased from 320px for bigger preview */
-        margin: 0 auto 15px auto; /* spacing below preview */
-        border: 2px solid #cbd5e1;
-        border-radius: 6px;
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
+        height: 420px;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: #f8fafc;
         overflow: hidden;
+        background: #f8f8f8;
     }
 
-        .preview-box img {
-            width: 100%; /* make image fill the preview box */
-            height: auto; /* maintain aspect ratio */
-            object-fit: contain;
-        }
-
-    .preview-panel {
-        align-items: center;
+    .camera-placeholder {
+        color: gray;
+        font-size: 18px;
     }
 
-    /* TEXT */
-    .panel-title {
-        font-weight: 600;
-        color: #355c9a;
-        margin-bottom: 10px;
-        flex-shrink: 0;
+    .camera-buttons button {
+        margin: 5px;
+        min-width: 140px;
     }
 
-    .control-item {
-        margin-bottom: 10px;
-    }
-
-    /* INSTRUCTIONS */
-    .instructions {
-        font-size: 12px;
-        margin-top: 20px; /* pushed down a bit */
-    }
-
-    /* STATUS */
     .status-box {
-        margin-top: 5px;
-        flex-shrink: 0;
+        font-size: 14px;
+        color: #444;
     }
 
-    /* ICON */
-    .camera-buttons i {
-        margin-right: 6px;
-    }
-
-    /* 🔥 MOBILE FIX */
-    @@media (max-width: 768px) {
-        .row {
-            flex-direction: column;
-        }
-
-        @@media (max-width: 768px) {
-
-            .preview-box {
-                max-height: 180px;
-            }
-        }
-
-
-
-        .col-lg-6,
-        .preview-panel {
-            height: 50%;
-        }
-
-        .camera-buttons button {
-            flex: 1 1 30%;
-            font-size: 12px;
-            padding: 6px;
-        }
-
-        input:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+    .face_recog_second_column {
+        border-top: 1px solid #ccc;
+        position: relative;
+        top: -4px;
     }
 </style>
