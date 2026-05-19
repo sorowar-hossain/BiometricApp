@@ -284,23 +284,22 @@
     {
         try
         {
+            string imagePath = Path.Combine(folder, selectedMemberId);
             if (string.IsNullOrWhiteSpace(selectedMemberId))
             {
                 return;
             }
-
             message = "Capturing left finger.....";
             // Force UI update immediately
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
             var result = await ScannerService.CaptureFingerprintLeft(selectedMemberId);
-            string imagePath = Path.Combine(folder, selectedMemberId);
+
             message = result
             ? "Left Fingerprint captured and saved ✅ To " + imagePath
             : "Fingerprint capture failed ❌";
 
-            
-            LoadLeftFourFingerprints(imagePath);
+
             if (result)
             {
                 lFingerDone = true;
@@ -308,19 +307,16 @@
                     currentIndex = 6;
                 else if (!tFingerDone)
                     currentIndex = 4;
+                LoadLeftFourFingerprints(imagePath);
                 ChangeImage();
+                StateHasChanged();
             }
-
-          
-
         }
         catch (Exception ex)
         {
             message = $"Exception: {ex.Message}";
         }
-
-        StateHasChanged();
-
+        
     }
 
 
@@ -343,7 +339,6 @@
             ? "Right Fingerprint captured and saved ✅ To " + imagePath
             : "Fingerprint capture failed ❌";
 
-            LoadRightFourFingerprints(imagePath);
             if (result)
             {
                 rFingerDone = true;
@@ -351,9 +346,10 @@
                     currentIndex = 0;
                 else if (!tFingerDone)
                     currentIndex = 4;
+                LoadRightFourFingerprints(imagePath);
                 ChangeImage();
             }
-          
+
         }
         catch (Exception ex)
         {
@@ -391,7 +387,7 @@
                     currentIndex = 6;
                 ChangeImage();
             }
-            
+
         }
         catch (Exception ex)
         {
@@ -406,16 +402,16 @@
     {
         string[] files =
         {
-            "l_Left_Little.bmp",
-            "l_Left_Ring.bmp",
-            "l_Left_Middle.bmp",
-            "l_Left_Index.bmp"
+            "l_Left_Little_Left_Little.bmp",
+            "l_Left_Ring_Left_Ring.bmp",
+            "l_Left_Middle_Left_Middle.bmp",
+            "l_Left_Index_Left_Index.bmp"
 
     };
 
         for (int i = 0; i < files.Length; i++)
         {
-            
+
             string path = Path.Combine(imagePath, files[i]);
 
             if (File.Exists(path))
@@ -433,10 +429,10 @@
 
         string[] files =
         {
-        "r_Right_Index.bmp",
-        "r_Right_Middle.bmp",
-        "r_Right_Ring.bmp",
-        "r_Right_Little.bmp"
+        "r_Right_Index_Right_Index.bmp",
+        "r_Right_Middle_Right_Middle.bmp",
+        "r_Right_Ring_Right_Ring.bmp",
+        "r_Right_Little_Right_Little.bmp"
     };
 
         for (int i = 0; i < files.Length; i++)
@@ -459,8 +455,8 @@
        
         string[] files =
         {
-            "l_Left_Thumb.bmp",
-            "r_Right_Thumb.bmp"
+            "l_Left_Thumb_Left_Thumb.bmp",
+            "r_Right_Thumb_Right_Thumb.bmp"
      };
 
         int j = 4;
