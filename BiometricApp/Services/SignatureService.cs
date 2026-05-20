@@ -35,7 +35,7 @@ namespace BiometricApp.Services
                 FINGER_POSITION pos = FINGER_POSITION.SIGNATURE;
 
                 IMD_RESULT startRes = imd_fap50.scan_start(
-                    GUI_SHOW_MODE.SIGNATURE,
+                    GUI_SHOW_MODE.SIGN_BY_PEN,
                     ref pos,
                     1);
 
@@ -66,6 +66,8 @@ namespace BiometricApp.Services
                     waited += 100;
                 }
 
+                
+
                 // finalize signature
                 imd_fap50.signature(SIGNATURE_ACTION.OK);
 
@@ -73,7 +75,7 @@ namespace BiometricApp.Services
                 await Task.Delay(300);
 
                 IMD_RESULT saveRes = imd_fap50.save_file(
-                    GUI_SHOW_MODE.SIGNATURE,
+                    GUI_SHOW_MODE.SIGN_BY_PEN,
                     FINGER_POSITION.SIGNATURE,
                     path);
 
