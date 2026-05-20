@@ -1,7 +1,12 @@
 ﻿using FAP50Demo;
 using FingerprintWrapper;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+using OpenCvSharp.Internal.Vectors;
+using OpenCvSharp.Text;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -94,6 +99,22 @@ namespace BiometricApp.Services
 
                 return "";
             }
+        }
+
+        public static Bitmap U8PtrToBitmap32(IntPtr img, int width, int height)
+        {
+            // 創建 Mat 指向非託管數據的灰階圖
+            //Mat mat = new Mat(height, width, MatType.CV_8UC1, img);//old method
+            Mat mat = Mat.FromPixelData(height, width, MatType.CV_8UC1, img);
+            //Cv2.ImShow("show image", mat);//dbg
+
+            // 如果需要轉換到 32bpp 格式
+            Mat mat32bpp = new Mat();
+            Cv2.CvtColor(mat, mat32bpp, ColorConversionCodes.GRAY2BGRA); // 8bpp to 32bpp
+
+            // 將 OpenCV 的 Mat 轉換為 C# 的 Bitmap
+            Bitmap bitmap = BitmapConverter.ToBitmap(mat32bpp);
+            return bitmap;
         }
     } 
 }
