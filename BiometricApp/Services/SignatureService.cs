@@ -87,7 +87,7 @@ namespace BiometricApp.Services
                     return "";
                 }
 
-                return path;
+                return  Path.Combine(folder, "sig_Signature_.png"); ;
             }
             catch (Exception ex)
             {
@@ -119,22 +119,44 @@ namespace BiometricApp.Services
             return bitmap;
         }
 
-        public Task<byte[]> PreviewSignatureAsync()
+        public async Task StartLivePreviewAsync(
+    Action<byte[]> onFrame,
+    CancellationToken token)
         {
-            if (!imd_fap50.is_scan_busy())
-                return Task.FromResult<byte[]>(null);
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    if (!imd_fap50.is_scan_busy())
+                    {
+                        await Task.Delay(100, token);
+                        continue;
+                    }
 
-            ImageStatus img_status = default;
-            IMD_RESULT res = imd_fap50.get_image_status(ref img_status);
+                    ImageStatus img_status = default;
 
-            if (res != IMD_RESULT.SUCCESS || img_status.img == IntPtr.Zero)
-                return Task.FromResult<byte[]>(null);
+                    IMD_RESULT res =
+                        imd_fap50.get_image_status(ref img_status);
 
-            Bitmap bmp = U8PtrToBitmap32(img_status.img, 1600, 1000);
+                    if (res == IMD_RESULT.SUCCESS &&
+                        img_status.img != IntPtr.Zero)
+                    {
+                        using Bitmap bmp =
+                            U8PtrToBitmap32(img_status.img, 1600, 1000);
 
-            using var ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            return Task.FromResult(ms.ToArray());
+                        using MemoryStream ms = new MemoryStream();
+                        bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+
+                        onFrame(ms.ToArray());
+                    }
+
+                    await Task.Delay(100, token);
+                }
+                catch
+                {
+                    await Task.Delay(200);
+                }
+            }
         }
     } 
 }
