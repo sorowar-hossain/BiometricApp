@@ -1,7 +1,6 @@
 ﻿@page "/signature"
 @using BiometricApp.Services
 
-@inject IJSRuntime JS
 @inject SignatureService signatureService
 
 <div class="container mt-4 main-box">
@@ -11,58 +10,97 @@
         Data Capturing System
     </div>
 
-    <!-- Content -->
     <div class="p-4">
 
         <!-- Title -->
-        <h5 class="fw-bold text-primary">Capture Signature</h5>
-        <p class="text-muted small">Write your full signature clearly inside the box</p>
+        <h5 class="fw-bold text-primary">
+            Capture Signature
+        </h5>
+
+        <p class="text-muted small">
+            Please sign on IMD device
+        </p>
 
         <div class="row mt-4">
 
-            <!-- LEFT SIDE (Signature Box) -->
+            <!-- LEFT -->
             <div class="col-md-6 text-center">
 
-                <!-- Signature Pad -->
-                <div class="signature-box" id="signaturePad">
-                    <!-- Canvas will be here -->
-                    <canvas id="canvas"></canvas>
+                <div class="signature-box">
+
+                    @if (IsCapturing)
+                    {
+                        <div class="capture-text">
+                            Waiting for signature...
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(SignatureBase64))
+                    {
+                        <div class="capture-text">
+                            Signature Completed...
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="capture-text">
+                            No Signature
+                        </div>
+                    }
+
                 </div>
 
                 <!-- Buttons -->
                 <div class="mt-3">
-                    <button class="btn btn-primary px-4 me-2" @onclick="SaveSignature">
-                        ✔ Done
+
+                    <button class="btn btn-primary px-4 me-2"
+                            @onclick="CaptureSignature">
+                        Capture Signature
                     </button>
 
-                    <button class="btn btn-dark px-4" @onclick="ClearSignature">
-                        ⟳ Reset
+                    <button class="btn btn-dark px-4"
+                            @onclick="ClearSignature">
+                        Reset
                     </button>
+
                 </div>
 
             </div>
 
-            <!-- RIGHT SIDE (Preview Boxes) -->
-            <div class="col-md-6 d-flex flex-column align-items-center">
+            <!-- RIGHT -->
+            <div class="col-md-6">
 
-                <div class="preview-box mb-3"></div>
-                <div class="preview-box"></div>
+                <div class="full-preview-box">
+
+                    @if (IsCapturing)
+                    {
+                        <div class="preview-placeholder">
+                            Please sign on device...
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(SignatureBase64))
+                    {
+                        <img src="@SignatureBase64"
+                             class="full-preview-img" />
+                    }
+                    else
+                    {
+                        <div class="preview-placeholder">
+                            Signature Preview
+                        </div>
+                    }
+
+                </div>
 
             </div>
 
         </div>
 
-        <!-- Footer Buttons -->
-        <div class="d-flex justify-content-between mt-5">
-            <button class="btn btn-light px-4">Back</button>
-            <button class="btn btn-primary px-4">Next</button>
-        </div>
-
     </div>
+
 </div>
 
-
 <style>
+
     .main-box {
         border: 1px solid #ccc;
         background: #f8f9fa;
@@ -78,96 +116,109 @@
     .signature-box {
         border: 2px solid #4a86e8;
         width: 100%;
-        height: 200px;
-        position: relative;
+        height: 220px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
     }
 
-        .signature-box canvas {
-            width: 100%;
-            height: 100%;
-        }
+    .signature-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .capture-text {
+        color: #666;
+        font-weight: bold;
+    }
 
     .preview-box {
         width: 220px;
         height: 60px;
         border: 2px solid #4a86e8;
+        background: white;
+        overflow: hidden;
     }
+
+    .preview-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .full-preview-box {
+        width: 100%;
+        height: 220px;
+        border: 2px solid #4a86e8;
+        background-color: white;
+        border-radius: 6px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .full-preview-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        padding: 10px;
+    }
+
+    .preview-placeholder {
+        font-size: 16px;
+        font-weight: 600;
+        color: #666;
+        text-align: center;
+        padding: 10px;
+    }
+
 </style>
 
-<script>
-   
-    let canvas, ctx, drawing = false;
-
-    window.initSignaturePad = () => {
-        canvas = document.getElementById('canvas');
-        ctx = canvas.getContext('2d');
-
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-
-        canvas.addEventListener('mousedown', start);
-        canvas.addEventListener('mouseup', stop);
-        canvas.addEventListener('mousemove', draw);
-    };
-
-    function start(e) {
-        drawing = true;
-        draw(e);
-    }
-
-    function stop() {
-        drawing = false;
-        ctx.beginPath();
-    }
-
-    function draw(e) {
-        if (!drawing) return;
-
-        const rect = canvas.getBoundingClientRect();
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000';
-
-        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    }
-
-    window.clearPad = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    };
-
-    window.getSignature = () => {
-        return canvas.toDataURL();
-    };
-</script>
-
-
-
-
 @code {
-    private string? signaturePath;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private string? SignatureBase64;
+    private bool IsCapturing;
+
+    private async Task CaptureSignature()
     {
-        if (firstRender)
+        try
         {
-            await JS.InvokeVoidAsync("initSignaturePad");
+            IsCapturing = true;
+
+            StateHasChanged();
+
+            string path =
+                await signatureService.CaptureSignatureAsync();
+
+            IsCapturing = false;
+            string sig = Path.Combine(@"C:\Signature", "sig_Signature_.png");
+            
+            if (!string.IsNullOrEmpty(path) && File.Exists(sig))
+            {
+                byte[] bytes =
+                    await File.ReadAllBytesAsync(sig);
+
+                SignatureBase64 =
+                    $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            IsCapturing = false;
         }
     }
 
-    private async Task SaveSignature()
+    private Task ClearSignature()
     {
-        signaturePath = await signatureService.CaptureSignatureAsync();
-
-        Console.WriteLine(signaturePath);
+        SignatureBase64 = null;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
-    private async Task ClearSignature()
-    {
-        await JS.InvokeVoidAsync("clearPad");
-    }
-
-  
 }
