@@ -77,9 +77,9 @@
                             Please sign on device...
                         </div>
                     }
-                    else if (!string.IsNullOrEmpty(SignatureBase64))
+                    else if (!string.IsNullOrEmpty(PreviewSignatureBase64))
                     {
-                        <img src="@SignatureBase64"
+                        <img src="@PreviewSignatureBase64"
                              class="full-preview-img" />
                     }
                     else
@@ -182,6 +182,7 @@
 @code {
 
     private string? SignatureBase64;
+    private string? PreviewSignatureBase64;
     private bool IsCapturing;
 
     private async Task CaptureSignature()
@@ -213,7 +214,29 @@
             IsCapturing = false;
         }
     }
+    private async Task PreviewSignature()
+    {
+        try
+        {
+            
 
+            IsCapturing = false;
+
+            StateHasChanged();
+
+            var bmp = await signatureService.PreviewSignatureAsync();
+            if (bmp != null)
+            {
+                PreviewSignatureBase64 =
+                    $"data:image/png;base64,{Convert.ToBase64String(bmp)}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            IsCapturing = false;
+        }
+    }
     private Task ClearSignature()
     {
         SignatureBase64 = null;

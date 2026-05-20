@@ -118,5 +118,23 @@ namespace BiometricApp.Services
             Bitmap bitmap = BitmapConverter.ToBitmap(mat32bpp);
             return bitmap;
         }
+
+        public Task<byte[]> PreviewSignatureAsync()
+        {
+            if (!imd_fap50.is_scan_busy())
+                return Task.FromResult<byte[]>(null);
+
+            ImageStatus img_status = default;
+            IMD_RESULT res = imd_fap50.get_image_status(ref img_status);
+
+            if (res != IMD_RESULT.SUCCESS || img_status.img == IntPtr.Zero)
+                return Task.FromResult<byte[]>(null);
+
+            Bitmap bmp = U8PtrToBitmap32(img_status.img, 1600, 1000);
+
+            using var ms = new MemoryStream();
+            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            return Task.FromResult(ms.ToArray());
+        }
     } 
 }
