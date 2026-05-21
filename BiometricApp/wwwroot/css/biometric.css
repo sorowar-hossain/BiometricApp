@@ -1,0 +1,268 @@
+﻿
+/*==================Demographics CSS ====================*/
+
+body {
+    background: #eef2f7;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ================= TOP BAR ================= */
+.topbar {
+    background: #ffffff;
+    border-bottom: 1px solid #dfe3ea;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ================= MAIN CARD ================= */
+.main-card {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+}
+
+/* ================= SECTION HEADER ================= */
+.section-header {
+     background: linear-gradient(90deg, #0d6efd, #3f8cff);
+    color: #fff;
+
+    /*background: #f1f3f5;*/ /* light gray */
+    /*color: #2d3436;*/ /* dark text */
+
+    padding: 12px 20px; /* ↓ reduced height */
+    font-size: 18px; /* smaller text */
+    font-weight: 600;
+    line-height: 1.2; /* tighter height */
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    /* Toggle Button */
+    .section-header button {
+        border: none;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .section-header button:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
+/* ================= CAPTURE CARD ================= */
+.capture-card {
+    background: #f9fbfd;
+    border: 1px solid #e4e8ee;
+    border-radius: 14px;
+    padding: 15px;
+    height: 100%;
+}
+
+/* Title inside card */
+.capture-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #2d3436;
+}
+
+/* ================= PREVIEW BOX ================= */
+.preview-box {
+    height: 250px;
+    border: 2px dashed #c9d2dc;
+    border-radius: 14px;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #8a96a3;
+    font-size: 16px;
+}
+
+/* ================= QUALITY BOX ================= */
+.quality-box {
+    height: 250px;
+    border-radius: 14px;
+    background: #ecfff1;
+    color: #1f9d55;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+/* ================= ACTION BUTTON GROUP ================= */
+.action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Buttons */
+.btn-custom {
+    height: 48px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+/* ================= INPUT ================= */
+.custom-input {
+    height: 48px;
+    border-radius: 10px;
+}
+
+/* ================= FINAL ACTION PANEL ================= */
+.submit-panel {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 22px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.collapse-panel {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.35s ease;
+}
+
+    .collapse-panel.open {
+        max-height: 5000px; /* important fix */
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+/* ================= RESPONSIVE ================= */
+/* RESPONSIVE */
+@media (max-width: 992px) {
+
+    .topbar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .preview-box,
+    .quality-box {
+        height: 220px;
+    }
+
+    .submit-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+.form-label-custom {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 6px;
+    display: block;
+}
+
+
+/*==================Face CSS ====================*/
+
+
+/*==================Finger CSS ====================*/
+
+
+
+/*==================Iris CSS ====================*/
+
+
+
+/*==================Signature CSS ====================*/
+
+.main-box {
+    border: 1px solid #ccc;
+    background: #f8f9fa;
+}
+
+.header {
+    background-color: #2f5597;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.signature-box {
+    border: 2px solid #4a86e8;
+    width: 100%;
+    height: 220px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.signature-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.capture-text {
+    color: #666;
+    font-weight: bold;
+}
+
+.preview-box {
+    width: 220px;
+    height: 60px;
+    border: 2px solid #4a86e8;
+    background: white;
+    overflow: hidden;
+}
+
+.preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.full-preview-box {
+    width: 100%;
+    height: 220px;
+    border: 2px solid #4a86e8;
+    background-color: white;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.full-preview-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    padding: 10px;
+}
+
+.preview-placeholder {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    text-align: center;
+    padding: 10px;
+}

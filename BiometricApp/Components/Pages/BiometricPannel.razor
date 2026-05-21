@@ -1,0 +1,632 @@
+﻿@page "/bio-pannel"
+@using BiometricApp.Models
+
+<link href="css/biometric.css" rel="stylesheet" />
+
+<div class="biometric-layout">
+
+    <!-- HEADER -->
+    <div class="topbar shadow-sm">
+        <div>
+            <h4 class="m-0">Data Capturing System</h4>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-4">
+
+        <!-- ================= DEMOGRAPHIC PANEL ================= -->
+        <div class="main-card shadow-sm mb-4">
+
+            <!-- HEADER -->
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="ToggleDemo"
+                 style="cursor:pointer;">
+
+                <span>Demographic Information</span>
+                <span>@(ShowDemographicPanel ? "Hide" : "Show")</span>
+
+            </div>
+
+            <!-- BODY -->
+            <div class="collapse-panel @(ShowDemographicPanel ? "open" : "")">
+
+                <div class="card-body border p-4">
+
+                    <EditForm Model="model" OnValidSubmit="Save">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row">
+
+                            <!-- IDs -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label-custom">Person ID</label>
+                                <InputText class="form-control"  readonly @bind-Value="model.PersonUniqueId" />
+                            </div>
+
+                           
+
+                            <!-- NAME -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">First Name *</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.FirstName" />
+                                <ValidationMessage For="@(() => model.FirstName)" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Last Name *</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.LastName" />
+                                <ValidationMessage For="@(() => model.LastName)" />
+                            </div>
+
+                            <!-- MARITAL -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Marital Status *</label>
+                                <InputSelect class="form-control"
+                                             @bind-Value="model.MaritalStatus">
+                                    <option value="">Select</option>
+                                    <option>Single</option>
+                                    <option>Married</option>
+                                    <option>Divorced</option>
+                                    <option>Widowed</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => model.MaritalStatus)" />
+                            </div>
+
+                            <!-- DOB -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Date of Birth *</label>
+                                <InputDate class="form-control"
+                                           @bind-Value="model.DateOfBirth" />
+                                <ValidationMessage For="@(() => model.DateOfBirth)" />
+                            </div>
+
+                           
+
+
+                            <!-- GENDER -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Gender *</label>
+                                <InputSelect class="form-control"
+                                             @bind-Value="model.Gender">
+                                    <option value="">Select</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => model.Gender)" />
+                            </div>
+
+                            <!-- EXPIRY -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Expiry Date *</label>
+                                <InputDate class="form-control"
+                                           @bind-Value="model.ExpiryDate" />
+                                <ValidationMessage For="@(() => model.ExpiryDate)" />
+                            </div>
+                            <!-- FATHER / MOTHER -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Father Name *</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.FatherName" />
+                                <ValidationMessage For="@(() => model.FatherName)" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Mother Name *</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.MotherName" />
+                                <ValidationMessage For="@(() => model.MotherName)" />
+                            </div>
+
+                            <!-- ADDRESS -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label-custom">Address *</label>
+                                <InputTextArea class="form-control"
+                                               @bind-Value="model.Address" />
+                                <ValidationMessage For="@(() => model.Address)" />
+                            </div>
+
+                            <!-- OPTIONAL -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Place of Issue</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.PlaceOfIssue" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Place of Birth</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.PlaceOfBirth" />
+                            </div>
+
+                            <!-- WEIGHT -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Weight</label>
+                                <InputNumber class="form-control"
+                                             @bind-Value="model.Weight" />
+                                <ValidationMessage For="@(() => model.Weight)" />
+                            </div>
+
+
+
+                           
+
+                            <!-- META -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Created On</label>
+                                <InputDate class="form-control"
+                                           @bind-Value="model.CreatedOn" />
+                            </div>
+
+                        </div>
+
+                        <!-- ACTION -->
+                        <div class="d-flex justify-content-end mt-4 gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                Save
+                            </button>
+                        </div>
+
+                    </EditForm>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= FACE ================= -->
+        <div class="main-card shadow-sm mb-4">
+
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="ToggleFace"
+                 style="cursor:pointer;">
+
+                <span>Face Capture</span>
+                <span>@(ShowFacePanel ? "Hide" : "Show")</span>
+
+            </div>
+
+            <div class="collapse-panel @(ShowFacePanel ? "open" : "")">
+                <div class="card-body">
+                    <div class="container-fluid biometric-container">
+
+                      
+
+                        <div class="row mt-3">
+
+                            <!-- LEFT PANEL -->
+                            <div class="col-lg-3 col-md-4 col-sm-12 control-panel">
+
+                                <div class="instructions mt-3">
+                                    <h6>Capture Instructions</h6>
+                                    <ul>
+                                        <li>Face centered properly</li>
+                                        <li>Good lighting required</li>
+                                        <li>No glasses or hats</li>
+                                    </ul>
+                                </div>
+
+                            </div>
+
+                            <!-- CAMERA PANEL -->
+                            <div class="col-lg-6 col-md-8 col-sm-12 text-center">
+
+                                <h6 class="panel-title">Camera Control</h6>
+
+                                <div class="camera-wrapper d-flex justify-content-center align-items-center">
+
+                                    @if (CameraState == 1)
+                                    {
+                                        <span class="text-success">Camera Active (Native SDK)</span>
+                                    }
+                                    else if (CameraState == 2)
+                                    {
+                                        <span class="text-danger">Camera Stopped</span>
+                                    }
+
+                                    else if (CameraState == 3)
+                                    {
+                                        <span class="text-danger">Camera Not Started</span>
+                                    }
+
+                                </div>
+
+                                <div class="camera-buttons mt-3">
+
+                                    <button class="btn btn-primary" @onclick="ToggleCamera">
+                                        @(CameraConnected ? "Close Camera" : "Open Camera")
+                                    </button>
+
+                                    <button class="btn btn-success"
+                                            @onclick="Capture"
+                                            disabled="@(!CameraConnected)">
+                                        Capture
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <!-- RIGHT PANEL -->
+
+
+                        </div>
+                        <div class="col-lg-3 col-md-12 preview-panel">
+
+                            <h6 class="panel-title">Captured Image</h6>
+
+                            <div class="preview-box">
+                                @if (!string.IsNullOrEmpty(CapturedImage))
+                                {
+                                    <img src="@($"data:image/jpg;base64,{CapturedImage}")" style="width:100%;height:auto;" />
+                                }
+                                else
+                                {
+                                    <span>No Image</span>
+                                }
+                            </div>
+
+                            <button class="btn btn-success mt-3 w-100"
+                                    @onclick="SaveFace"
+                                    disabled="@string.IsNullOrEmpty(CapturedImage)">
+                                Save Face
+                            </button>
+
+                            <div class="status-box mt-2">
+                                <small>@Status</small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= FINGER ================= -->
+        <div class="main-card shadow-sm mb-4">
+
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="ToggleFinger"
+                 style="cursor:pointer;">
+
+                <span>Fingerprint Capture</span>
+                <span>@(ShowFingerPanel ? "Hide" : "Show")</span>
+
+            </div>
+
+            <div class="collapse-panel @(ShowFingerPanel ? "open" : "")">
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Finger Preview</div>
+                                <div class="preview-box">Fingerprint</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Status</div>
+                                <div class="quality-box">GOOD</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Actions</div>
+
+                                <div class="action-group">
+                                    <button class="btn btn-primary btn-custom">Scan</button>
+                                    <button class="btn btn-warning btn-custom">Retry</button>
+                                    <button class="btn btn-danger btn-custom">Clear</button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= IRIS ================= -->
+        <div class="main-card shadow-sm mb-4">
+
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="ToggleIris"
+                 style="cursor:pointer;">
+
+                <span>Iris Capture</span>
+                <span>@(ShowIrisPanel ? "Hide" : "Show")</span>
+
+            </div>
+
+            <div class="collapse-panel @(ShowIrisPanel ? "open" : "")">
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Left Iris</div>
+                                <div class="preview-box">Left</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Right Iris</div>
+                                <div class="preview-box">Right</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Actions</div>
+
+                                <div class="action-group">
+                                    <button class="btn btn-primary btn-custom">Capture</button>
+                                    <button class="btn btn-warning btn-custom">Retry</button>
+                                    <button class="btn btn-danger btn-custom">Clear</button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= SIGNATURE ================= -->
+        <div class="main-card shadow-sm mb-4">
+
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="ToggleSignature"
+                 style="cursor:pointer;">
+
+                <span>Signature Capture</span>
+                <span>@(ShowSignaturePanel ? "Hide" : "Show")</span>
+
+            </div>
+
+            <div class="collapse-panel @(ShowSignaturePanel ? "open" : "")">
+                <div class="card-body">
+
+                    <div class="container mt-4 main-box">
+
+                        <!-- Header -->
+                       
+
+                        <div class="p-4">
+                            <div class="row mt-4">
+
+                                <!-- LEFT -->
+                                <div class="col-md-6 text-center">
+
+                                    <div class="signature-box">
+
+                                        @if (IsCapturing)
+                                        {
+                                            <div class="capture-text">
+                                                Waiting for signature...
+                                            </div>
+                                        }
+                                        else if (!string.IsNullOrEmpty(LiveSignatureBase64))
+                                        {
+                                            <img src="@LiveSignatureBase64"
+                                                 class="full-preview-img" />
+                                        }
+                                        else
+                                        {
+                                            <div class="capture-text">
+                                                No Signature
+                                            </div>
+                                        }
+
+                                    </div>
+
+                                    <!-- Buttons -->
+                                    <div class="mt-3">
+
+                                        <button class="btn btn-primary px-4 me-2"
+                                                @onclick="CaptureSignature">
+                                            <i class="bi bi-pen me-1"></i> Capture
+                                        </button>
+
+                                        <button class="btn btn-success px-4 me-2"
+                                                @onclick="SaveSignature" disabled="@(isProcessing)">
+                                            <i class="bi bi-check2-circle me-1"></i> Save
+                                        </button>
+
+                                        <button class="btn btn-dark px-4"
+                                                @onclick="ClearSignature" disabled="@(isProcessing)">
+                                            <i class="bi bi-eraser me-1"></i> Clear
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- RIGHT -->
+                                <div class="col-md-6">
+
+                                    <div class="full-preview-box">
+
+                                        @if (IsCapturing)
+                                        {
+                                            <div class="preview-placeholder">
+                                                Please sign on device...
+                                            </div>
+                                        }
+                                        else if (!string.IsNullOrEmpty(SignatureBase64))
+                                        {
+                                            <img src="@SignatureBase64"
+                                                 class="full-preview-img" />
+                                        }
+                                        else
+                                        {
+                                            <div class="preview-placeholder">
+                                                Signature Preview
+                                            </div>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= FINAL ================= -->
+       @*  <div class="submit-panel shadow-sm">
+            <button class="btn btn-secondary btn-lg px-4">Reset</button>
+            <button class="btn btn-success btn-lg px-5">Save</button>
+        </div> *@
+
+    </div>
+</div>
+
+
+
+
+
+@code {
+    private MemberModel model = new();
+
+    bool ShowDemographicPanel = false;
+    bool ShowFacePanel = false;
+    bool ShowFingerPanel = false;
+    bool ShowIrisPanel = false;
+    bool ShowSignaturePanel = false;
+
+    private bool IsCapturing = false;
+    private string? LiveSignatureBase64;
+    private string? SignatureBase64;
+    bool isProcessing = true;
+
+
+    private List<MemberDropdown> members = new();
+    private string selectedMemberId;
+
+    private bool CameraConnected = false;
+    private string CapturedImage;
+    private string Status = "Idle";
+    private int CameraState = 0;
+    private System.Timers.Timer _uiTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var id = CreateMemberId();
+        model.PersonUniqueId = id;
+        StateHasChanged();
+    }
+
+    void ToggleDemo() => ShowDemographicPanel = !ShowDemographicPanel;
+    void ToggleFace() => ShowFacePanel = !ShowFacePanel;
+    void ToggleFinger() => ShowFingerPanel = !ShowFingerPanel;
+    void ToggleIris() => ShowIrisPanel = !ShowIrisPanel;
+    void ToggleSignature() => ShowSignaturePanel = !ShowSignaturePanel;
+
+
+
+    void Save() { }
+
+
+    private int GetNextMemberSequence()
+    {
+        // Absolute path for members
+        string baseFolder = AppSettings.BaseFolder;
+
+        // Create the folder if it doesn't exist
+        if (!Directory.Exists(baseFolder))
+        {
+            Directory.CreateDirectory(baseFolder);
+            return 1; // no members yet
+        }
+
+        // Get all subfolders (each folder = one member)
+        var allFolders = Directory.GetDirectories(baseFolder);
+
+        if (allFolders.Length == 0)
+            return 1; // no members yet
+
+        // Count members created today (optional, or just use total folders)
+        int maxSequence = 0;
+
+        foreach (var folder in allFolders)
+        {
+            string jsonPath = Path.Combine(folder, "demographics.json");
+            if (File.Exists(jsonPath))
+            {
+                var json = File.ReadAllText(jsonPath);
+                var member = System.Text.Json.JsonSerializer.Deserialize<MemberModel>(json);
+                if (member != null)
+                {
+                    // Extract last 6-7 digits from PersonUniqueId if your ID stores sequence
+                    // Or simply count existing members and take max + 1
+                    maxSequence++;
+                }
+            }
+        }
+
+        return maxSequence + 1; // next sequence number
+    }
+
+
+    private string CreateMemberId()
+    {
+        string userName = "Admin";
+        int seq = GetNextMemberSequence();
+
+        // Format sequence as 6-digit or 7-digit number with leading zeros
+        string seqStr = seq.ToString("D6"); // 000001, 000002, etc.
+
+        // Include username + datetime + sequence
+        string id = $"BIO.{userName}.{DateTime.Now:yyyyMMddHHmm}.{seqStr}";
+
+        return id;
+    }
+
+
+    private async Task CaptureSignature()
+    { }
+
+    private async Task SaveSignature()
+    { }
+
+    private async Task ClearSignature()
+    {
+
+    }
+
+    private async Task ToggleCamera()
+    { }
+
+    private async Task Capture()
+    { }
+
+    private async Task SaveFace()
+    { }
+
+}
