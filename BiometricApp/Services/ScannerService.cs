@@ -129,10 +129,8 @@ namespace BiometricApp.Services
                     }
 
                     Console.WriteLine("Left fingerprint capture successful.");
-                    StopScan();
                     return true;
                 }
-                message = "Capture failed, please try again";
                 return false;
             }
             catch (Exception ex)
@@ -215,10 +213,8 @@ namespace BiometricApp.Services
                     }
 
                     Console.WriteLine("Left fingerprint capture successful.");
-                    StopScan();
                     return true;
                 }
-                message = "Capture failed, please try again";
                 return false;
             }
             catch (Exception ex)
@@ -297,10 +293,8 @@ namespace BiometricApp.Services
                     }
 
                     Console.WriteLine("Left fingerprint capture successful.");
-                    StopScan();
                     return true;
                 }
-                message = "Capture failed, please try again";
                 return false;
             }
             catch (Exception ex)
@@ -703,7 +697,7 @@ namespace BiometricApp.Services
                 await Task.Delay(200);
                 waited += 200;
             }
-
+            StopScan();
             return _scanCompleted;
         }
     }
