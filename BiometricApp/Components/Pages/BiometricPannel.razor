@@ -347,34 +347,100 @@
             <div class="collapse-panel @(ShowSignaturePanel ? "open" : "")">
                 <div class="card-body">
 
-                    <div class="row">
+                    <div class="container mt-4 main-box">
 
-                        <div class="col-lg-4 mb-3">
-                            <div class="capture-card">
-                                <div class="capture-title">Pad</div>
-                                <div class="preview-box">Signature</div>
-                            </div>
-                        </div>
+                        <!-- Header -->
+                       
 
-                        <div class="col-lg-4 mb-3">
-                            <div class="capture-card">
-                                <div class="capture-title">Preview</div>
-                                <div class="preview-box">Saved</div>
-                            </div>
-                        </div>
+                        <div class="p-4">
 
-                        <div class="col-lg-4 mb-3">
-                            <div class="capture-card">
-                                <div class="capture-title">Actions</div>
+                            <!-- Title -->
+                            <h5 class="fw-bold text-primary">
+                                Capture Signature
+                            </h5>
 
-                                <div class="action-group">
-                                    <button class="btn btn-success btn-custom">Start</button>
-                                    <button class="btn btn-primary btn-custom">Save</button>
-                                    <button class="btn btn-warning btn-custom">Retry</button>
-                                    <button class="btn btn-danger btn-custom">Clear</button>
+                            <p class="text-muted small">
+                                Please sign on IMD device
+                            </p>
+
+                            <div class="row mt-4">
+
+                                <!-- LEFT -->
+                                <div class="col-md-6 text-center">
+
+                                    <div class="signature-box">
+
+                                        @if (IsCapturing)
+                                        {
+                                            <div class="capture-text">
+                                                Waiting for signature...
+                                            </div>
+                                        }
+                                        else if (!string.IsNullOrEmpty(LiveSignatureBase64))
+                                        {
+                                            <img src="@LiveSignatureBase64"
+                                                 class="full-preview-img" />
+                                        }
+                                        else
+                                        {
+                                            <div class="capture-text">
+                                                No Signature
+                                            </div>
+                                        }
+
+                                    </div>
+
+                                    <!-- Buttons -->
+                                    <div class="mt-3">
+
+                                        <button class="btn btn-primary px-4 me-2"
+                                                @onclick="CaptureSignature">
+                                            <i class="bi bi-pen me-1"></i> Capture
+                                        </button>
+
+                                        <button class="btn btn-success px-4 me-2"
+                                                @onclick="SaveSignature" disabled="@(isProcessing)">
+                                            <i class="bi bi-check2-circle me-1"></i> Save
+                                        </button>
+
+                                        <button class="btn btn-dark px-4"
+                                                @onclick="ClearSignature" disabled="@(isProcessing)">
+                                            <i class="bi bi-eraser me-1"></i> Clear
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- RIGHT -->
+                                <div class="col-md-6">
+
+                                    <div class="full-preview-box">
+
+                                        @if (IsCapturing)
+                                        {
+                                            <div class="preview-placeholder">
+                                                Please sign on device...
+                                            </div>
+                                        }
+                                        else if (!string.IsNullOrEmpty(SignatureBase64))
+                                        {
+                                            <img src="@SignatureBase64"
+                                                 class="full-preview-img" />
+                                        }
+                                        else
+                                        {
+                                            <div class="preview-placeholder">
+                                                Signature Preview
+                                            </div>
+                                        }
+
+                                    </div>
+
                                 </div>
 
                             </div>
+
                         </div>
 
                     </div>
@@ -385,10 +451,10 @@
         </div>
 
         <!-- ================= FINAL ================= -->
-        <div class="submit-panel shadow-sm">
+       @*  <div class="submit-panel shadow-sm">
             <button class="btn btn-secondary btn-lg px-4">Reset</button>
             <button class="btn btn-success btn-lg px-5">Save</button>
-        </div>
+        </div> *@
 
     </div>
 </div>
@@ -405,6 +471,11 @@
     bool ShowFingerPanel = false;
     bool ShowIrisPanel = false;
     bool ShowSignaturePanel = false;
+
+    private bool IsCapturing = false;
+    private string? LiveSignatureBase64;
+    private string? SignatureBase64;
+    bool isProcessing = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -477,6 +548,18 @@
         string id = $"BIO.{userName}.{DateTime.Now:yyyyMMddHHmm}.{seqStr}";
 
         return id;
+    }
+
+
+    private async Task CaptureSignature()
+    { }
+
+    private async Task SaveSignature()
+    { }
+
+    private async Task ClearSignature()
+    {
+        
     }
 
 }
