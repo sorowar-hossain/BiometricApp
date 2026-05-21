@@ -1,5 +1,9 @@
 ﻿using BiometricApp.Natives;
+using FAP50Demo;
 using Microsoft.Maui.Controls;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+using OpenCvSharp.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -11,10 +15,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using FAP50Demo;
-using IMD_RESULT = FAP50Demo.IMD_RESULT;
-using GUI_SHOW_MODE = FAP50Demo.GUI_SHOW_MODE;
 using FINGER_POSITION = FAP50Demo.FINGER_POSITION;
+using GUI_SHOW_MODE = FAP50Demo.GUI_SHOW_MODE;
+using IMD_RESULT = FAP50Demo.IMD_RESULT;
 
 namespace BiometricApp.Services
 {
@@ -42,6 +45,11 @@ namespace BiometricApp.Services
         private volatile bool _scanCompleted = false;
         private FINGER_POSITION _currentFinger;
         private string _currentFolder;
+        private bool _isScanRunning = false;
+        private CancellationTokenSource _ctsScan;
+        private string baseDir, videoBasePath, ValidImgFPath;
+        private bool isFingerValided = false;
+        private bool isFingerON_ScanDone = false;
 
         public ScannerService()
         {
@@ -72,7 +80,7 @@ namespace BiometricApp.Services
 
                 // Start LEFT FOUR scan
                 FINGER_POSITION finger = FINGER_POSITION.LEFT_FOUR;
-
+                StartScan();
                 res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
 
                 if (res != IMD_RESULT.SUCCESS)
@@ -113,6 +121,7 @@ namespace BiometricApp.Services
                 }
 
                 Console.WriteLine("Left fingerprint capture successful.");
+                StopScan();
                 return true;
             }
             catch (Exception ex)
@@ -149,7 +158,7 @@ namespace BiometricApp.Services
 
                 // Start LEFT FOUR scan
                 FINGER_POSITION finger = FINGER_POSITION.RIGHT_FOUR;
-
+                StartScan();
                 res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
 
                 if (res != IMD_RESULT.SUCCESS)
@@ -190,7 +199,7 @@ namespace BiometricApp.Services
                 }
 
                 Console.WriteLine("Left fingerprint capture successful.");
-
+                StopScan();
                 return true;
             }
             catch (Exception ex)
@@ -227,7 +236,7 @@ namespace BiometricApp.Services
 
                 // Start LEFT FOUR scan
                 FINGER_POSITION finger = FINGER_POSITION.BOTH_THUMBS;
-
+                StartScan();
                 res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
 
                 if (res != IMD_RESULT.SUCCESS)
@@ -264,7 +273,7 @@ namespace BiometricApp.Services
                 }
 
                 Console.WriteLine("Left fingerprint capture successful.");
-
+                StopScan();
                 return true;
             }
             catch (Exception ex)
@@ -373,14 +382,281 @@ namespace BiometricApp.Services
                 _scanCompleted = false;
             }
         }
-        bool IsLeft(FINGER_POSITION pos)
+        private void StartScan()
         {
-            return pos == FINGER_POSITION.LEFT_INDEX ||
-                   pos == FINGER_POSITION.LEFT_MIDDLE ||
-                   pos == FINGER_POSITION.LEFT_RING ||
-                   pos == FINGER_POSITION.LEFT_LITTLE ||
-                   pos == FINGER_POSITION.LEFT_THUMB ||
-                   pos == FINGER_POSITION.LEFT_FOUR;
+            if (_isScanRunning) return;
+
+            _ctsScan = new CancellationTokenSource();
+            _isScanRunning = true;
+            _ = ScanLoopAsync(_ctsScan.Token);
+        }
+        private async Task ScanLoopAsync(CancellationToken token)
+        {
+            bool isReScan = false;
+            var img_status = default(FAP50Demo.ImageStatus);
+            FINGER_POSITION[] pos = { FINGER_POSITION.UNKNOW_FINGER };
+            img_status.show_mode = GUI_SHOW_MODE.FLAT;
+            try
+            {
+                while (true)
+                {
+                    if (token.IsCancellationRequested)
+                        break;
+
+                    var res = imd_fap50.get_image_status(ref img_status);
+                    if (res != IMD_RESULT.SUCCESS)
+                    {
+                        int delaya = res == IMD_RESULT.SUCCESS ? 33 : 100;
+
+                        await Task.Delay(delaya, token);
+                        continue;
+                    }
+
+                    if (img_status.show_mode == GUI_SHOW_MODE.FLAT)
+                    {
+                        Handle_Flat_Mode_Scan(ref img_status);
+                    }
+                    int delay = res == IMD_RESULT.SUCCESS ? 33 : 100;
+
+                    await Task.Delay(delay, token);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+
+            }
+        }
+        private void Handle_Flat_Mode_Scan(ref FAP50Demo.ImageStatus img_status)
+        {
+            bool fNeedReScan = false;
+            if (img_status.is_finger_on == false && img_status.is_flat_done)
+            {
+                imd_fap50.scan_cancel();
+                var p = new FAP50Demo.ImageProperty
+                {
+                    mode = img_status.show_mode,
+                    pos = img_status.finger_position,
+                    this_scan = true
+                };
+                var res = imd_fap50.get_image(ref p);
+                ValidImgFPath = FindValidImageFile(ref p, out bool isValid);
+                ShowValidFinger();
+
+                switch (res)
+                {
+                    case IMD_RESULT.PUT_WRONG_HAND:
+                        break;
+
+                    case IMD_RESULT.POOR_QUALITY_AND_CANTACT_IRON:
+                    case IMD_RESULT.POOR_NFIQ_QUALITY:
+                        break;
+
+                    case IMD_RESULT.POOR_QUALITY_AND_WRONG_HAND:
+                        break;
+                    default:
+                        break;
+                }
+
+                if (res == IMD_RESULT.SUCCESS ||
+                   (res != IMD_RESULT.SUCCESS && fNeedReScan == false))
+                {
+                    fNeedReScan = true;
+                }
+
+                if (fNeedReScan)
+                {
+                    img_status = default;
+                    fNeedReScan = false;
+                }
+                isFingerON_ScanDone = false;
+            }
+        }
+        private void ShowValidFinger()
+        {
+            using Mat score_img = LoadImage(ValidImgFPath);
+            if (score_img.Empty()) return;
+
+            using Mat rotated_img = new Mat();
+            Cv2.Rotate(score_img, rotated_img, RotateFlags.Rotate90Clockwise);
+
+            Cv2.ImEncode(".jpg", rotated_img, out byte[] imgBytes,
+                new ImageEncodingParam(ImwriteFlags.JpegQuality, 60));
+
+            if (IMD_FAP50_SDK_PANEL.IsConnected)
+            {
+                _ = Task.Run(() =>
+                {
+                    IMD_FAP50_SDK_PANEL.send_jpg_fap50_panel(imgBytes, (uint)imgBytes.Length);
+                });
+            }
+
+            Thread.Sleep(500);
+        }
+        private string FindValidImageFile(ref FAP50Demo.ImageProperty p, out bool isValid)
+        {
+            string ValidImgPath = "";
+            var score = new Score2Num();
+            isValid = false;
+            int[] managedArray = new int[(int)ScoreArray.MaxSize];
+            unsafe
+            {
+                fixed (int* pArr = p.score_array)
+                {
+                    Marshal.Copy((IntPtr)pArr, managedArray, 0, managedArray.Length);
+                }
+            }
+
+            switch (p.score_size)
+            {
+
+                case 4:
+                    if (p.pos == FINGER_POSITION.RIGHT_FOUR)
+                    {
+
+                        score.R1 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                        score.R2 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
+                        score.R3 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[2] <= p.score_min : managedArray[2] >= p.score_min;
+                        score.R4 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[3] <= p.score_min : managedArray[3] >= p.score_min;
+
+                        isValid = score.R1 && score.R2 && score.R3 && score.R4;
+                        ValidImgPath = Path.Combine(baseDir, $"panel/RightHandPanel/Iterations/Iteration_{score.num}.png");
+                    }
+                    else if (p.pos == FINGER_POSITION.LEFT_FOUR)
+                    {
+                        score.L1 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                        score.L2 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
+                        score.L3 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[2] <= p.score_min : managedArray[2] >= p.score_min;
+                        score.L4 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[3] <= p.score_min : managedArray[3] >= p.score_min;
+
+                        isValid = score.L1 && score.L2 && score.L3 && score.L4;
+                        ValidImgPath = Path.Combine(baseDir, $"panel/LeftHandPanel/Iterations/Iteration_{score.num}.png");
+                    }
+                    break;
+
+                case 2:
+                    if (p.pos == FINGER_POSITION.BOTH_THUMBS)
+                    {
+                        score.L0 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                        score.R0 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
+
+                        isValid = score.L0 && score.R0;
+                        ValidImgPath = Path.Combine(baseDir, $"panel/ThumbsPanel/Iterations/Iteration_{score.num}.png");
+                    }
+                    break;
+
+                case 1:
+                    bool passed = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                    isValid = passed;
+
+                    switch (p.pos)
+                    {
+                        case FINGER_POSITION.RIGHT_THUMB:
+                        case FINGER_POSITION.RIGHT_INDEX:
+                        case FINGER_POSITION.RIGHT_MIDDLE:
+                        case FINGER_POSITION.RIGHT_RING:
+                        case FINGER_POSITION.RIGHT_LITTLE:
+                            ValidImgPath = Path.Combine(baseDir, $"panel/RightRollingFingers/Iterations/RollFinger-{(passed ? "Done" : "Retry")}.png");
+                            break;
+
+                        case FINGER_POSITION.LEFT_THUMB:
+                        case FINGER_POSITION.LEFT_INDEX:
+                        case FINGER_POSITION.LEFT_MIDDLE:
+                        case FINGER_POSITION.LEFT_RING:
+                        case FINGER_POSITION.LEFT_LITTLE:
+                            ValidImgPath = Path.Combine(baseDir, $"panel/LeftRollingFingers/Iterations/RollFinger-{(passed ? "Done" : "Retry")}.png");
+                            break;
+                    }
+                    break;
+            }
+            return ValidImgPath;
+        }
+        private Mat LoadImage(string relativePath)
+        {
+            string fullPath = Path.Combine(baseDir, relativePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+            if (!File.Exists(fullPath))
+                return new Mat();
+
+            return Cv2.ImRead(fullPath);
+        }
+        public struct Score2Num
+        {
+            public byte num;
+
+            public bool R1
+            {
+                get => (num & (1 << 3)) != 0;
+                set => num = value ? (byte)(num | (1 << 3)) : (byte)(num & ~(1 << 3));
+            }
+
+            public bool R2
+            {
+                get => (num & (1 << 2)) != 0;
+                set => num = value ? (byte)(num | (1 << 2)) : (byte)(num & ~(1 << 2));
+            }
+
+            public bool R3
+            {
+                get => (num & (1 << 1)) != 0;
+                set => num = value ? (byte)(num | (1 << 1)) : (byte)(num & ~(1 << 1));
+            }
+
+            public bool R4
+            {
+                get => (num & (1 << 0)) != 0;
+                set => num = value ? (byte)(num | (1 << 0)) : (byte)(num & ~(1 << 0));
+            }
+
+            public bool L1
+            {
+                get => R4;
+                set => R4 = value;
+            }
+
+            public bool L2
+            {
+                get => R3;
+                set => R3 = value;
+            }
+
+            public bool L3
+            {
+                get => R2;
+                set => R2 = value;
+            }
+
+            public bool L4
+            {
+                get => R1;
+                set => R1 = value;
+            }
+
+            public bool R0
+            {
+                get => (num & (1 << 0)) != 0;
+                set => num = value ? (byte)(num | (1 << 0)) : (byte)(num & ~(1 << 0));
+            }
+
+            public bool L0
+            {
+                get => (num & (1 << 1)) != 0;
+                set => num = value ? (byte)(num | (1 << 1)) : (byte)(num & ~(1 << 1));
+            }
+
+            public override string ToString()
+            {
+                return $"num=0x{num:X2} [R4:{R4}, R3:{R3}, R2:{R2}, R1:{R1}]";
+            }
+        }
+        private void StopScan()
+        {
+            if (!_isScanRunning) return;
+
+            _ctsScan?.Cancel();
+            _ctsScan?.Dispose();
+            _ctsScan = null;
+
+            _isScanRunning = false;
         }
     }
 
