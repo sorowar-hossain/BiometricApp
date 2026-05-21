@@ -51,6 +51,9 @@ namespace BiometricApp.Services
         private bool isFingerValided = false;
         private bool isFingerON_ScanDone = false;
 
+        public string message = "";
+        public bool reScan = false;
+
         public ScannerService()
         {
             _callback = OnFap50Event;
@@ -68,6 +71,7 @@ namespace BiometricApp.Services
 
                 if (res != IMD_RESULT.SUCCESS)
                 {
+                    message = "Capture failed, please try again";
                     Console.WriteLine($"Device reset failed: {res}");
                     return false;
                 }
@@ -82,47 +86,54 @@ namespace BiometricApp.Services
                 FINGER_POSITION finger = FINGER_POSITION.LEFT_FOUR;
                 StartScan();
                 res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
-
-                if (res != IMD_RESULT.SUCCESS)
+                await WaitScanComplete();
+                if (!reScan)
                 {
-                    Console.WriteLine($"Scan start failed: {res}");
-                    return false;
+                    if (res != IMD_RESULT.SUCCESS)
+                    {
+                        message = "Capture failed, please try again";
+                        Console.WriteLine($"Scan start failed: {res}");
+                        return false;
+                    }
+
+                    // Wait capture complete
+                    // WAIT FOR CALLBACK (NOT FIXED DELAY)
+                    int timeout = 15000;
+                    int waited = 0;
+
+                    while (!_scanCompleted && waited < timeout)
+                    {
+                        await Task.Delay(200);
+                        waited += 200;
+                    }
+
+                    // Create output folder
+                    string folder = Path.Combine(basePath, selectedMemberId);
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_INDEX, Path.Combine(folder, "l_Left_Index.bmp"));
+                    IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_MIDDLE, Path.Combine(folder, "l_Left_Middle.bmp"));
+                    IMD_RESULT f3 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_RING, Path.Combine(folder, "l_Left_Ring.bmp"));
+                    IMD_RESULT f4 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_LITTLE, Path.Combine(folder, "l_Left_Little.bmp"));
+
+                    if (f1 != IMD_RESULT.SUCCESS ||
+                        f2 != IMD_RESULT.SUCCESS ||
+                        f3 != IMD_RESULT.SUCCESS ||
+                        f4 != IMD_RESULT.SUCCESS)
+                    {
+                        message = "Capture failed, please try again";
+                        Console.WriteLine("Save file failed.");
+                        return false;
+                    }
+
+                    Console.WriteLine("Left fingerprint capture successful.");
+                    StopScan();
+                    return true;
                 }
-
-                // Wait capture complete
-                // WAIT FOR CALLBACK (NOT FIXED DELAY)
-                int timeout = 15000;
-                int waited = 0;
-
-                while (!_scanCompleted && waited < timeout)
-                {
-                    await Task.Delay(200);
-                    waited += 200;
-                }
-
-                // Create output folder
-                string folder = Path.Combine(basePath, selectedMemberId);
-
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-
-                IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_INDEX, Path.Combine(folder, "l_Left_Index.bmp"));
-                IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_MIDDLE, Path.Combine(folder, "l_Left_Middle.bmp"));
-                IMD_RESULT f3 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_RING, Path.Combine(folder, "l_Left_Ring.bmp"));
-                IMD_RESULT f4 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_LITTLE, Path.Combine(folder, "l_Left_Little.bmp"));
-
-                if (f1 != IMD_RESULT.SUCCESS ||
-                    f2 != IMD_RESULT.SUCCESS ||
-                    f3 != IMD_RESULT.SUCCESS ||
-                    f4 != IMD_RESULT.SUCCESS)
-                {
-                    Console.WriteLine("Save file failed.");
-                    return false;
-                }
-
-                Console.WriteLine("Left fingerprint capture successful.");
-                StopScan();
-                return true;
+                message = "Capture failed, please try again";
+                return false;
             }
             catch (Exception ex)
             {
@@ -146,6 +157,7 @@ namespace BiometricApp.Services
 
                 if (res != IMD_RESULT.SUCCESS)
                 {
+                    message = "Capture failed, please try again";
                     Console.WriteLine($"Device reset failed: {res}");
                     return false;
                 }
@@ -160,47 +172,54 @@ namespace BiometricApp.Services
                 FINGER_POSITION finger = FINGER_POSITION.RIGHT_FOUR;
                 StartScan();
                 res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
-
-                if (res != IMD_RESULT.SUCCESS)
+                await WaitScanComplete();
+                if (!reScan)
                 {
-                    Console.WriteLine($"Scan start failed: {res}");
-                    return false;
+                    if (res != IMD_RESULT.SUCCESS)
+                    {
+                        message = "Capture failed, please try again";
+                        Console.WriteLine($"Scan start failed: {res}");
+                        return false;
+                    }
+
+                    // Wait capture complete
+                    // WAIT FOR CALLBACK (NOT FIXED DELAY)
+                    int timeout = 15000;
+                    int waited = 0;
+
+                    while (!_scanCompleted && waited < timeout)
+                    {
+                        await Task.Delay(200);
+                        waited += 200;
+                    }
+
+                    // Create output folder
+                    string folder = Path.Combine(basePath, selectedMemberId);
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_INDEX, Path.Combine(folder, "r_Right_Index.bmp"));
+                    IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_MIDDLE, Path.Combine(folder, "r_Right_Middle.bmp"));
+                    IMD_RESULT f3 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_RING, Path.Combine(folder, "r_Right_Ring.bmp"));
+                    IMD_RESULT f4 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_LITTLE, Path.Combine(folder, "r_Right_Little.bmp"));
+
+                    if (f1 != IMD_RESULT.SUCCESS ||
+                        f2 != IMD_RESULT.SUCCESS ||
+                        f3 != IMD_RESULT.SUCCESS ||
+                        f4 != IMD_RESULT.SUCCESS)
+                    {
+                        message = "Capture failed, please try again";
+                        Console.WriteLine("Save file failed.");
+                        return false;
+                    }
+
+                    Console.WriteLine("Left fingerprint capture successful.");
+                    StopScan();
+                    return true;
                 }
-
-                // Wait capture complete
-                // WAIT FOR CALLBACK (NOT FIXED DELAY)
-                int timeout = 15000;
-                int waited = 0;
-
-                while (!_scanCompleted && waited < timeout)
-                {
-                    await Task.Delay(200);
-                    waited += 200;
-                }
-
-                // Create output folder
-                string folder = Path.Combine(basePath, selectedMemberId);
-
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-
-                IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_INDEX, Path.Combine(folder, "r_Right_Index.bmp"));
-                IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_MIDDLE, Path.Combine(folder, "r_Right_Middle.bmp"));
-                IMD_RESULT f3 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_RING, Path.Combine(folder, "r_Right_Ring.bmp"));
-                IMD_RESULT f4 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_LITTLE, Path.Combine(folder, "r_Right_Little.bmp"));
-
-                if (f1 != IMD_RESULT.SUCCESS ||
-                    f2 != IMD_RESULT.SUCCESS ||
-                    f3 != IMD_RESULT.SUCCESS ||
-                    f4 != IMD_RESULT.SUCCESS)
-                {
-                    Console.WriteLine("Save file failed.");
-                    return false;
-                }
-
-                Console.WriteLine("Left fingerprint capture successful.");
-                StopScan();
-                return true;
+                message = "Capture failed, please try again";
+                return false;
             }
             catch (Exception ex)
             {
@@ -224,6 +243,7 @@ namespace BiometricApp.Services
 
                 if (res != IMD_RESULT.SUCCESS)
                 {
+                    message = "Capture failed, please try again";
                     Console.WriteLine($"Device reset failed: {res}");
                     return false;
                 }
@@ -238,43 +258,50 @@ namespace BiometricApp.Services
                 FINGER_POSITION finger = FINGER_POSITION.BOTH_THUMBS;
                 StartScan();
                 res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
-
-                if (res != IMD_RESULT.SUCCESS)
+                await WaitScanComplete();
+                if (!reScan)
                 {
-                    Console.WriteLine($"Scan start failed: {res}");
-                    return false;
+                    if (res != IMD_RESULT.SUCCESS)
+                    {
+                        message = "Capture failed, please try again";
+                        Console.WriteLine($"Scan start failed: {res}");
+                        return false;
+                    }
+
+                    // Wait capture complete
+                    // WAIT FOR CALLBACK (NOT FIXED DELAY)
+                    int timeout = 15000;
+                    int waited = 0;
+
+                    while (!_scanCompleted && waited < timeout)
+                    {
+                        await Task.Delay(200);
+                        waited += 200;
+                    }
+
+                    // Create output folder
+                    string folder = Path.Combine(basePath, selectedMemberId);
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_THUMB, Path.Combine(folder, "l_Left_Thumb.bmp"));
+                    IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_THUMB, Path.Combine(folder, "r_Right_Thumb.bmp"));
+
+                    if (f1 != IMD_RESULT.SUCCESS ||
+                        f2 != IMD_RESULT.SUCCESS)
+                    {
+                        message = "Capture failed, please try again";
+                        Console.WriteLine("Save file failed.");
+                        return false;
+                    }
+
+                    Console.WriteLine("Left fingerprint capture successful.");
+                    StopScan();
+                    return true;
                 }
-
-                // Wait capture complete
-                // WAIT FOR CALLBACK (NOT FIXED DELAY)
-                int timeout = 15000;
-                int waited = 0;
-
-                while (!_scanCompleted && waited < timeout)
-                {
-                    await Task.Delay(200);
-                    waited += 200;
-                }
-
-                // Create output folder
-                string folder = Path.Combine(basePath, selectedMemberId);
-
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
-
-                IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_THUMB, Path.Combine(folder, "l_Left_Thumb.bmp"));
-                IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_THUMB, Path.Combine(folder, "r_Right_Thumb.bmp"));
-
-                if (f1 != IMD_RESULT.SUCCESS ||
-                    f2 != IMD_RESULT.SUCCESS)
-                {
-                    Console.WriteLine("Save file failed.");
-                    return false;
-                }
-
-                Console.WriteLine("Left fingerprint capture successful.");
-                StopScan();
-                return true;
+                message = "Capture failed, please try again";
+                return false;
             }
             catch (Exception ex)
             {
@@ -392,7 +419,6 @@ namespace BiometricApp.Services
         }
         private async Task ScanLoopAsync(CancellationToken token)
         {
-            bool isReScan = false;
             var img_status = default(FAP50Demo.ImageStatus);
             FINGER_POSITION[] pos = { FINGER_POSITION.UNKNOW_FINGER };
             img_status.show_mode = GUI_SHOW_MODE.FLAT;
@@ -445,13 +471,19 @@ namespace BiometricApp.Services
                 switch (res)
                 {
                     case IMD_RESULT.PUT_WRONG_HAND:
+                        message = "You are using the wrong hand.";
+                        reScan = true;
                         break;
 
                     case IMD_RESULT.POOR_QUALITY_AND_CANTACT_IRON:
                     case IMD_RESULT.POOR_NFIQ_QUALITY:
+                        message = "The image quality score is too low.";
+                        reScan = true;
                         break;
 
                     case IMD_RESULT.POOR_QUALITY_AND_WRONG_HAND:
+                        message = "You are using the wrong hand and The image quality score is too low.";
+                        reScan = true;
                         break;
                     default:
                         break;
@@ -494,6 +526,10 @@ namespace BiometricApp.Services
         }
         private string FindValidImageFile(ref FAP50Demo.ImageProperty p, out bool isValid)
         {
+            string exeDir = AppContext.BaseDirectory;
+            baseDir = exeDir;
+            videoBasePath = Path.Combine(exeDir, @"panel\video");
+
             string ValidImgPath = "";
             var score = new Score2Num();
             isValid = false;
@@ -657,6 +693,18 @@ namespace BiometricApp.Services
             _ctsScan = null;
 
             _isScanRunning = false;
+        }
+        private async Task<bool> WaitScanComplete(int timeout = 15000)
+        {
+            int waited = 0;
+
+            while (!_scanCompleted && waited < timeout)
+            {
+                await Task.Delay(200);
+                waited += 200;
+            }
+
+            return _scanCompleted;
         }
     }
 
