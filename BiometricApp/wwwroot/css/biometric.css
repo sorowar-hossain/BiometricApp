@@ -135,13 +135,12 @@
     max-height: 0;
     overflow: hidden;
     opacity: 0;
-    transform: translateY(-8px);
-    transition: all 0.35s ease-in-out;
+    transform: translateY(-10px);
+    transition: all 0.35s ease;
 }
 
-    /* OPEN STATE */
     .collapse-panel.open {
-        max-height: 500px; /* enough for demographic form */
+        max-height: 5000px; /* important fix */
         opacity: 1;
         transform: translateY(0);
     }
@@ -165,4 +164,12 @@
         flex-direction: column;
         align-items: stretch;
     }
+}
+
+.form-label-custom {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 6px;
+    display: block;
 }

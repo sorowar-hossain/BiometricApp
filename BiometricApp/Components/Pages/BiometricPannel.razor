@@ -14,9 +14,10 @@
 
     <div class="container-fluid mt-4">
 
-        <!-- ================= DEMOGRAPHIC ================= -->
+        <!-- ================= DEMOGRAPHIC PANEL ================= -->
         <div class="main-card shadow-sm mb-4">
 
+            <!-- HEADER -->
             <div class="section-header d-flex justify-content-between align-items-center"
                  @onclick="ToggleDemo"
                  style="cursor:pointer;">
@@ -26,36 +27,68 @@
 
             </div>
 
+            <!-- BODY -->
             <div class="collapse-panel @(ShowDemographicPanel ? "open" : "")">
 
-                <div class="card-body">
+                <div class="card-body border p-4">
 
                     <EditForm Model="model" OnValidSubmit="Save">
                         <DataAnnotationsValidator />
+                        <ValidationSummary />
 
                         <div class="row">
 
+                            <!-- IDs -->
                             <div class="col-md-12 mb-3">
-                                <label>Member Id</label>
-                                <InputText class="form-control"
-                                           readonly
-                                           @bind-Value="model.PersonUniqueId" />
+                                <label class="form-label-custom">Person ID</label>
+                                <InputText class="form-control"  readonly @bind-Value="model.PersonUniqueId" />
                             </div>
 
+                           
+
+                            <!-- NAME -->
                             <div class="col-md-6 mb-3">
-                                <label>First Name</label>
+                                <label class="form-label-custom">First Name *</label>
                                 <InputText class="form-control"
                                            @bind-Value="model.FirstName" />
+                                <ValidationMessage For="@(() => model.FirstName)" />
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label>Last Name</label>
+                                <label class="form-label-custom">Last Name *</label>
                                 <InputText class="form-control"
                                            @bind-Value="model.LastName" />
+                                <ValidationMessage For="@(() => model.LastName)" />
                             </div>
 
+                            <!-- MARITAL -->
                             <div class="col-md-6 mb-3">
-                                <label>Gender</label>
+                                <label class="form-label-custom">Marital Status *</label>
+                                <InputSelect class="form-control"
+                                             @bind-Value="model.MaritalStatus">
+                                    <option value="">Select</option>
+                                    <option>Single</option>
+                                    <option>Married</option>
+                                    <option>Divorced</option>
+                                    <option>Widowed</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => model.MaritalStatus)" />
+                            </div>
+
+                            <!-- DOB -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Date of Birth *</label>
+                                <InputDate class="form-control"
+                                           @bind-Value="model.DateOfBirth" />
+                                <ValidationMessage For="@(() => model.DateOfBirth)" />
+                            </div>
+
+                           
+
+
+                            <!-- GENDER -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Gender *</label>
                                 <InputSelect class="form-control"
                                              @bind-Value="model.Gender">
                                     <option value="">Select</option>
@@ -63,14 +96,78 @@
                                     <option>Female</option>
                                     <option>Other</option>
                                 </InputSelect>
+                                <ValidationMessage For="@(() => model.Gender)" />
+                            </div>
+
+                            <!-- EXPIRY -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Expiry Date *</label>
+                                <InputDate class="form-control"
+                                           @bind-Value="model.ExpiryDate" />
+                                <ValidationMessage For="@(() => model.ExpiryDate)" />
+                            </div>
+                            <!-- FATHER / MOTHER -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Father Name *</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.FatherName" />
+                                <ValidationMessage For="@(() => model.FatherName)" />
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label>Date of Birth</label>
-                                <InputDate class="form-control"
-                                           @bind-Value="model.DateOfBirth" />
+                                <label class="form-label-custom">Mother Name *</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.MotherName" />
+                                <ValidationMessage For="@(() => model.MotherName)" />
                             </div>
 
+                            <!-- ADDRESS -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label-custom">Address *</label>
+                                <InputTextArea class="form-control"
+                                               @bind-Value="model.Address" />
+                                <ValidationMessage For="@(() => model.Address)" />
+                            </div>
+
+                            <!-- OPTIONAL -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Place of Issue</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.PlaceOfIssue" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Place of Birth</label>
+                                <InputText class="form-control"
+                                           @bind-Value="model.PlaceOfBirth" />
+                            </div>
+
+                            <!-- WEIGHT -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Weight</label>
+                                <InputNumber class="form-control"
+                                             @bind-Value="model.Weight" />
+                                <ValidationMessage For="@(() => model.Weight)" />
+                            </div>
+
+
+
+                           
+
+                            <!-- META -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label-custom">Created On</label>
+                                <InputDate class="form-control"
+                                           @bind-Value="model.CreatedOn" />
+                            </div>
+
+                        </div>
+
+                        <!-- ACTION -->
+                        <div class="d-flex justify-content-end mt-4 gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                Save
+                            </button>
                         </div>
 
                     </EditForm>
@@ -309,12 +406,77 @@
     bool ShowIrisPanel = false;
     bool ShowSignaturePanel = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        var id = CreateMemberId();
+        model.PersonUniqueId = id;
+        StateHasChanged();
+    }
+
     void ToggleDemo() => ShowDemographicPanel = !ShowDemographicPanel;
     void ToggleFace() => ShowFacePanel = !ShowFacePanel;
     void ToggleFinger() => ShowFingerPanel = !ShowFingerPanel;
     void ToggleIris() => ShowIrisPanel = !ShowIrisPanel;
     void ToggleSignature() => ShowSignaturePanel = !ShowSignaturePanel;
 
+
+
     void Save() { }
+
+
+    private int GetNextMemberSequence()
+    {
+        // Absolute path for members
+        string baseFolder = AppSettings.BaseFolder;
+
+        // Create the folder if it doesn't exist
+        if (!Directory.Exists(baseFolder))
+        {
+            Directory.CreateDirectory(baseFolder);
+            return 1; // no members yet
+        }
+
+        // Get all subfolders (each folder = one member)
+        var allFolders = Directory.GetDirectories(baseFolder);
+
+        if (allFolders.Length == 0)
+            return 1; // no members yet
+
+        // Count members created today (optional, or just use total folders)
+        int maxSequence = 0;
+
+        foreach (var folder in allFolders)
+        {
+            string jsonPath = Path.Combine(folder, "demographics.json");
+            if (File.Exists(jsonPath))
+            {
+                var json = File.ReadAllText(jsonPath);
+                var member = System.Text.Json.JsonSerializer.Deserialize<MemberModel>(json);
+                if (member != null)
+                {
+                    // Extract last 6-7 digits from PersonUniqueId if your ID stores sequence
+                    // Or simply count existing members and take max + 1
+                    maxSequence++;
+                }
+            }
+        }
+
+        return maxSequence + 1; // next sequence number
+    }
+
+
+    private string CreateMemberId()
+    {
+        string userName = "Admin";
+        int seq = GetNextMemberSequence();
+
+        // Format sequence as 6-digit or 7-digit number with leading zeros
+        string seqStr = seq.ToString("D6"); // 000001, 000002, etc.
+
+        // Include username + datetime + sequence
+        string id = $"BIO.{userName}.{DateTime.Now:yyyyMMddHHmm}.{seqStr}";
+
+        return id;
+    }
 
 }
