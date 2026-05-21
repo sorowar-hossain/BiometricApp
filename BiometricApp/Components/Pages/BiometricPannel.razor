@@ -1,0 +1,252 @@
+﻿@page "/bio-pannel"
+
+<link href="css/biometric.css" rel="stylesheet" />
+
+<div class="biometric-layout">
+
+    <!-- HEADER -->
+    <div class="topbar shadow-sm">
+        <div>
+            <h4 class="m-0">Data Capturing System</h4>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-4">
+
+        <!-- DEMOGRAPHIC -->
+        <div class="main-card shadow-sm mb-4">
+
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="() => ShowDemographicPanel = !ShowDemographicPanel"
+                 style="cursor:pointer;">
+                <span>Demographic Information</span>
+                <span>@(ShowDemographicPanel ? "Hide" : "Show")</span>
+            </div>
+
+            <div class="collapse-panel @(ShowDemographicPanel ? "open" : "")">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label>Full Name</label>
+                            <input class="form-control custom-input" />
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label>NID / Passport</label>
+                            <input class="form-control custom-input" />
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label>Date of Birth</label>
+                            <input type="date" class="form-control custom-input" />
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label>Phone Number</label>
+                            <input class="form-control custom-input" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FACE -->
+        <div class="main-card shadow-sm mb-4">
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="() => ShowFacePanel = !ShowFacePanel"
+                 style="cursor:pointer;">
+                <span>Face Capture</span>
+                <span>@(ShowFacePanel ? "Hide" : "Show")</span>
+            </div>
+
+            <div class="collapse-panel @(ShowFacePanel ? "open" : "")">
+                <div class="card-body">
+                    <div class="row">
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Live Camera</div>
+                                <div class="preview-box">Live Preview</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Captured Face</div>
+                                <div class="preview-box">Face Image</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Actions</div>
+                                <div class="action-group">
+                                    <button class="btn btn-success btn-custom">Start Camera</button>
+                                    <button class="btn btn-primary btn-custom">Capture Face</button>
+                                    <button class="btn btn-warning btn-custom">Quality Check</button>
+                                    <button class="btn btn-danger btn-custom">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINGER -->
+        <div class="main-card shadow-sm mb-4">
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="() => ShowFingerPanel = !ShowFingerPanel"
+                 style="cursor:pointer;">
+                <span>Fingerprint Capture</span>
+                <span>@(ShowFingerPanel ? "Hide" : "Show")</span>
+            </div>
+
+            <div class="collapse-panel @(ShowFingerPanel ? "open" : "")">
+                <div class="card-body">
+                    <div class="row">
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Finger Preview</div>
+                                <div class="preview-box">Fingerprint</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Quality Status</div>
+                                <div class="quality-box">GOOD</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Actions</div>
+                                <div class="action-group">
+                                    <button class="btn btn-primary btn-custom">Scan Finger</button>
+                                    <button class="btn btn-warning btn-custom">Retry</button>
+                                    <button class="btn btn-danger btn-custom">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IRIS -->
+        <div class="main-card shadow-sm mb-4">
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="() => ShowIrisPanel = !ShowIrisPanel"
+                 style="cursor:pointer;">
+                <span>Iris Capture</span>
+                <span>@(ShowIrisPanel ? "Hide" : "Show")</span>
+            </div>
+
+            <div class="collapse-panel @(ShowIrisPanel ? "open" : "")">
+                <div class="card-body">
+                    <div class="row">
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Left Iris</div>
+                                <div class="preview-box">Left Iris</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Right Iris</div>
+                                <div class="preview-box">Right Iris</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Actions</div>
+                                <div class="action-group">
+                                    <button class="btn btn-primary btn-custom">Capture Iris</button>
+                                    <button class="btn btn-warning btn-custom">Retry</button>
+                                    <button class="btn btn-danger btn-custom">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIGNATURE -->
+        <div class="main-card shadow-sm mb-4">
+            <div class="section-header d-flex justify-content-between align-items-center"
+                 @onclick="() => ShowSignaturePanel = !ShowSignaturePanel"
+                 style="cursor:pointer;">
+                <span>Signature Capture</span>
+                <span>@(ShowSignaturePanel ? "Hide" : "Show")</span>
+            </div>
+
+            <div class="collapse-panel @(ShowSignaturePanel ? "open" : "")">
+                <div class="card-body">
+                    <div class="row">
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Signature Pad</div>
+                                <div class="preview-box">Signature Area</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Captured Signature</div>
+                                <div class="preview-box">Signature Preview</div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 mb-3">
+                            <div class="capture-card">
+                                <div class="capture-title">Actions</div>
+                                <div class="action-group">
+                                    <button class="btn btn-success btn-custom">Start Signature</button>
+                                    <button class="btn btn-primary btn-custom">Save Signature</button>
+                                    <button class="btn btn-warning btn-custom">Retry</button>
+                                    <button class="btn btn-danger btn-custom">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL ACTION -->
+        <div class="submit-panel shadow-sm">
+            <button class="btn btn-secondary btn-lg px-4">Reset</button>
+            <button class="btn btn-success btn-lg px-5">Save</button>
+        </div>
+
+    </div> <!-- container-fluid END -->
+
+</div> <!-- biometric-layout END -->
+@code {
+    bool ShowDemographicPanel = false;
+    bool ShowFacePanel = false;
+    bool ShowFingerPanel = false;
+    bool ShowIrisPanel = false;
+    bool ShowSignaturePanel = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ShowDemographicPanel = false;
+        ShowFacePanel = false;
+        ShowFingerPanel = false;
+        ShowIrisPanel = false;
+        ShowSignaturePanel = false;
+    }
+}
