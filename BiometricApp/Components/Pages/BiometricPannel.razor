@@ -192,37 +192,95 @@
 
             <div class="collapse-panel @(ShowFacePanel ? "open" : "")">
                 <div class="card-body">
+                    <div class="container-fluid biometric-container">
 
-                    <div class="row">
+                      
 
-                        <div class="col-lg-4 mb-3">
-                            <div class="capture-card">
-                                <div class="capture-title">Live Camera</div>
-                                <div class="preview-box">Live Preview</div>
-                            </div>
-                        </div>
+                        <div class="row mt-3">
 
-                        <div class="col-lg-4 mb-3">
-                            <div class="capture-card">
-                                <div class="capture-title">Captured Face</div>
-                                <div class="preview-box">Face Image</div>
-                            </div>
-                        </div>
+                            <!-- LEFT PANEL -->
+                            <div class="col-lg-3 col-md-4 col-sm-12 control-panel">
 
-                        <div class="col-lg-4 mb-3">
-                            <div class="capture-card">
-                                <div class="capture-title">Actions</div>
-
-                                <div class="action-group">
-                                    <button class="btn btn-success btn-custom">Start</button>
-                                    <button class="btn btn-primary btn-custom">Capture</button>
-                                    <button class="btn btn-warning btn-custom">Check</button>
-                                    <button class="btn btn-danger btn-custom">Reset</button>
+                                <div class="instructions mt-3">
+                                    <h6>Capture Instructions</h6>
+                                    <ul>
+                                        <li>Face centered properly</li>
+                                        <li>Good lighting required</li>
+                                        <li>No glasses or hats</li>
+                                    </ul>
                                 </div>
 
                             </div>
-                        </div>
 
+                            <!-- CAMERA PANEL -->
+                            <div class="col-lg-6 col-md-8 col-sm-12 text-center">
+
+                                <h6 class="panel-title">Camera Control</h6>
+
+                                <div class="camera-wrapper d-flex justify-content-center align-items-center">
+
+                                    @if (CameraState == 1)
+                                    {
+                                        <span class="text-success">Camera Active (Native SDK)</span>
+                                    }
+                                    else if (CameraState == 2)
+                                    {
+                                        <span class="text-danger">Camera Stopped</span>
+                                    }
+
+                                    else if (CameraState == 3)
+                                    {
+                                        <span class="text-danger">Camera Not Started</span>
+                                    }
+
+                                </div>
+
+                                <div class="camera-buttons mt-3">
+
+                                    <button class="btn btn-primary" @onclick="ToggleCamera">
+                                        @(CameraConnected ? "Close Camera" : "Open Camera")
+                                    </button>
+
+                                    <button class="btn btn-success"
+                                            @onclick="Capture"
+                                            disabled="@(!CameraConnected)">
+                                        Capture
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <!-- RIGHT PANEL -->
+
+
+                        </div>
+                        <div class="col-lg-3 col-md-12 preview-panel">
+
+                            <h6 class="panel-title">Captured Image</h6>
+
+                            <div class="preview-box">
+                                @if (!string.IsNullOrEmpty(CapturedImage))
+                                {
+                                    <img src="@($"data:image/jpg;base64,{CapturedImage}")" style="width:100%;height:auto;" />
+                                }
+                                else
+                                {
+                                    <span>No Image</span>
+                                }
+                            </div>
+
+                            <button class="btn btn-success mt-3 w-100"
+                                    @onclick="SaveFace"
+                                    disabled="@string.IsNullOrEmpty(CapturedImage)">
+                                Save Face
+                            </button>
+
+                            <div class="status-box mt-2">
+                                <small>@Status</small>
+                            </div>
+
+                        </div>
                     </div>
 
                 </div>
@@ -353,16 +411,6 @@
                        
 
                         <div class="p-4">
-
-                            <!-- Title -->
-                            <h5 class="fw-bold text-primary">
-                                Capture Signature
-                            </h5>
-
-                            <p class="text-muted small">
-                                Please sign on IMD device
-                            </p>
-
                             <div class="row mt-4">
 
                                 <!-- LEFT -->
@@ -477,6 +525,16 @@
     private string? SignatureBase64;
     bool isProcessing = true;
 
+
+    private List<MemberDropdown> members = new();
+    private string selectedMemberId;
+
+    private bool CameraConnected = false;
+    private string CapturedImage;
+    private string Status = "Idle";
+    private int CameraState = 0;
+    private System.Timers.Timer _uiTimer;
+
     protected override async Task OnInitializedAsync()
     {
         var id = CreateMemberId();
@@ -559,7 +617,16 @@
 
     private async Task ClearSignature()
     {
-        
+
     }
+
+    private async Task ToggleCamera()
+    { }
+
+    private async Task Capture()
+    { }
+
+    private async Task SaveFace()
+    { }
 
 }
