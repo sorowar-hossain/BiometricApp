@@ -34,11 +34,10 @@
                             Waiting for signature...
                         </div>
                     }
-                    else if (!string.IsNullOrEmpty(SignatureBase64))
+                    else if (!string.IsNullOrEmpty(LiveSignatureBase64))
                     {
-                        <div class="capture-text">
-                            Signature Completed...
-                        </div>
+                        <img src="@LiveSignatureBase64"
+                             class="full-preview-img" />
                     }
                     else
                     {
@@ -54,12 +53,17 @@
 
                     <button class="btn btn-primary px-4 me-2"
                             @onclick="CaptureSignature">
-                        Capture Signature
+                        <i class="bi bi-pen me-1"></i> Capture
+                    </button>
+
+                    <button class="btn btn-success px-4 me-2"
+                            @onclick="SaveSignature" disabled="@(isProcessing)">
+                        <i class="bi bi-check2-circle me-1"></i> Save
                     </button>
 
                     <button class="btn btn-dark px-4"
-                            @onclick="ClearSignature">
-                        Reset
+                            @onclick="ClearSignature" disabled="@(isProcessing)">
+                        <i class="bi bi-eraser me-1"></i> Clear
                     </button>
 
                 </div>
@@ -77,9 +81,9 @@
                             Please sign on device...
                         </div>
                     }
-                    else if (!string.IsNullOrEmpty(PreviewSignatureBase64))
+                    else if (!string.IsNullOrEmpty(SignatureBase64))
                     {
-                        <img src="@PreviewSignatureBase64"
+                        <img src="@SignatureBase64"
                              class="full-preview-img" />
                     }
                     else
@@ -181,65 +185,74 @@
 
 @code {
 
+    private string? LiveSignatureBase64;
     private string? SignatureBase64;
-    private string? PreviewSignatureBase64;
-    private bool IsCapturing;
+    private CancellationTokenSource? _cts;
+    private bool IsCapturing = false;
+    bool isProcessing = true;
+    static string path = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        isProcessing = true;
+        path = "";
+        IsCapturing = false;
+    }
 
     private async Task CaptureSignature()
     {
-        try
+        _cts = new CancellationTokenSource();
+
+        LiveSignatureBase64 = null;
+
+        StateHasChanged();
+
+        // START LIVE PREVIEW LOOP
+        _ = Task.Run(async () =>
         {
-            IsCapturing = true;
+            await signatureService.StartLivePreviewAsync(
+                frame =>
+                {
+                    LiveSignatureBase64 =
+                        $"data:image/png;base64,{Convert.ToBase64String(frame)}";
 
-            StateHasChanged();
+                    InvokeAsync(StateHasChanged);
+                },
+                _cts.Token);
+        });
+        // START ACTUAL CAPTURE
+        path = await signatureService.CaptureSignatureAsync();
 
-            string path =
-                await signatureService.CaptureSignatureAsync();
+        _cts.Cancel();
 
-            IsCapturing = false;
-            string sig = Path.Combine(@"C:\Signature", "sig_Signature_.png");
-            
-            if (!string.IsNullOrEmpty(path) && File.Exists(sig))
-            {
-                byte[] bytes =
-                    await File.ReadAllBytesAsync(sig);
-
-                SignatureBase64 =
-                    $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
-            }
-        }
-        catch (Exception ex)
+        if (!string.IsNullOrEmpty(path) && File.Exists(path))
         {
-            Console.WriteLine(ex);
-            IsCapturing = false;
+            isProcessing = false;
         }
+
+        StateHasChanged();
     }
-    private async Task PreviewSignature()
+
+    private async Task SaveSignature()
     {
-        try
+        if (!string.IsNullOrEmpty(path) && File.Exists(path))
         {
-            
 
-            IsCapturing = false;
+            byte[] bytes = await File.ReadAllBytesAsync(path);
 
-            StateHasChanged();
-
-            var bmp = await signatureService.PreviewSignatureAsync();
-            if (bmp != null)
-            {
-                PreviewSignatureBase64 =
-                    $"data:image/png;base64,{Convert.ToBase64String(bmp)}";
-            }
+            SignatureBase64 =
+                $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+            path = "";
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            IsCapturing = false;
-        }
+
+        StateHasChanged();
     }
+
     private Task ClearSignature()
     {
-        SignatureBase64 = null;
+        LiveSignatureBase64 = null;
+        path = "";
+        isProcessing = true;
         StateHasChanged();
         return Task.CompletedTask;
     }
