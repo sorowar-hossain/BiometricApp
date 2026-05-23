@@ -1,354 +1,741 @@
 ﻿using BiometricApp.Natives;
 using FAP50Demo;
-using Microsoft.Maui.Controls;
 using OpenCvSharp;
-using OpenCvSharp.Extensions;
-using OpenCvSharp.Text;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using FINGER_POSITION = FAP50Demo.FINGER_POSITION;
 using GUI_SHOW_MODE = FAP50Demo.GUI_SHOW_MODE;
 using IMD_RESULT = FAP50Demo.IMD_RESULT;
+using Rect = OpenCvSharp.Rect;
 
 namespace BiometricApp.Services
 {
-    public class ScannerService
+    public class ScannerService : IDisposable
     {
+        private readonly string basePath = AppSettings.BaseFolder;
 
-        //IMDWrapper iMDWrapper = new IMDWrapper();
-        string basePath = AppSettings.BaseFolder;
-        // Main function to capture fingerprint
-
-        private imd_fap50.Fap50CallbackEvent _callback;
-        string[,] score = new string[(int)Fap50FingerprintService.GUI_SHOW_MODE.SIZE, (int)Fap50FingerprintService.FINGER_POSITION.SIZE];
-        System.Drawing.Brush fontBrush = new SolidBrush(System.Drawing.Color.DarkBlue);
-        Fap50FingerprintService.GUI_SHOW_MODE now_mode = Fap50FingerprintService.GUI_SHOW_MODE.NONE;
-        //
-        public string[] StandbyVideoPaths { get; private set; }
-        private Timer StandbyVideoShowTimer;
-        // standby video file list default path is "trunk3\x64\Release\panel\video\rossi_plus_fixed"
-        private List<string> fileList = new List<string>();
-        private int current_standby_Img_Index = 0;
-        private Timer ShowDemoVideoTimer;
-        private bool isInternalPannelExist = false;
-        private bool isStandbyTimerWorks = false;
-
-        private volatile bool _scanCompleted = false;
-        private FINGER_POSITION _currentFinger;
-        private string _currentFolder;
-        private bool _isScanRunning = false;
-        private CancellationTokenSource _ctsScan;
-        private string baseDir, videoBasePath, ValidImgFPath;
-        private bool isFingerValided = false;
-        private bool isFingerON_ScanDone = false;
+        private readonly imd_fap50.Fap50CallbackEvent _callback;
 
         public string message = "";
         public bool reScan = false;
 
-        public ScannerService()
+        public event Action? OnFrameUpdated;
+
+        private string _currentFrameBase64 = "";
+        public string CurrentFrameBase64
         {
+            get => _currentFrameBase64;
+            private set => _currentFrameBase64 = value;
+        }
+
+        private volatile bool _scanCompleted = false;
+
+        private bool _isScanRunning = false;
+
+        private CancellationTokenSource? _ctsScan;
+        private CancellationTokenSource? _videoCTS;
+
+        private FINGER_POSITION _currentFinger;
+
+        private string baseDir = "";
+        private string ValidImgFPath = "";
+        private string videoBasePath = "";
+
+        private bool isInternalPannelExist = false;
+
+        #region VIDEO
+
+        public enum VideoShowPhase
+        {
+            GuideFrame,
+            Scanning,
+            Validate
+        }
+
+        private VideoShowPhase _phase = VideoShowPhase.GuideFrame;
+
+        private readonly Dictionary<FINGER_POSITION, List<Mat>>
+            guideFrames = new();
+
+        private readonly Dictionary<FINGER_POSITION, Mat>
+            scanning_img = new();
+
+        private readonly Dictionary<int, Mat>
+            loading_img = new();
+
+        private int currentFrameIndex = 0;
+        private int scanningFrameIndex = 0;
+
+        #endregion
+        public enum SampleSequence
+        {
+            Flat442,
+            Flat442R,
+            Signature,
+            FlatSomefingers
+        }
+
+        private readonly Dictionary<string, FINGER_POSITION[]> menuMap =
+    new(StringComparer.OrdinalIgnoreCase)
+{
+    {
+        "left_4",
+        new[]
+        {
+            FINGER_POSITION.LEFT_INDEX,
+            FINGER_POSITION.LEFT_MIDDLE,
+            FINGER_POSITION.LEFT_RING,
+            FINGER_POSITION.LEFT_LITTLE
+        }
+    },
+    {
+        "right_4",
+        new[]
+        {
+            FINGER_POSITION.RIGHT_INDEX,
+            FINGER_POSITION.RIGHT_MIDDLE,
+            FINGER_POSITION.RIGHT_RING,
+            FINGER_POSITION.RIGHT_LITTLE
+        }
+    },
+    {
+        "two_thumbs",
+        new[]
+        {
+            FINGER_POSITION.LEFT_THUMB,
+            FINGER_POSITION.RIGHT_THUMB
+        }
+    }
+};
+
+        private readonly SampleSequence workType;
+
+        public ScannerService(SampleSequence workType = SampleSequence.Flat442)
+        {
+            this.workType = workType;
+
             _callback = OnFap50Event;
             imd_fap50.set_event(_callback);
+
+            LoadVideoResources();
+            InitVideoFrames();
+            StartVideoLoop();
+
+            OnFrameUpdated += () => { };
         }
+
+        #region PUBLIC METHODS
 
         public async Task<bool> CaptureFingerprintLeft(string selectedMemberId)
         {
-            try
-            {
-                _scanCompleted = false;
-
-                // Reset device
-                IMD_RESULT res = imd_fap50.device_reset();
-
-                if (res != IMD_RESULT.SUCCESS)
+            return await CaptureFingerprint(
+                selectedMemberId,
+                FINGER_POSITION.LEFT_FOUR,
+                new[]
                 {
-                    message = "Capture failed, please try again";
-                    Console.WriteLine($"Device reset failed: {res}");
-                    return false;
-                }
-
-                // Connect panel if available
-                Connect_Pannel();
-
-                // Wait device initialization
-                await Task.Delay(2000);
-
-                // Start LEFT FOUR scan
-                FINGER_POSITION finger = FINGER_POSITION.LEFT_FOUR;
-                StartScan();
-                res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
-                await WaitScanComplete();
-                if (!reScan)
-                {
-                    if (res != IMD_RESULT.SUCCESS)
-                    {
-                        message = "Capture failed, please try again";
-                        Console.WriteLine($"Scan start failed: {res}");
-                        return false;
-                    }
-
-                    // Wait capture complete
-                    // WAIT FOR CALLBACK (NOT FIXED DELAY)
-                    int timeout = 15000;
-                    int waited = 0;
-
-                    while (!_scanCompleted && waited < timeout)
-                    {
-                        await Task.Delay(200);
-                        waited += 200;
-                    }
-
-                    // Create output folder
-                    string folder = Path.Combine(basePath, selectedMemberId);
-
-                    if (!Directory.Exists(folder))
-                        Directory.CreateDirectory(folder);
-
-                    IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_INDEX, Path.Combine(folder, "l_Left_Index.bmp"));
-                    IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_MIDDLE, Path.Combine(folder, "l_Left_Middle.bmp"));
-                    IMD_RESULT f3 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_RING, Path.Combine(folder, "l_Left_Ring.bmp"));
-                    IMD_RESULT f4 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_LITTLE, Path.Combine(folder, "l_Left_Little.bmp"));
-
-                    if (f1 != IMD_RESULT.SUCCESS ||
-                        f2 != IMD_RESULT.SUCCESS ||
-                        f3 != IMD_RESULT.SUCCESS ||
-                        f4 != IMD_RESULT.SUCCESS)
-                    {
-                        message = "Capture failed, please try again";
-                        Console.WriteLine("Save file failed.");
-                        return false;
-                    }
-
-                    Console.WriteLine("Left fingerprint capture successful.");
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"CaptureFingerprintLeft Error: {ex}");
-                return false;
-            }
-            finally
-            {
-                
-            }
+                    (FINGER_POSITION.LEFT_INDEX,  "l_Left_Index.bmp"),
+                    (FINGER_POSITION.LEFT_MIDDLE, "l_Left_Middle.bmp"),
+                    (FINGER_POSITION.LEFT_RING,   "l_Left_Ring.bmp"),
+                    (FINGER_POSITION.LEFT_LITTLE, "l_Left_Little.bmp")
+                });
         }
 
         public async Task<bool> CaptureFingerprintRight(string selectedMemberId)
         {
+            return await CaptureFingerprint(
+                selectedMemberId,
+                FINGER_POSITION.RIGHT_FOUR,
+                new[]
+                {
+                    (FINGER_POSITION.RIGHT_INDEX,  "r_Right_Index.bmp"),
+                    (FINGER_POSITION.RIGHT_MIDDLE, "r_Right_Middle.bmp"),
+                    (FINGER_POSITION.RIGHT_RING,   "r_Right_Ring.bmp"),
+                    (FINGER_POSITION.RIGHT_LITTLE, "r_Right_Little.bmp")
+                });
+        }
+
+        public async Task<bool> CaptureFingerprintThumb(string selectedMemberId)
+        {
+            return await CaptureFingerprint(
+                selectedMemberId,
+                FINGER_POSITION.BOTH_THUMBS,
+                new[]
+                {
+                    (FINGER_POSITION.LEFT_THUMB,  "l_Left_Thumb.bmp"),
+                    (FINGER_POSITION.RIGHT_THUMB, "r_Right_Thumb.bmp")
+                });
+        }
+
+        #endregion
+
+        #region MAIN CAPTURE
+
+        private async Task<bool> CaptureFingerprint(
+            string selectedMemberId,
+            FINGER_POSITION fingerPosition,
+            (FINGER_POSITION pos, string file)[] saveFiles)
+        {
             try
             {
+                message = "";
+                reScan = false;
                 _scanCompleted = false;
 
-                // Reset device
                 IMD_RESULT res = imd_fap50.device_reset();
 
                 if (res != IMD_RESULT.SUCCESS)
                 {
-                    message = "Capture failed, please try again";
-                    Console.WriteLine($"Device reset failed: {res}");
+                    message = "Device reset failed";
                     return false;
                 }
 
-                // Connect panel if available
                 Connect_Pannel();
 
-                // Wait device initialization
-                await Task.Delay(2000);
+                await Task.Delay(1500);
 
-                // Start LEFT FOUR scan
-                FINGER_POSITION finger = FINGER_POSITION.RIGHT_FOUR;
+                _currentFinger = fingerPosition;
+
+                _phase = VideoShowPhase.GuideFrame;
+
+                await Task.Delay(800);
+
                 StartScan();
-                res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
-                await WaitScanComplete();
-                if (!reScan)
-                {
-                    if (res != IMD_RESULT.SUCCESS)
-                    {
-                        message = "Capture failed, please try again";
-                        Console.WriteLine($"Scan start failed: {res}");
-                        return false;
-                    }
 
-                    // Wait capture complete
-                    // WAIT FOR CALLBACK (NOT FIXED DELAY)
-                    int timeout = 15000;
-                    int waited = 0;
+                FINGER_POSITION finger = fingerPosition;
 
-                    while (!_scanCompleted && waited < timeout)
-                    {
-                        await Task.Delay(200);
-                        waited += 200;
-                    }
-
-                    // Create output folder
-                    string folder = Path.Combine(basePath, selectedMemberId);
-
-                    if (!Directory.Exists(folder))
-                        Directory.CreateDirectory(folder);
-
-                    IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_INDEX, Path.Combine(folder, "r_Right_Index.bmp"));
-                    IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_MIDDLE, Path.Combine(folder, "r_Right_Middle.bmp"));
-                    IMD_RESULT f3 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_RING, Path.Combine(folder, "r_Right_Ring.bmp"));
-                    IMD_RESULT f4 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_LITTLE, Path.Combine(folder, "r_Right_Little.bmp"));
-
-                    if (f1 != IMD_RESULT.SUCCESS ||
-                        f2 != IMD_RESULT.SUCCESS ||
-                        f3 != IMD_RESULT.SUCCESS ||
-                        f4 != IMD_RESULT.SUCCESS)
-                    {
-                        message = "Capture failed, please try again";
-                        Console.WriteLine("Save file failed.");
-                        return false;
-                    }
-
-                    Console.WriteLine("Left fingerprint capture successful.");
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"CaptureFingerprintLeft Error: {ex}");
-                return false;
-            }
-            finally
-            {
-
-            }
-        }
-
-        public async Task<bool> CaptureFingerprintThum(string selectedMemberId)
-        {
-            try
-            {
-                _scanCompleted = false;
-
-                // Reset device
-                IMD_RESULT res = imd_fap50.device_reset();
+                res = imd_fap50.scan_start(
+                    GUI_SHOW_MODE.FLAT,
+                    ref finger,
+                    1);
 
                 if (res != IMD_RESULT.SUCCESS)
                 {
-                    message = "Capture failed, please try again";
-                    Console.WriteLine($"Device reset failed: {res}");
+                    message = "Scan start failed";
+                    StopScan();
                     return false;
                 }
 
-                // Connect panel if available
-                Connect_Pannel();
+                _phase = VideoShowPhase.Scanning;
 
-                // Wait device initialization
-                await Task.Delay(2000);
+                bool completed = await WaitScanComplete();
 
-                // Start LEFT FOUR scan
-                FINGER_POSITION finger = FINGER_POSITION.BOTH_THUMBS;
-                StartScan();
-                res = imd_fap50.scan_start(GUI_SHOW_MODE.FLAT, ref finger, 1);
-                await WaitScanComplete();
-                if (!reScan)
+                StopScan();
+
+                if (!completed)
                 {
-                    if (res != IMD_RESULT.SUCCESS)
-                    {
-                        message = "Capture failed, please try again";
-                        Console.WriteLine($"Scan start failed: {res}");
-                        return false;
-                    }
-
-                    // Wait capture complete
-                    // WAIT FOR CALLBACK (NOT FIXED DELAY)
-                    int timeout = 15000;
-                    int waited = 0;
-
-                    while (!_scanCompleted && waited < timeout)
-                    {
-                        await Task.Delay(200);
-                        waited += 200;
-                    }
-
-                    // Create output folder
-                    string folder = Path.Combine(basePath, selectedMemberId);
-
-                    if (!Directory.Exists(folder))
-                        Directory.CreateDirectory(folder);
-
-                    IMD_RESULT f1 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.LEFT_THUMB, Path.Combine(folder, "l_Left_Thumb.bmp"));
-                    IMD_RESULT f2 = imd_fap50.save_file(GUI_SHOW_MODE.FLAT, FINGER_POSITION.RIGHT_THUMB, Path.Combine(folder, "r_Right_Thumb.bmp"));
-
-                    if (f1 != IMD_RESULT.SUCCESS ||
-                        f2 != IMD_RESULT.SUCCESS)
-                    {
-                        message = "Capture failed, please try again";
-                        Console.WriteLine("Save file failed.");
-                        return false;
-                    }
-
-                    Console.WriteLine("Left fingerprint capture successful.");
-                    return true;
+                    message = "Scan timeout";
+                    return false;
                 }
-                return false;
+
+                if (reScan)
+                {
+                    return false;
+                }
+
+                string folder =
+                    Path.Combine(basePath, selectedMemberId);
+
+                Directory.CreateDirectory(folder);
+
+                foreach (var item in saveFiles)
+                {
+                    string path =
+                        Path.Combine(folder, item.file);
+
+                    IMD_RESULT saveRes =
+                        imd_fap50.save_file(
+                            GUI_SHOW_MODE.FLAT,
+                            item.pos,
+                            path);
+
+                    if (saveRes != IMD_RESULT.SUCCESS)
+                    {
+                        message = "Save failed";
+                        return false;
+                    }
+                }
+
+                message = "Fingerprint capture success";
+
+                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"CaptureFingerprintLeft Error: {ex}");
+                message = ex.Message;
+
                 return false;
             }
             finally
             {
-
+                StopScan();
             }
         }
-        void dbg(string msg)
+
+        #endregion
+
+        #region CALLBACK
+
+        private void OnFap50Event(IMD_RESULT e)
         {
-#if DEBUG
-            Debug.WriteLine(msg);  // 在調試模式下輸出
-#else
-            Trace.WriteLine(msg);  // 在發佈模式下也輸出
-#endif
+            _scanCompleted = e == IMD_RESULT.SUCCESS;
         }
+
+        #endregion
+
+        #region VIDEO LOOP
+
+        private void StartVideoLoop()
+        {
+            _videoCTS = new CancellationTokenSource();
+
+            _ = VideoLoopAsync(_videoCTS.Token);
+        }
+
+        private async Task VideoLoopAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                switch (_phase)
+                {
+                    case VideoShowPhase.GuideFrame:
+                        await ShowGuideFrame();
+                        break;
+
+                    case VideoShowPhase.Scanning:
+                        await ShowScanningFrame();
+                        break;
+
+                    case VideoShowPhase.Validate:
+                        await ShowValidateFrame();
+                        break;
+                }
+
+                await Task.Delay(50, token);
+            }
+        }
+
+        private async Task ShowGuideFrame()
+        {
+            if (!guideFrames.TryGetValue(
+                _currentFinger,
+                out var frameList))
+                return;
+
+            if (frameList.Count == 0)
+                return;
+
+            if (currentFrameIndex >= frameList.Count)
+                currentFrameIndex = 0;
+
+            using Mat frame =
+                frameList[currentFrameIndex].Clone();
+
+            currentFrameIndex++;
+
+            UpdateFrame(frame);
+
+            await Task.CompletedTask;
+        }
+
+        private async Task ShowScanningFrame()
+        {
+            if (!scanning_img.TryGetValue(
+                _currentFinger,
+                out var baseMat))
+                return;
+
+            using Mat scanFrame = baseMat.Clone();
+
+            int loadingIdx =
+                (scanningFrameIndex++ / 8) % 3 + 1;
+
+            if (loading_img.TryGetValue(
+                loadingIdx,
+                out var loadingMat))
+            {
+                Rect roi = new Rect(
+                    260,
+                    48,
+                    loadingMat.Width,
+                    loadingMat.Height);
+
+                loadingMat.CopyTo(
+                    new Mat(scanFrame, roi));
+            }
+
+            UpdateFrame(scanFrame);
+
+            await Task.CompletedTask;
+        }
+
+        private async Task ShowValidateFrame()
+        {
+            if (!File.Exists(ValidImgFPath))
+                return;
+
+            using Mat img =
+                Cv2.ImRead(ValidImgFPath);
+
+            UpdateFrame(img);
+
+            await Task.Delay(1000);
+
+            _phase = VideoShowPhase.GuideFrame;
+        }
+
+        private void UpdateFrame(Mat mat)
+        {
+            Cv2.ImEncode(
+                ".jpg",
+                mat,
+                out byte[] imgBytes,
+                new ImageEncodingParam(
+                    ImwriteFlags.JpegQuality,
+                    60));
+
+            CurrentFrameBase64 =
+                $"data:image/jpeg;base64,{Convert.ToBase64String(imgBytes)}";
+
+            // IMPORTANT: ensure UI thread notification
+            OnFrameUpdated?.Invoke();
+        }
+
+        #endregion
+
+        #region LOAD RESOURCES
+
+        private void LoadVideoResources()
+        {
+            string exeDir = AppContext.BaseDirectory;
+
+            baseDir = exeDir;
+            videoBasePath = Path.Combine(exeDir, @"panel\video");
+
+            guideFrames[FINGER_POSITION.LEFT_FOUR] =
+            new List<Mat>
+            {
+                Cv2.ImRead(
+                    Path.Combine(
+                        exeDir,
+                        "panel/LeftHandPanel/LeftHandPanel-Main.png"))
+            };
+
+            guideFrames[FINGER_POSITION.RIGHT_FOUR] =
+            new List<Mat>
+            {
+                Cv2.ImRead(
+                    Path.Combine(
+                        exeDir,
+                        "panel/RightHandPanel/RightHandPanel-Main.png"))
+            };
+
+            guideFrames[FINGER_POSITION.BOTH_THUMBS] =
+            new List<Mat>
+            {
+                Cv2.ImRead(
+                    Path.Combine(
+                        exeDir,
+                        "panel/ThumbsPanel/ThumbPanel-Main.png"))
+            };
+
+            scanning_img[FINGER_POSITION.LEFT_FOUR] =
+                Cv2.ImRead(Path.Combine(
+                    exeDir,
+                    "panel/LeftHandPanel/LeftHandPanel-Main-Scanning.png"));
+
+            scanning_img[FINGER_POSITION.RIGHT_FOUR] =
+                Cv2.ImRead(Path.Combine(
+                    exeDir,
+                    "panel/RightHandPanel/RightHandPanel-Main-Scanning.png"));
+
+            scanning_img[FINGER_POSITION.BOTH_THUMBS] =
+                Cv2.ImRead(Path.Combine(
+                    exeDir,
+                    "panel/ThumbsPanel/ThumbPanel-Main-Scanning.png"));
+
+            loading_img[1] =
+                Cv2.ImRead(Path.Combine(
+                    exeDir,
+                    "panel/LoadingScreen/WithButton/ScanningFrame-1.png"));
+
+            loading_img[2] =
+                Cv2.ImRead(Path.Combine(
+                    exeDir,
+                    "panel/LoadingScreen/WithButton/ScanningFrame-2.png"));
+
+            loading_img[3] =
+                Cv2.ImRead(Path.Combine(
+                    exeDir,
+                    "panel/LoadingScreen/WithButton/ScanningFrame-3.png"));
+        }
+
+        #endregion
+
+        #region SCAN LOOP
+
+        private void StartScan()
+        {
+            if (_isScanRunning)
+                return;
+
+            _ctsScan = new CancellationTokenSource();
+
+            _isScanRunning = true;
+
+            _ = ScanLoopAsync(_ctsScan.Token);
+        }
+
+        private void StopScan()
+        {
+            if (!_isScanRunning)
+                return;
+
+            _ctsScan?.Cancel();
+
+            _ctsScan?.Dispose();
+
+            _ctsScan = null;
+
+            _isScanRunning = false;
+        }
+
+        private async Task ScanLoopAsync(
+            CancellationToken token)
+        {
+            var img_status =
+                default(FAP50Demo.ImageStatus);
+
+            img_status.show_mode =
+                GUI_SHOW_MODE.FLAT;
+
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    var res =
+                        imd_fap50.get_image_status(
+                            ref img_status);
+
+                    if (res == IMD_RESULT.SUCCESS)
+                    {
+                        if (img_status.show_mode ==
+                            GUI_SHOW_MODE.FLAT)
+                        {
+                            Handle_Flat_Mode_Scan(
+                                ref img_status);
+                        }
+                    }
+
+                    await Task.Delay(
+                        res == IMD_RESULT.SUCCESS
+                        ? 33
+                        : 100,
+                        token);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task<bool> WaitScanComplete(
+            int timeout = 15000)
+        {
+            int waited = 0;
+
+            while (!_scanCompleted &&
+                   waited < timeout)
+            {
+                await Task.Delay(200);
+
+                waited += 200;
+            }
+
+            return _scanCompleted;
+        }
+
+        #endregion
+
+        #region FLAT MODE
+
+        private void Handle_Flat_Mode_Scan(
+            ref FAP50Demo.ImageStatus img_status)
+        {
+            if (!img_status.is_finger_on &&
+                img_status.is_flat_done)
+            {
+                imd_fap50.scan_cancel();
+
+                var p =
+                    new FAP50Demo.ImageProperty
+                    {
+                        mode = img_status.show_mode,
+                        pos = img_status.finger_position,
+                        this_scan = true
+                    };
+
+                var res =
+                    imd_fap50.get_image(ref p);
+
+                ValidImgFPath =
+                    FindValidImageFile(
+                        ref p,
+                        out bool isValid);
+
+                ShowValidFinger();
+
+                switch (res)
+                {
+                    case IMD_RESULT.PUT_WRONG_HAND:
+                        message = "Wrong hand";
+                        reScan = true;
+                        break;
+
+                    case IMD_RESULT.POOR_QUALITY_AND_CANTACT_IRON:
+                    case IMD_RESULT.POOR_NFIQ_QUALITY:
+                        message = "Poor quality";
+                        reScan = true;
+                        break;
+
+                    case IMD_RESULT.POOR_QUALITY_AND_WRONG_HAND:
+                        message = "Wrong hand and poor quality";
+                        reScan = true;
+                        break;
+                }
+
+                _scanCompleted = true;
+            }
+        }
+
+        private void ShowValidFinger()
+        {
+            _phase = VideoShowPhase.Validate;
+
+            if (!File.Exists(ValidImgFPath))
+                return;
+
+            using Mat score_img =
+                Cv2.ImRead(ValidImgFPath);
+
+            UpdateFrame(score_img);
+        }
+
+        #endregion
+
+        #region VALID IMAGE
+
+        private string FindValidImageFile(
+            ref FAP50Demo.ImageProperty p,
+            out bool isValid)
+        {
+            isValid = false;
+
+            int[] managedArray =
+                new int[(int)ScoreArray.MaxSize];
+
+            unsafe
+            {
+                fixed (int* pArr = p.score_array)
+                {
+                    Marshal.Copy(
+                        (IntPtr)pArr,
+                        managedArray,
+                        0,
+                        managedArray.Length);
+                }
+            }
+
+            var score = new Score2Num();
+
+            string validImgPath = "";
+
+            switch (p.score_size)
+            {
+                case 4:
+
+                    if (p.pos == FINGER_POSITION.LEFT_FOUR)
+                    {
+                        score.L1 = managedArray[0] >= p.score_min;
+                        score.L2 = managedArray[1] >= p.score_min;
+                        score.L3 = managedArray[2] >= p.score_min;
+                        score.L4 = managedArray[3] >= p.score_min;
+
+                        validImgPath =
+                            Path.Combine(
+                                baseDir,
+                                $"panel/LeftHandPanel/Iterations/Iteration_{score.num}.png");
+                    }
+                    else
+                    {
+                        score.R1 = managedArray[0] >= p.score_min;
+                        score.R2 = managedArray[1] >= p.score_min;
+                        score.R3 = managedArray[2] >= p.score_min;
+                        score.R4 = managedArray[3] >= p.score_min;
+
+                        validImgPath =
+                            Path.Combine(
+                                baseDir,
+                                $"panel/RightHandPanel/Iterations/Iteration_{score.num}.png");
+                    }
+
+                    break;
+
+                case 2:
+
+                    score.L0 = managedArray[0] >= p.score_min;
+                    score.R0 = managedArray[1] >= p.score_min;
+
+                    validImgPath =
+                        Path.Combine(
+                            baseDir,
+                            $"panel/ThumbsPanel/Iterations/Iteration_{score.num}.png");
+
+                    break;
+            }
+
+            isValid = true;
+
+            return validImgPath;
+        }
+
+        #endregion
+
+        #region PANEL
+
         public static class IMD_FAP50_SDK_PANEL
         {
             private static bool isConnected = false;
-            [DllImport("lib_imd_fap50_method.dll", CallingConvention = CallingConvention.Cdecl)]
-            [return: MarshalAs(UnmanagedType.I1)]
-            public static extern bool connect_fap50_panel(string host, ushort port);
 
-            [DllImport("lib_imd_fap50_method.dll", CallingConvention = CallingConvention.Cdecl)]
+            [DllImport("lib_imd_fap50_method.dll",
+                CallingConvention = CallingConvention.Cdecl)]
             [return: MarshalAs(UnmanagedType.I1)]
-            public static extern bool send_jpg_fap50_panel(byte[] buffer, uint size);
+            public static extern bool connect_fap50_panel(
+                string host,
+                ushort port);
 
-            [DllImport("lib_imd_fap50_method.dll", CallingConvention = CallingConvention.Cdecl)]
+            [DllImport("lib_imd_fap50_method.dll",
+                CallingConvention = CallingConvention.Cdecl)]
+            [return: MarshalAs(UnmanagedType.I1)]
+            public static extern bool send_jpg_fap50_panel(
+                byte[] buffer,
+                uint size);
+
+            [DllImport("lib_imd_fap50_method.dll",
+                CallingConvention = CallingConvention.Cdecl)]
             public static extern void disconnect_fap50_panel();
-            /*
-            public static bool Connect(string host, ushort port)
+
+            public static bool Connect(
+                string host,
+                ushort port)
             {
                 if (!isConnected)
                 {
-                    isConnected = connect_fap50_panel(host, port);
+                    isConnected =
+                        connect_fap50_panel(
+                            host,
+                            port);
                 }
-                return isConnected;
-            }*/
 
-            public static bool Connect(string host, ushort port)
-            {
-                if (!isConnected)
-                {
-                    var sw = Stopwatch.StartNew();
-
-                    isConnected = connect_fap50_panel(host, port);
-
-                    sw.Stop();
-                    Trace.WriteLine($"[TIMING] connect_fap50_panel took {sw.ElapsedMilliseconds} ms");
-                }
                 return isConnected;
             }
 
@@ -357,258 +744,32 @@ namespace BiometricApp.Services
                 if (isConnected)
                 {
                     disconnect_fap50_panel();
+
                     isConnected = false;
                 }
             }
-            public static bool IsConnected => isConnected;
+
+            public static bool IsConnected =>
+                isConnected;
         }
+
         private void Connect_Pannel()
         {
             if (!isInternalPannelExist)
                 return;
 
-            bool fconnectResult = false;
             if (!IMD_FAP50_SDK_PANEL.IsConnected)
             {
-                fconnectResult = IMD_FAP50_SDK_PANEL.Connect("192.168.100.10", 1812);
-                if (!fconnectResult)
-                    dbg("Cannot connect to Panel via 192.168.100.10");
-            }
-            else
-            {
-                dbg("The Pannel is connected!!");
-                return;
+                IMD_FAP50_SDK_PANEL.Connect(
+                    "192.168.100.10",
+                    1812);
             }
         }
-        private void Disconnect_Pannel()
-        {
-            if (!isInternalPannelExist)
-                return;
-            if (IMD_FAP50_SDK_PANEL.IsConnected)
-            {
-                IMD_FAP50_SDK_PANEL.Disconnect();
-                dbg("Disconnected from FAP50 Panel.");
-            }
-            dbg($"Pannel is disconnected = {IMD_FAP50_SDK_PANEL.IsConnected}");
-        }
 
-        private void OnFap50Event(IMD_RESULT e)
-        {
-            if (e == IMD_RESULT.SUCCESS)
-            {
-                _scanCompleted = true;
-            }
-            else
-            {
-                _scanCompleted = false;
-            }
-        }
-        private void StartScan()
-        {
-            if (_isScanRunning) return;
+        #endregion
 
-            _ctsScan = new CancellationTokenSource();
-            _isScanRunning = true;
-            _ = ScanLoopAsync(_ctsScan.Token);
-        }
-        private async Task ScanLoopAsync(CancellationToken token)
-        {
-            var img_status = default(FAP50Demo.ImageStatus);
-            FINGER_POSITION[] pos = { FINGER_POSITION.UNKNOW_FINGER };
-            img_status.show_mode = GUI_SHOW_MODE.FLAT;
-            try
-            {
-                while (true)
-                {
-                    if (token.IsCancellationRequested)
-                        break;
+        #region SCORE
 
-                    var res = imd_fap50.get_image_status(ref img_status);
-                    if (res != IMD_RESULT.SUCCESS)
-                    {
-                        int delaya = res == IMD_RESULT.SUCCESS ? 33 : 100;
-
-                        await Task.Delay(delaya, token);
-                        continue;
-                    }
-
-                    if (img_status.show_mode == GUI_SHOW_MODE.FLAT)
-                    {
-                        Handle_Flat_Mode_Scan(ref img_status);
-                    }
-                    int delay = res == IMD_RESULT.SUCCESS ? 33 : 100;
-
-                    await Task.Delay(delay, token);
-                }
-            }
-            catch (TaskCanceledException)
-            {
-
-            }
-        }
-        private void Handle_Flat_Mode_Scan(ref FAP50Demo.ImageStatus img_status)
-        {
-            bool fNeedReScan = false;
-            if (img_status.is_finger_on == false && img_status.is_flat_done)
-            {
-                imd_fap50.scan_cancel();
-                var p = new FAP50Demo.ImageProperty
-                {
-                    mode = img_status.show_mode,
-                    pos = img_status.finger_position,
-                    this_scan = true
-                };
-                var res = imd_fap50.get_image(ref p);
-                ValidImgFPath = FindValidImageFile(ref p, out bool isValid);
-                ShowValidFinger();
-
-                switch (res)
-                {
-                    case IMD_RESULT.PUT_WRONG_HAND:
-                        message = "You are using the wrong hand.";
-                        reScan = true;
-                        break;
-
-                    case IMD_RESULT.POOR_QUALITY_AND_CANTACT_IRON:
-                    case IMD_RESULT.POOR_NFIQ_QUALITY:
-                        message = "The image quality score is too low.";
-                        reScan = true;
-                        break;
-
-                    case IMD_RESULT.POOR_QUALITY_AND_WRONG_HAND:
-                        message = "You are using the wrong hand and The image quality score is too low.";
-                        reScan = true;
-                        break;
-                    default:
-                        break;
-                }
-
-                if (res == IMD_RESULT.SUCCESS ||
-                   (res != IMD_RESULT.SUCCESS && fNeedReScan == false))
-                {
-                    fNeedReScan = true;
-                }
-
-                if (fNeedReScan)
-                {
-                    img_status = default;
-                    fNeedReScan = false;
-                }
-                isFingerON_ScanDone = false;
-            }
-        }
-        private void ShowValidFinger()
-        {
-            using Mat score_img = LoadImage(ValidImgFPath);
-            if (score_img.Empty()) return;
-
-            using Mat rotated_img = new Mat();
-            Cv2.Rotate(score_img, rotated_img, RotateFlags.Rotate90Clockwise);
-
-            Cv2.ImEncode(".jpg", rotated_img, out byte[] imgBytes,
-                new ImageEncodingParam(ImwriteFlags.JpegQuality, 60));
-
-            if (IMD_FAP50_SDK_PANEL.IsConnected)
-            {
-                _ = Task.Run(() =>
-                {
-                    IMD_FAP50_SDK_PANEL.send_jpg_fap50_panel(imgBytes, (uint)imgBytes.Length);
-                });
-            }
-
-            Thread.Sleep(500);
-        }
-        private string FindValidImageFile(ref FAP50Demo.ImageProperty p, out bool isValid)
-        {
-            string exeDir = AppContext.BaseDirectory;
-            baseDir = exeDir;
-            videoBasePath = Path.Combine(exeDir, @"panel\video");
-
-            string ValidImgPath = "";
-            var score = new Score2Num();
-            isValid = false;
-            int[] managedArray = new int[(int)ScoreArray.MaxSize];
-            unsafe
-            {
-                fixed (int* pArr = p.score_array)
-                {
-                    Marshal.Copy((IntPtr)pArr, managedArray, 0, managedArray.Length);
-                }
-            }
-
-            switch (p.score_size)
-            {
-
-                case 4:
-                    if (p.pos == FINGER_POSITION.RIGHT_FOUR)
-                    {
-
-                        score.R1 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
-                        score.R2 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
-                        score.R3 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[2] <= p.score_min : managedArray[2] >= p.score_min;
-                        score.R4 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[3] <= p.score_min : managedArray[3] >= p.score_min;
-
-                        isValid = score.R1 && score.R2 && score.R3 && score.R4;
-                        ValidImgPath = Path.Combine(baseDir, $"panel/RightHandPanel/Iterations/Iteration_{score.num}.png");
-                    }
-                    else if (p.pos == FINGER_POSITION.LEFT_FOUR)
-                    {
-                        score.L1 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
-                        score.L2 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
-                        score.L3 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[2] <= p.score_min : managedArray[2] >= p.score_min;
-                        score.L4 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[3] <= p.score_min : managedArray[3] >= p.score_min;
-
-                        isValid = score.L1 && score.L2 && score.L3 && score.L4;
-                        ValidImgPath = Path.Combine(baseDir, $"panel/LeftHandPanel/Iterations/Iteration_{score.num}.png");
-                    }
-                    break;
-
-                case 2:
-                    if (p.pos == FINGER_POSITION.BOTH_THUMBS)
-                    {
-                        score.L0 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
-                        score.R0 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
-
-                        isValid = score.L0 && score.R0;
-                        ValidImgPath = Path.Combine(baseDir, $"panel/ThumbsPanel/Iterations/Iteration_{score.num}.png");
-                    }
-                    break;
-
-                case 1:
-                    bool passed = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
-                    isValid = passed;
-
-                    switch (p.pos)
-                    {
-                        case FINGER_POSITION.RIGHT_THUMB:
-                        case FINGER_POSITION.RIGHT_INDEX:
-                        case FINGER_POSITION.RIGHT_MIDDLE:
-                        case FINGER_POSITION.RIGHT_RING:
-                        case FINGER_POSITION.RIGHT_LITTLE:
-                            ValidImgPath = Path.Combine(baseDir, $"panel/RightRollingFingers/Iterations/RollFinger-{(passed ? "Done" : "Retry")}.png");
-                            break;
-
-                        case FINGER_POSITION.LEFT_THUMB:
-                        case FINGER_POSITION.LEFT_INDEX:
-                        case FINGER_POSITION.LEFT_MIDDLE:
-                        case FINGER_POSITION.LEFT_RING:
-                        case FINGER_POSITION.LEFT_LITTLE:
-                            ValidImgPath = Path.Combine(baseDir, $"panel/LeftRollingFingers/Iterations/RollFinger-{(passed ? "Done" : "Retry")}.png");
-                            break;
-                    }
-                    break;
-            }
-            return ValidImgPath;
-        }
-        private Mat LoadImage(string relativePath)
-        {
-            string fullPath = Path.Combine(baseDir, relativePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-            if (!File.Exists(fullPath))
-                return new Mat();
-
-            return Cv2.ImRead(fullPath);
-        }
         public struct Score2Num
         {
             public byte num;
@@ -616,25 +777,33 @@ namespace BiometricApp.Services
             public bool R1
             {
                 get => (num & (1 << 3)) != 0;
-                set => num = value ? (byte)(num | (1 << 3)) : (byte)(num & ~(1 << 3));
+                set => num = value
+                    ? (byte)(num | (1 << 3))
+                    : (byte)(num & ~(1 << 3));
             }
 
             public bool R2
             {
                 get => (num & (1 << 2)) != 0;
-                set => num = value ? (byte)(num | (1 << 2)) : (byte)(num & ~(1 << 2));
+                set => num = value
+                    ? (byte)(num | (1 << 2))
+                    : (byte)(num & ~(1 << 2));
             }
 
             public bool R3
             {
                 get => (num & (1 << 1)) != 0;
-                set => num = value ? (byte)(num | (1 << 1)) : (byte)(num & ~(1 << 1));
+                set => num = value
+                    ? (byte)(num | (1 << 1))
+                    : (byte)(num & ~(1 << 1));
             }
 
             public bool R4
             {
                 get => (num & (1 << 0)) != 0;
-                set => num = value ? (byte)(num | (1 << 0)) : (byte)(num & ~(1 << 0));
+                set => num = value
+                    ? (byte)(num | (1 << 0))
+                    : (byte)(num & ~(1 << 0));
             }
 
             public bool L1
@@ -664,42 +833,109 @@ namespace BiometricApp.Services
             public bool R0
             {
                 get => (num & (1 << 0)) != 0;
-                set => num = value ? (byte)(num | (1 << 0)) : (byte)(num & ~(1 << 0));
+                set => num = value
+                    ? (byte)(num | (1 << 0))
+                    : (byte)(num & ~(1 << 0));
             }
 
             public bool L0
             {
                 get => (num & (1 << 1)) != 0;
-                set => num = value ? (byte)(num | (1 << 1)) : (byte)(num & ~(1 << 1));
-            }
-
-            public override string ToString()
-            {
-                return $"num=0x{num:X2} [R4:{R4}, R3:{R3}, R2:{R2}, R1:{R1}]";
+                set => num = value
+                    ? (byte)(num | (1 << 1))
+                    : (byte)(num & ~(1 << 1));
             }
         }
-        private void StopScan()
+
+        #endregion
+
+        public void Dispose()
         {
-            if (!_isScanRunning) return;
-
-            _ctsScan?.Cancel();
-            _ctsScan?.Dispose();
-            _ctsScan = null;
-
-            _isScanRunning = false;
-        }
-        private async Task<bool> WaitScanComplete(int timeout = 15000)
-        {
-            int waited = 0;
-
-            while (!_scanCompleted && waited < timeout)
-            {
-                await Task.Delay(200);
-                waited += 200;
-            }
             StopScan();
-            return _scanCompleted;
+
+            _videoCTS?.Cancel();
+
+            _videoCTS?.Dispose();
+
+            foreach (var group in guideFrames.Values)
+            {
+                foreach (var mat in group)
+                {
+                    mat.Dispose();
+                }
+            }
+
+            foreach (var mat in scanning_img.Values)
+            {
+                mat.Dispose();
+            }
+
+            foreach (var mat in loading_img.Values)
+            {
+                mat.Dispose();
+            }
+        }
+        private void InitVideoFrames()
+        {
+            guideFrames.Clear();
+
+            List<string> requiredMenus = new();
+
+            switch (workType)
+            {
+                case SampleSequence.Flat442:
+                    requiredMenus.AddRange(new[] { "left_4", "right_4", "two_thumbs" });
+                    break;
+
+                case SampleSequence.Flat442R:
+                    requiredMenus.AddRange(new[] { "left_4", "right_4", "two_thumbs", "left_roll", "right_roll" });
+                    break;
+
+                case SampleSequence.Signature:
+                    requiredMenus.Add("signature");
+                    break;
+            }
+
+            foreach (string menu in requiredMenus)
+            {
+                if (!menuMap.TryGetValue(menu.ToLower(), out var fingerPos))
+                    continue;
+
+                string folderPath = Path.Combine(videoBasePath, menu);
+                string listPath = Path.Combine(folderPath, "list.txt");
+
+                if (!File.Exists(listPath))
+                    continue;
+
+                var frames = new List<Mat>();
+
+                foreach (string line in File.ReadLines(listPath))
+                {
+                    string file = line.Trim();
+
+                    if (file == "EOF")
+                        break;
+
+                    string fullPath = Path.Combine(folderPath, file);
+
+                    if (!File.Exists(fullPath))
+                        continue;
+
+                    var img = Cv2.ImRead(fullPath);
+
+                    if (!img.Empty())
+                        frames.Add(img);
+                }
+
+                if (frames.Count > 0)
+                {
+                    foreach (var pos in fingerPos)
+                    {
+                        guideFrames[pos] =
+                            frames.Select(f => f.Clone()).ToList();
+                    }
+                }
+            }
         }
     }
-
 }

@@ -30,17 +30,8 @@
     <div class="hands-wrapper">
 
         <!-- HAND IMAGES -->
-        <div class="hands">
-            <div class="hand-container">
-                <div class="hand-title">Left Hand</div>
-                <img src="@leftImage" class="hand-img" />
-            </div>
-
-            <div class="hand-container">
-                <div class="hand-title">Right Hand</div>
-                <img src="@rightImage" class="hand-img" />
-            </div>
-        </div>
+        <img src="@ScannerService.CurrentFrameBase64"
+             style="width:300px;height:300px;" />
 
     </div>
 
@@ -389,7 +380,7 @@
 
             if (!ScannerService.reScan)
             {
-                result = await ScannerService.CaptureFingerprintThum(selectedMemberId);
+                result = await ScannerService.CaptureFingerprintThumb(selectedMemberId);
                 ScannerService.message = result
                 ? "Thums Fingerprint captured and saved ✅ To " + imagePath
                 : ScannerService.message;
@@ -561,7 +552,22 @@
         return "";
     }
 
+    protected override void OnInitialized()
+    {
+        ScannerService.OnFrameUpdated += RefreshFrame;
+    }
 
+    private async void RefreshFrame()
+    {
+        await InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    public void Dispose()
+    {
+        ScannerService.OnFrameUpdated -= RefreshFrame;
+    }
 }
 
 <style>
