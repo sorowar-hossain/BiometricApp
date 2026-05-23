@@ -11,7 +11,7 @@
     <div class="top-row">
 
         <!-- Member Selection -->
-        <div class="member-select">
+       @*  <div class="member-select">
             <label>Select Member</label>
             <select class="form-control" @bind="selectedMemberId" disabled="@(isProcessing)">
                 <option value="">-- Select Member --</option>
@@ -22,7 +22,7 @@
                     </option>
                 }
             </select>
-        </div>
+        </div> *@
 
         
 
@@ -162,7 +162,7 @@
     protected override async Task OnInitializedAsync()
     {
         ScannerService.message = "";
-        members = await LocalStorageService.GetMembersForDropdownAsync();
+       // members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
     protected override async Task OnParametersSetAsync()
