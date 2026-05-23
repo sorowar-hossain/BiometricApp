@@ -6,146 +6,175 @@
 @inject ApiService ApiService
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
+
+
 <div class="container mt-4">
 
-    <!-- HEADER -->
-    <div class="bg-primary text-white text-center p-3 fw-bold" style="font-size:20px;">
-        Data Capturing System
-    </div>
+    <div class="card shadow-sm border-0">
 
-    <!-- MAIN BOX -->
-    <div class="border p-4">
+      @*   <!-- HEADER -->
+        <div class="card-header bg-primary text-white text-center fw-bold fs-5">
+            Member Information
+        </div> *@
 
-        <h5 class="fw-bold text-primary">Member Information</h5>
-        <small class="text-muted">Member data is confidential and managed securely.</small>
+        <div class="card-body p-4">
 
-        <EditForm Model="model" OnValidSubmit="Save">
-            <DataAnnotationsValidator />
-           
+            <EditForm Model="model" OnValidSubmit="Save">
+                <DataAnnotationsValidator />
 
-            <div class="row mt-4">
-                <div class="col-md-12 mb-3">
-                    @if (!string.IsNullOrEmpty(message))
+                @if (!string.IsNullOrEmpty(message))
+                {
+                    <div class="alert alert-success py-2">
+                        @message
+                    </div>
+                }
+
+                <div class="row g-3">
+
+                    <!-- Member ID -->
+                    <div class="col-12">
+                        <label class="form-label-custom">Member ID</label>
+                        <InputText class="form-control custom-input" readonly @bind-Value="model.PersonUniqueId" />
+                    </div>
+
+                    <!-- First Name -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">First Name *</label>
+                        <InputText class="form-control custom-input" @bind-Value="model.FirstName" placeholder="Enter First Name" />
+                        <ValidationMessage For="@(() => model.FirstName)" />
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Last Name *</label>
+                        <InputText class="form-control custom-input" @bind-Value="model.LastName" placeholder="Enter Last Name" />
+                        <ValidationMessage For="@(() => model.LastName)" />
+                    </div>
+
+                    <!-- Marital Status -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Marital Status *</label>
+                        <InputSelect class="form-select custom-input" @bind-Value="model.MaritalStatus">
+                            <option value="">Select</option>
+                            <option>Single</option>
+                            <option>Married</option>
+                            <option>Divorced</option>
+                            <option>Widowed</option>
+                        </InputSelect>
+                    </div>
+
+                    <!-- DOB -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Date of Birth *</label>
+                        <InputDate class="form-control custom-input" @bind-Value="model.DateOfBirth" />
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Gender *</label>
+                        <InputSelect class="form-select custom-input" @bind-Value="model.Gender">
+                            <option value="">Select</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </InputSelect>
+                    </div>
+
+                    <!-- Expiry -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Expiry Date *</label>
+                        <InputDate class="form-control custom-input" @bind-Value="model.ExpiryDate" />
+                    </div>
+
+                    <!-- Parents -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Father's Name *</label>
+                        <InputText class="form-control custom-input" @bind-Value="model.FatherName" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Mother's Name *</label>
+                        <InputText class="form-control custom-input" @bind-Value="model.MotherName" />
+                    </div>
+
+                    <!-- Address -->
+                    <div class="col-12">
+                        <label class="form-label-custom">Address *</label>
+                        <InputTextArea class="form-control custom-input" rows="3" @bind-Value="model.Address" />
+                    </div>
+
+                    <!-- Optional -->
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Place of Issue</label>
+                        <InputText class="form-control custom-input" @bind-Value="model.PlaceOfIssue" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Place of Birth</label>
+                        <InputText class="form-control custom-input" @bind-Value="model.PlaceOfBirth" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Weight (kg)</label>
+                        <InputNumber class="form-control custom-input" @bind-Value="model.Weight" />
+                    </div>
+
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="d-flex justify-content-end mt-4 gap-2">
+
+                    @if (isEditMode)
                     {
-                        <div class="alert alert-success">
-                            @message
-                        </div>
+                        <button type="submit" class="btn btn-primary px-4">
+                            Update
+                        </button>
                     }
-                    
+                    else
+                    {
+                        <button type="button" class="btn btn-success px-4" @onclick="SaveAndNext">
+                            Save
+                        </button>
+                    }
+
                 </div>
 
-                <div class="col-md-12 mb-3">
-                    <label>Member Id</label>
-                    <InputText class="form-control" readonly  @bind-Value="model.PersonUniqueId" />
-                    
-                </div>
+            </EditForm>
 
-                <div class="col-md-6 mb-3">
-                    <label>First Name *</label>
-                    <InputText class="form-control" placeholder="Enter First Name" @bind-Value="model.FirstName" />
-                    <ValidationMessage For="@(() => model.FirstName)" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Last Name *</label>
-                    <InputText class="form-control" placeholder="Enter Last Name" @bind-Value="model.LastName" />
-                    <ValidationMessage For="@(() => model.LastName)" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Marital Status *</label>
-                    <InputSelect class="form-control" @bind-Value="model.MaritalStatus">
-                        <option value="">Select Marital Status</option>
-                        <option value="Single">Single</option>
-                        <option value="Married">Married</option>
-                        <option value="Divorced">Divorced</option>
-                        <option value="Widowed">Widowed</option>
-                    </InputSelect>
-                    <ValidationMessage For="@(() => model.MaritalStatus)" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Date of Birth *</label>
-                    <InputDate class="form-control" @bind-Value="model.DateOfBirth" />
-                    <ValidationMessage For="@(() => model.DateOfBirth)" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Gender *</label>
-                    <InputSelect class="form-control" @bind-Value="model.Gender">
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </InputSelect>
-                    <ValidationMessage For="@(() => model.Gender)" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Expiry Date *</label>
-                    <InputDate class="form-control" @bind-Value="model.ExpiryDate" />
-                    <ValidationMessage For="@(() => model.ExpiryDate)" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Father's Name *</label>
-                    <InputText class="form-control" placeholder="Enter Father's Name" @bind-Value="model.FatherName" />
-                    <ValidationMessage For="@(() => model.FatherName)" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Mother's Name *</label>
-                    <InputText class="form-control" placeholder="Enter Mother's Name" @bind-Value="model.MotherName" />
-                    <ValidationMessage For="@(() => model.MotherName)" />
-                </div>
-
-                <div class="col-md-12 mb-3">
-                    <label>Address *</label>
-                    <InputTextArea class="form-control" placeholder="Enter your complete address" @bind-Value="model.Address" />
-                    <ValidationMessage For="@(() => model.Address)" />
-                </div>
-
-                <!-- Optional Fields -->
-                <div class="col-md-6 mb-3">
-                    <label>Place Of Issue</label>
-                    <InputText class="form-control" placeholder="Enter Place Of Issue" @bind-Value="model.PlaceOfIssue" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Place Of Birth</label>
-                    <InputText class="form-control" placeholder="Enter Place Of Birth" @bind-Value="model.PlaceOfBirth" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Weight</label>
-                    <InputNumber class="form-control" placeholder="Enter Weight (kg)" @bind-Value="model.Weight" />
-                    <ValidationMessage For="@(() => model.Weight)" />
-                </div>
-
-            </div>
-
-            <div class="d-flex justify-content-end mt-4 gap-2">
-
-    @if (isEditMode)
-    {
-        <button type="submit" class="btn btn-primary px-4">
-            Update
-        </button>
-    }
-
-    @if (!isEditMode)
-    {
-                    <button type="button"
-                            class="btn btn-success"
-                @onclick="SaveAndNext">
-                        Next <i class="bi bi-arrow-right"></i>
-        </button>
-    }
-</div>
-        </EditForm>
-
+        </div>
     </div>
 </div>
+
+<style>
+    .form-label-custom {
+        font-size: 14px;
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .custom-input {
+        border-radius: 8px;
+        border: 1px solid #dce3ea;
+        padding: 10px 12px;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .custom-input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+        }
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .card-header {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+</style>
 
 @code {
     private MemberModel model = new();

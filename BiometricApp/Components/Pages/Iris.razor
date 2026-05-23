@@ -5,134 +5,74 @@
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
 
-<div class="iris-wrapper">
+<!-- IRIS SECTION -->
+<div class="iris-container row">
 
-    <!-- Header -->
-    <div class="header-bar">
-        Data Capturing System
-    </div>
+    <!-- LEFT IRIS -->
+    <div class="col-md-6 col-12 mb-3">
+        <div class="iris-card">
 
-    <!-- Content -->
-    <div class="content-area text-center">
+            <div class="iris-title">Left Iris</div>
 
-        <h5 class="section-title">Iris Capture</h5>
-        <p class="text-muted small">
-            Stand or sit still in front of the iris scanner
-        </p>
- 
-        @if (!string.IsNullOrWhiteSpace(message))
-        {
-            <div class="text-center mt-2">
-                <span class="text-success fw-semibold">
-                    @message
-                </span>
-            </div>
-           
-        }
-            
-            
-
-        <!-- Member Selection -->
-        <div class="member-select">
-           
-            <label>Select Member</label>
-            <select class="form-control" @bind="selectedMemberId" disabled="@isProcessing">
-                <option value="">-- Select Member --</option>
-                @foreach (var item in members)
+            <div class="iris-box">
+                @if (!string.IsNullOrEmpty(LeftIrisImage))
                 {
-                    <option value="@item.PersonUniqueId">
-                        @item.FullName
-                    </option>
-                }
-            </select>
-        </div>
-
-        <!-- Iris Capture Section -->
-        <div class="iris-container">
-
-            <!-- Left Preview -->
-            <div class="iris-side">
-                @if (!string.IsNullOrEmpty(LeftPreviewImage))
-                {
-                    <img src="@LeftPreviewImage" class="thumb-img" />
+                    <img src="@LeftIrisImage" class="iris-img" />
                 }
             </div>
 
-            <!-- Left Iris -->
-            <div class="iris-main">
-                <p class="fw-semibold">Left Iris</p>
-                <div class="iris-box">
-                    @if (!string.IsNullOrEmpty(LeftIrisImage))
-                    {
-                        <img src="@LeftIrisImage" class="iris-img" />
-                    }
-                </div>
-               
-                <p class="capture-status text-success">@LeftCaptureStatus</p>
-            </div>
-
-            <!-- Right Iris -->
-            <div class="iris-main">
-                <p class="fw-semibold">Right Iris</p>
-                <div class="iris-box">
-                    @if (!string.IsNullOrEmpty(RightIrisImage))
-                    {
-                        <img src="@RightIrisImage" class="iris-img" />
-                    }
-                </div>
-
-                <p class="capture-status text-success">@RightCaptureStatus</p>
-            </div>
-
-            <!-- Right Preview -->
-            <div class="iris-side">
-                @if (!string.IsNullOrEmpty(RightPreviewImage))
-                {
-                    <img src="@RightPreviewImage" class="thumb-img" />
-                }
-            </div>
-
-            
+            <div class="status-text">@LeftCaptureStatus</div>
 
         </div>
 
-        <!-- Buttons -->
-        <div class="button-group d-flex align-items-center">
+        <!-- BUTTONS -->
+        <div class="button-bar mt-4" style="margin-left:100px;">
 
-            <!-- LEFT SPACE (keeps center truly centered) -->
-            <div style="flex:1"></div>
-
-            <!-- CENTER BUTTONS -->
-            <div class="d-flex justify-content-center gap-2">
-                
-                <button class="btn btn-success"
+            <div class="btn-left">
+                <button class="btn btn-success px-4"
                         @onclick="CaptureIris"
                         disabled="@isProcessing">
                     <i class="bi bi-camera-fill"></i> Capture
                 </button>
 
-                <button class="btn btn-warning"
+                <button class="btn btn-warning px-4"
                         @onclick="Retake"
                         disabled="@isProcessing">
-                    <i class="bi bi-arrow-repeat"></i>
-                    Retake
+                    <i class="bi bi-arrow-repeat"></i> Retake
                 </button>
-
-            </div>
-
-            <!-- RIGHT SIDE (NEXT BUTTON) -->
-            <div style="flex:1" class="d-flex justify-content-end">
-                <button class="btn btn-success"
-                        @onclick="GoNext"
+                <button class="btn btn-success px-4"
                         disabled="@isProcessing">
-                    Next <i class="bi bi-arrow-right"></i>
+                    Save
                 </button>
             </div>
+
+
 
         </div>
-
     </div>
+
+    <!-- RIGHT IRIS -->
+    <div class="col-md-6 col-12 mb-3">
+        <div class="iris-card">
+
+            <div class="iris-title">Right Iris</div>
+
+            <div class="iris-box">
+                @if (!string.IsNullOrEmpty(RightIrisImage))
+                {
+                    <img src="@RightIrisImage" class="iris-img" />
+                }
+            </div>
+
+            <div class="status-text">@RightCaptureStatus</div>
+
+        </div>
+    </div>
+
+   
 </div>
+
+
 
 @code {
     // Image sources as Base64 strings
@@ -274,119 +214,110 @@
 }
 
 <style>
+    /* WRAPPER */
     .iris-wrapper {
-        background-color: #f5f6f8;
+        background: #eef2f6;
         min-height: 100vh;
     }
 
-    .iris-box {
-        width: 220px;
-        height: 120px;
-        border: 2px solid #2f5fa4;
-        border-radius: 6px;
-        background: #f8f9fa;
-    }
-
-    .header-bar {
-        background-color: #2f5fa4;
-        color: white;
-        padding: 14px;
-        font-weight: 600;
-        text-align: center;
-        font-size: 18px;
-    }
-
+    /* MAIN CONTAINER */
     .content-area {
+        width: 90%;
+        margin: 20px auto;
         background: #ffffff;
-        margin: 40px auto;
-        padding: 40px;
-        max-width: 1100px;
-        border-radius: 6px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
     }
 
-    .section-title {
-        color: #2f5fa4;
-        font-weight: 600;
-    }
-
-    /* Member Dropdown */
-    .member-select {
-        max-width: 300px;
-        margin: 0 auto 30px auto;
-        text-align: left;
-    }
-
-    /* Iris Layout */
-    .iris-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 40px;
-        flex-wrap: wrap;
-        margin-top: 20px;
-    }
-
-    /* Main Iris (Large Image) */
-    .iris-main {
+    /* CARD */
+    .iris-card {
         text-align: center;
     }
 
-    /* Side Preview (Small Image) */
+    /* TITLE */
+    .iris-title {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #333;
+    }
 
-    .iris-side {
-        width: 100px;
-        height: 50px;
+    /* BOX */
+    .iris-box {
+        width: 100%;
+        max-width: 480px;
+        height: 240px;
+        border: 2px solid #1f4b99;
+        border-radius: 12px;
+        background: #f8f9fa;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid #2f5fa4;
-        border-radius: 6px;
-        background: #f8f9fa;
         overflow: hidden;
+        margin: 0 auto;
     }
 
-    /* Small Preview Image */
-    .thumb-img {
-        width: calc(100% - 4px); /* 2px margin each side */
-        height: calc(100% - 4px);
-        margin: 2px;
-        object-fit: cover; /* 🔥 this removes empty space */
-    }
-
-    
-
-    /* Large Iris Image */
+    /* IMAGE */
     .iris-img {
-        width: 220px;
-        height: auto;
-        border: 3px solid #2f5fa4;
-        border-radius: 6px;
-        background: #f8f9fa;
-        padding: 5px;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
-
-    
-
-    /* Capture Status Text */
-    .capture-status {
+    /* STATUS */
+    .status-text {
         font-size: 13px;
         margin-top: 8px;
+        color: #28a745;
+        font-weight: 500;
     }
 
-    /* Buttons */
-    .button-group {
+    /* BUTTON BAR (unchanged but improved spacing) */
+    .button-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-top: 30px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
-    /* Responsive tweak */
+    .btn-left {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-right {
+        margin-left: auto;
+    }
+
+    /* RESPONSIVE */
     @@media (max-width: 768px) {
-        .iris-container
+        .content-area
 
     {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .button-bar {
         flex-direction: column;
-        gap: 20px;
+        align-items: stretch;
+    }
+
+    .btn-left {
+        justify-content: center;
+    }
+
+    .btn-right {
+        margin-left: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .iris-box {
+        height: 190px;
+        max-width: 100%;
     }
 
     }
