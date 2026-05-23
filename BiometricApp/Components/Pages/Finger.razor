@@ -147,7 +147,7 @@
         </button> *@
 
         <!-- MESSAGE -->
-        <p class="mt-2">@message</p>
+        <p class="mt-2">@ScannerService.message</p>
 
             
 
@@ -158,8 +158,6 @@
 </div>
 
 @code {
-
-    string message = "";
     bool lFingerDone = false, rFingerDone = false, tFingerDone = false;
 
     string leftImage = "images/left-finger.png";
@@ -172,7 +170,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        message = "";
+        ScannerService.message = "";
         members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
@@ -199,7 +197,7 @@
 
         if (!IsAllCompleted())
         {
-            message = "Please complete all fingerprint scans first";
+            ScannerService.message = "Please complete all fingerprint scans first";
             return;
         }
 
@@ -207,7 +205,7 @@
 
         try
         {
-            message = "Moving to iris capture...";
+            ScannerService.message = "Moving to iris capture...";
             StateHasChanged();
 
             await Task.Delay(500);
@@ -284,22 +282,30 @@
     {
         try
         {
+            var result = false;
             string imagePath = Path.Combine(folder, selectedMemberId);
             if (string.IsNullOrWhiteSpace(selectedMemberId))
             {
                 return;
             }
-            message = "Capturing left finger.....";
-            // Force UI update immediately
+            ScannerService.message = "Capturing left finger.....";
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
-            var result = await ScannerService.CaptureFingerprintLeft(selectedMemberId);
 
-            message = result
-            ? "Left Fingerprint captured and saved ✅ To " + imagePath
-            : "Fingerprint capture failed ❌";
-
-
+            if (!ScannerService.reScan)
+            {
+                result = await ScannerService.CaptureFingerprintLeft(selectedMemberId);
+                ScannerService.message = result
+                ? "Left Fingerprint captured and saved ✅ To " + imagePath
+                : ScannerService.message;
+            }
+            else
+            {
+                StateHasChanged();
+                ScannerService.message = "Recapturing left finger.....";
+                ScannerService.reScan = false;
+                await StartScanLeft();
+            }
             if (result)
             {
                 lFingerDone = true;
@@ -314,9 +320,9 @@
         }
         catch (Exception ex)
         {
-            message = $"Exception: {ex.Message}";
+            ScannerService.message = $"Exception: {ex.Message}";
         }
-        
+        StateHasChanged();
     }
 
 
@@ -324,21 +330,30 @@
     {
         try
         {
+            var result = false;
+            string imagePath = Path.Combine(folder, selectedMemberId);
             if (string.IsNullOrWhiteSpace(selectedMemberId))
             {
                 return;
             }
-
-            message = "Capturing right finger.....";
-            // Force UI update immediately
+            ScannerService.message = "Capturing right finger.....";
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
-            var result = await ScannerService.CaptureFingerprintRight(selectedMemberId);
-            string imagePath = Path.Combine(folder, selectedMemberId);
-            message = result
-            ? "Right Fingerprint captured and saved ✅ To " + imagePath
-            : "Fingerprint capture failed ❌";
 
+            if (!ScannerService.reScan)
+            {
+                result = await ScannerService.CaptureFingerprintRight(selectedMemberId);
+                ScannerService.message = result
+                ? "Right Fingerprint captured and saved ✅ To " + imagePath
+                : ScannerService.message;
+            }
+            else
+            {
+                StateHasChanged();
+                ScannerService.message = "Recapturing right finger.....";
+                ScannerService.reScan = false;
+                await StartScanRight();
+            }
             if (result)
             {
                 rFingerDone = true;
@@ -348,12 +363,12 @@
                     currentIndex = 4;
                 LoadRightFourFingerprints(imagePath);
                 ChangeImage();
+                StateHasChanged();
             }
-
         }
         catch (Exception ex)
         {
-            message = $"Exception: {ex.Message}";
+            ScannerService.message = $"Exception: {ex.Message}";
         }
 
         StateHasChanged();
@@ -362,21 +377,31 @@
     {
         try
         {
+            var result = false;
+            string imagePath = Path.Combine(folder, selectedMemberId);
             if (string.IsNullOrWhiteSpace(selectedMemberId))
             {
                 return;
             }
-            message = "Capturing both thumbs.....";
-            // Force UI update immediately
+            ScannerService.message = "Capturing both thumbs.....";
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
-            var result = await ScannerService.CaptureFingerprintThum(selectedMemberId);
-            string imagePath = Path.Combine(folder, selectedMemberId);
-            message = result
-            ? "Thums Fingerprint captured and saved ✅ To " + imagePath
-            : "Fingerprint capture failed ❌";
 
-            LoadThumbTwoFingerprints(imagePath);
+            if (!ScannerService.reScan)
+            {
+                result = await ScannerService.CaptureFingerprintThum(selectedMemberId);
+                ScannerService.message = result
+                ? "Thums Fingerprint captured and saved ✅ To " + imagePath
+                : ScannerService.message;
+            }
+            else
+            {
+                StateHasChanged();
+                ScannerService.message = "Recapturing Thumb finger.....";
+                ScannerService.reScan = false;
+                await StartScanThums();
+            }
+            
 
             if (result)
             {
@@ -385,13 +410,15 @@
                     currentIndex = 0;
                 else if (!rFingerDone)
                     currentIndex = 6;
+                LoadThumbTwoFingerprints(imagePath);
                 ChangeImage();
+                StateHasChanged();
             }
 
         }
         catch (Exception ex)
         {
-            message = $"Exception: {ex.Message}";
+            ScannerService.message = $"Exception: {ex.Message}";
         }
 
         StateHasChanged();
@@ -485,12 +512,12 @@
             {
                 Console.WriteLine(user);
             }
-            message = "Finger Saved";
+            ScannerService.message = "Finger Saved";
             //LoadTumTwoFingerprints();
         }
         catch (Exception ex)
         {
-            message = $"Exception: {ex.Message}";
+            ScannerService.message = $"Exception: {ex.Message}";
         }
 
         StateHasChanged();
