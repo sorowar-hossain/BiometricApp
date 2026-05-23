@@ -37,6 +37,7 @@ namespace BiometricApp
                 var baseUrl = builder.Configuration["ApiSettings:BaseUrl"];
                 client.BaseAddress = new Uri(baseUrl);
             });
+            builder.Services.AddScoped<UserSessionService>();
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddSingleton<ScannerService>();

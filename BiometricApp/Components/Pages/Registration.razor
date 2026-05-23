@@ -6,13 +6,14 @@
 @inject ApiService ApiService
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
+@inject UserSessionService SessionService
 
 
 <div class="container mt-4">
 
     <div class="card shadow-sm border-0">
 
-      @*   <!-- HEADER -->
+        @*   <!-- HEADER -->
         <div class="card-header bg-primary text-white text-center fw-bold fs-5">
             Member Information
         </div> *@
@@ -22,12 +23,12 @@
             <EditForm Model="model" OnValidSubmit="Save">
                 <DataAnnotationsValidator />
 
-                @if (!string.IsNullOrEmpty(message))
+            @*     @if (!string.IsNullOrEmpty(message))
                 {
                     <div class="alert alert-success py-2">
                         @message
                     </div>
-                }
+                } *@
 
                 <div class="row g-3">
 
@@ -132,7 +133,7 @@
                     }
                     else
                     {
-                        <button type="button" class="btn btn-success px-4" @onclick="SaveAndNext">
+                        <button type="button" class="btn btn-success px-4" @onclick="Save">
                             Save
                         </button>
                     }
@@ -179,6 +180,8 @@
 @code {
     private MemberModel model = new();
     private UserLoginResponse user = new();
+    [Parameter]
+    public EventCallback<string> OnActionMessage { get; set; }
     private int Id;
     private string buttonText = "Save";
     string message = "";
@@ -188,8 +191,10 @@
         // Get current user
         user = UserService.CurrentUser;
         // var id = await ApiService.GetPersonUniqueIdAsync(user.OrgId);
-        var id = CreateMemberId();
-        model.PersonUniqueId = id;
+        // var id = CreateMemberId();
+        // model.PersonUniqueId = id;
+        model.PersonUniqueId = SessionService.User.PersonUniqueId;
+        var name = SessionService.User.UserName;
         buttonText = "Save";
         StateHasChanged();
     }
@@ -206,14 +211,17 @@
             isEditMode = true;
         }
         else
-    {
-        isEditMode = false;
-    }
+        {
+            isEditMode = false;
+        }
         StateHasChanged();
     }
 
+   
+
     private async Task Save()
     {
+      
         model.OrgId = user.OrgId;
         model.UserId = user.UserId;
         model.CreatedBy = user.UserName;
@@ -228,33 +236,31 @@
         {
             var savePath = await LocalStorageService.SaveDemographicsAsync(model);
             message = "Member saved successfully to " + savePath;
-            model = new MemberModel
-            {
-                PersonUniqueId = CreateMemberId()
-            };
+            await OnActionMessage.InvokeAsync(message);
+
         }
-      
+
         StateHasChanged();
         //bool result = await ApiService.CreateDemographicAsync(model);
     }
     private async Task SaveAndNext()
-{
-    model.OrgId = user.OrgId;
-    model.UserId = user.UserId;
-    model.CreatedBy = user.UserName;
-
-    if (buttonText == "Update")
     {
-        await LocalStorageService.UpdateDemographicsAsync(model);
-    }
-    else
-    {
-        await LocalStorageService.SaveDemographicsAsync(model);
-    }
+        model.OrgId = user.OrgId;
+        model.UserId = user.UserId;
+        model.CreatedBy = user.UserName;
 
-    //Redirect to face capture with ID
-    Navigation.NavigateTo($"/face-capture?id={model.PersonUniqueId}");
-}
+        if (buttonText == "Update")
+        {
+            await LocalStorageService.UpdateDemographicsAsync(model);
+        }
+        else
+        {
+            await LocalStorageService.SaveDemographicsAsync(model);
+        }
+
+        //Redirect to face capture with ID
+        Navigation.NavigateTo($"/face-capture?id={model.PersonUniqueId}");
+    }
 
     private int GetNextMemberSequence()
     {
@@ -311,6 +317,6 @@
         return id;
     }
 
-  
+
 
 }

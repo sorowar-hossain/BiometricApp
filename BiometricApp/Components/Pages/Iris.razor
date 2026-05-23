@@ -4,6 +4,7 @@
 @inject BiometricApp.Services.IrisService IrisService
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
+@inject UserSessionService SessionService
 
 <!-- IRIS SECTION -->
 <div class="iris-container row">
@@ -96,7 +97,7 @@
     protected override async Task OnInitializedAsync()
     {
         message = "";
-        members = await LocalStorageService.GetMembersForDropdownAsync();
+        //members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -119,11 +120,12 @@
 
     private async Task CaptureIris()
     {
+        selectedMemberId = SessionService.User.PersonUniqueId;
         if (string.IsNullOrWhiteSpace(selectedMemberId))
         {
             return;
         }
-
+      
         path = Path.Combine(path, selectedMemberId);
 
         // Attach device first (if not already attached)
