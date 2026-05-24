@@ -141,7 +141,7 @@
 
                 <button class="btn btn-primary"
                         @onclick="ToggleCamera">
-                    @(CameraConnected ? "Close Camera" : "Open Camera")
+                    @(CameraConnected ? "Close Camera" : "Start Camera")
                 </button>
 
                 <button class="btn btn-success"
@@ -323,7 +323,7 @@
             selectedMemberId = SessionService.User.PersonUniqueId;
             if (string.IsNullOrWhiteSpace(selectedMemberId))
             {
-                Status = "Select member first";
+                Status = "Member not found..!";
                 return;
             }
 
@@ -529,16 +529,29 @@
         border-radius: 8px;
     }
 
-    .live-camera-box,
-    .preview-box {
+    .live-camera-box
+    {
         border: 1px solid #dcdcdc;
         border-radius: 10px;
-        height: 420px;
+        height: 300px;
+        width: 600px;
         display: flex;
         justify-content: center;
         align-items: center;
         overflow: hidden;
         background: #f8f8f8;
+    }
+
+    .preview-box {
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        background: #f8f8f8;
+        min-width: 300px;
+        min-height: 300px;
     }
 
     .camera-placeholder {
