@@ -1,5 +1,6 @@
 ﻿@page "/signature"
 @using BiometricApp.Services
+@inject UserSessionService SessionService
 
 @inject SignatureService signatureService
 
@@ -43,6 +44,11 @@
                     disabled="@(isProcessing)">
                 <i class="bi bi-eraser me-1"></i> Clear
             </button>
+            <button class="btn btn-success px-4 save-btn ms-4"
+                    @onclick="SaveSignature"
+                    disabled="@(isProcessing)">
+                <i class="bi bi-check2-circle me-1"></i> Save
+            </button>
 
         </div>
 
@@ -76,11 +82,11 @@
         <!-- SAVE BUTTON -->
         <div class="d-flex justify-content-center mt-4">
 
-            <button class="btn btn-success px-5 save-btn"
+          @*   <button class="btn btn-success px-5 save-btn"
                     @onclick="SaveSignature"
                     disabled="@(isProcessing)">
                 <i class="bi bi-check2-circle me-1"></i> Save
-            </button>
+            </button> *@
 
         </div>
 
@@ -181,12 +187,14 @@
     private bool IsCapturing = false;
     bool isProcessing = true;
     static string path = "";
+    private string PersonUniqueId = "";
 
     protected override async Task OnInitializedAsync()
     {
         isProcessing = true;
-        path = "";
         IsCapturing = false;
+        PersonUniqueId = SessionService.User.PersonUniqueId;
+        path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
     }
 
     private async Task CaptureSignature()
@@ -211,7 +219,7 @@
                 _cts.Token);
         });
         // START ACTUAL CAPTURE
-        path = await signatureService.CaptureSignatureAsync();
+        path = await signatureService.CaptureSignatureAsync(path);
 
         _cts.Cancel();
 
@@ -225,7 +233,8 @@
 
     private async Task SaveSignature()
     {
-        if (!string.IsNullOrEmpty(path) && File.Exists(path))
+ 
+        if (File.Exists(path))
         {
 
             byte[] bytes = await File.ReadAllBytesAsync(path);
@@ -238,13 +247,13 @@
         StateHasChanged();
     }
 
-    private Task ClearSignature()
+    private async Task ClearSignature()
     {
         LiveSignatureBase64 = null;
         path = "";
         isProcessing = true;
         StateHasChanged();
-        return Task.CompletedTask;
+        
     }
 
 }
