@@ -7,144 +7,161 @@
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
 
-<div class="content">
-    <div class="top-row">
+<div class="container-fluid">
 
-        <!-- Member Selection -->
-       @*  <div class="member-select">
-            <label>Select Member</label>
-            <select class="form-control" @bind="selectedMemberId" disabled="@(isProcessing)">
-                <option value="">-- Select Member --</option>
-                @foreach (var item in members)
-                {
-                    <option value="@item.PersonUniqueId">
-                        @item.FullName
-                    </option>
-                }
-            </select>
-        </div> *@
+    <div class="row g-3">
 
-        
+        <!-- LEFT SIDE : VIDEO -->
+        <div class="col-md-4">
 
-    </div>
-    <div class="hands-wrapper">
+            <div class="video-panel">
 
-        <!-- HAND IMAGES -->
-        <img src="@ScannerService.CurrentFrameBase64"
-             style="width:300px;height:300px;" />
+                <div class="video-box">
 
-    </div>
+                    @if (!string.IsNullOrEmpty(ScannerService.CurrentFrameBase64))
+                    {
+                        <img src="@ScannerService.CurrentFrameBase64"
+                             class="live-video" />
+                    }
+                    else
+                    {
+                        <div class="camera-placeholder">
+                            Camera Preview
+                        </div>
+                    }
 
-    <!-- 4 FINGERS ROW -->
-    <div class="slots-row">
+                </div>
 
-        <!-- LEFT 4 -->
-        <div class="group">
-            <div class="slots">
-                @for (int i = 0; i < 4; i++)
-                {
-                    <div class="slot @(GetSlotClass(i))">
-                        <div class="finger-label">@GetFingerLabel(i)</div>
-
-                        @if (!string.IsNullOrEmpty(Fingerprints[i]))
-                        {
-                            <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
-                        }
-                    </div>
-                }
             </div>
 
-            <button class="btn btn-success mt-2" @onclick="StartScanLeft" disabled="@(isProcessing)">
-                Scan Left 4
-            </button>
         </div>
 
-        <!-- RIGHT 4 -->
-        <div class="group">
-            <div class="slots">
-                @for (int i = 6; i < 10; i++)
-                {
-                    <div class="slot @(GetSlotClass(i))">
-                        <div class="finger-label">@GetFingerLabel(i)</div>
+        <!-- RIGHT SIDE -->
+        <div class="col-md-8">
 
-                        @if (!string.IsNullOrEmpty(Fingerprints[i]))
-                        {
-                            <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" />
-                        }
-                    </div>
-                }
-            </div>
+            <!-- LEFT 4 -->
+            <div class="scan-section">
 
-            <button class="btn btn-success mt-2" @onclick="StartScanRight" disabled="@(isProcessing)">
-                Scan Right 4
-            </button>
-        </div>
+                <div class="slots">
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        <div class="slot @(GetSlotClass(i))">
 
-    </div>
+                            <div class="finger-label">
+                                @GetFingerLabel(i)
+                            </div>
 
-    <!-- THUMBS -->
-    <div class="thumb-section">
+                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                            {
+                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")"
+                                     class="finger-img" />
+                            }
 
-        <div class="slots">
-            <!-- LEFT THUMB -->
-            <div class="slot @(GetSlotClass(4))">
-                <div class="finger-label">LT</div>
+                        </div>
+                    }
+                </div>
 
-                @if (!string.IsNullOrEmpty(Fingerprints[4]))
-                {
-                    <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")" class="finger-img" />
-                }
-            </div>
-
-            <!-- RIGHT THUMB -->
-            <div class="slot @(GetSlotClass(5))">
-                <div class="finger-label">RT</div>
-
-                @if (!string.IsNullOrEmpty(Fingerprints[5]))
-                {
-                    <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")" class="finger-img" />
-                }
-            </div>
-        </div>
-
-        <div class="d-flex align-items-center mt-2 w-100">
-
-            <!-- LEFT EMPTY (for balance) -->
-            <div style="flex:1"></div>
-
-            <!-- CENTER: Scan Thumb -->
-            <div style="flex:1; text-align:center;">
-                <button class="btn btn-success"
-                        @onclick="StartScanThums" disabled="@(isProcessing)">
-                    Scan Thumb 2
+                <button class="btn btn-success mt-2"
+                        @onclick="StartScanLeft"
+                        disabled="@(isProcessing)">
+                    Scan Left 4
                 </button>
+
             </div>
 
-            <!-- RIGHT: Next -->
-            <div style="flex:1; text-align:right;">
-                <button class="btn btn-success"
-                        @onclick="GoNext"
-                        disabled="@(!IsAllCompleted() || isProcessing)">
-                    Next <i class="bi bi-arrow-right"></i>
+            <!-- RIGHT 4 -->
+            <div class="scan-section mt-4">
+
+                <div class="slots">
+                    @for (int i = 6; i < 10; i++)
+                    {
+                        <div class="slot @(GetSlotClass(i))">
+
+                            <div class="finger-label">
+                                @GetFingerLabel(i)
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                            {
+                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")"
+                                     class="finger-img" />
+                            }
+
+                        </div>
+                    }
+                </div>
+
+                <button class="btn btn-success mt-2"
+                        @onclick="StartScanRight"
+                        disabled="@(isProcessing)">
+                    Scan Right 4
                 </button>
+
+            </div>
+
+            <!-- THUMBS -->
+            <div class="thumb-section mt-4">
+
+                <div class="slots thumb-slots">
+
+                    <!-- LEFT THUMB -->
+                    <div class="slot @(GetSlotClass(4))">
+
+                        <div class="finger-label">LT</div>
+
+                        @if (!string.IsNullOrEmpty(Fingerprints[4]))
+                        {
+                            <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")"
+                                 class="finger-img" />
+                        }
+
+                    </div>
+
+                    <!-- RIGHT THUMB -->
+                    <div class="slot @(GetSlotClass(5))">
+
+                        <div class="finger-label">RT</div>
+
+                        @if (!string.IsNullOrEmpty(Fingerprints[5]))
+                        {
+                            <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")"
+                                 class="finger-img" />
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="thumb-action-row mt-3">
+
+                    <!-- LEFT EMPTY -->
+                    <div></div>
+
+                    <!-- CENTER BUTTON -->
+                    <div class="text-center">
+                        <button class="btn btn-success"
+                                @onclick="StartScanThums"
+                                disabled="@(isProcessing)">
+                            Scan Thumb 2
+                        </button>
+                    </div>
+
+                    <!-- RIGHT SAVE -->
+                    <div class="text-end">
+                        <button class="btn btn-primary save-btn"
+                                @onclick="Save"
+                                disabled="@(!IsAllCompleted() || isProcessing)">
+                            Save
+                        </button>
+                    </div>
+
+                </div>
+
             </div>
 
         </div>
 
-
-        <!-- ✅ SAVE BUTTON NOW HERE -->
-       @*  <button class="btn btn-primary mt-2" @onclick="SaveFinger">
-            Save
-        </button> *@
-
-        <!-- MESSAGE -->
-        <p class="mt-2">@ScannerService.message</p>
-
-            
-
-
     </div>
-   
 
 </div>
 
@@ -162,7 +179,7 @@
     protected override async Task OnInitializedAsync()
     {
         ScannerService.message = "";
-       // members = await LocalStorageService.GetMembersForDropdownAsync();
+        // members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -181,6 +198,13 @@
     {
         return lFingerDone && rFingerDone && tFingerDone;
     }
+
+    private async Task Save()
+    {
+        
+    
+    }
+
 
     private async Task GoNext()
     {
@@ -571,108 +595,59 @@
 }
 
 <style>
-    .member-select .form-control {
+    .video-panel {
         width: 100%;
     }
-    .top-row {
-        display: flex;
-        align-items: flex-start; /* aligns with titles */
-        gap: 30px;
-    }
 
-    .member-select {
-        width: 250px;
-    }
-
-  
-
-    .hand-container {
-        text-align: center;
-    }
-
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    .wrapper {
+    .video-box {
         width: 100%;
-        min-height: 100vh;
-        background: #f4f6f9;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-
-    /* HEADER */
-    .header {
-        background: #3b63a3;
-        color: white;
-        text-align: center;
-        padding: 12px;
-        font-weight: bold;
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
-
-    /* MAIN LAYOUT */
-    .content {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* UPPER PANEL */
-    .upper-panel {
-        text-align: center;
-    }
-
-    /* HAND IMAGES */
-    .hands-wrapper {
-        width: 100%;
-        display: flex;
-        justify-content: center; /* ✅ center whole block */
-    }
-
-    .hands {
-        display: flex;
-        justify-content: center; /* ✅ center inside */
-        align-items: flex-start;
-        gap: clamp(30px, 6vw, 80px); /* responsive spacing */
-        flex-wrap: wrap; /* ✅ prevents breaking */
-    }
-    
-
-    .hand-img {
-        width: 160px;
-    }
-
-    /* SLOTS */
-    .slots-row {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-    }
-
-    .slots {
-        display: grid;
-        grid-template-columns: repeat(5, 100px);
-        gap: 10px;
-    }
-
-    .slot {
-        position: relative;
-        width: 100px;
-        height: 100px;
-        border: 2px solid #3b63a3;
-        border-radius: 6px;
+        height: 450px;
+        border: 2px solid #dcdcdc;
+        border-radius: 12px;
+        background: #f8f8f8;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
     }
 
+    .live-video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .camera-placeholder {
+        color: #777;
+        font-size: 18px;
+    }
+
+    .scan-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .slots {
+        display: grid;
+        grid-template-columns: repeat(4, 220px);
+        gap: 10px;
+    }
+
+    .slot {
+        position: relative;
+        width: 220px;
+        height: 140px;
+        border: 2px solid #3b63a3;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     .finger-img {
-        width: 115%;
+        width: 100%;
         height: 100%;
         object-fit: contain;
     }
@@ -681,85 +656,25 @@
         position: absolute;
         top: 2px;
         left: 2px;
-        font-size: 10px;
+        background: rgba(255,255,255,.9);
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-size: 11px;
         font-weight: bold;
-        background: rgba(255,255,255,0.8);
-        padding: 1px 3px;
-        border-radius: 3px;
     }
 
-    .active-finger {
-        background: #4caf50;
-        border-color: #4caf50;
-    }
-
-    /* BOTTOM PANEL */
-    .bottom-panel {
-        position: sticky;
-        bottom: 0;
-        background: white;
-        padding: 10px;
-        border-top: 1px solid #ccc;
-    }
-
-        .bottom-panel .d-flex {
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-    .hand-container {
+    .thumb-slots {
         display: flex;
-        flex-direction: column;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .thumb-action-row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
         align-items: center;
     }
 
-    .hand-title {
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #333;
-        font-size: 14px;
-    }
-
-    .hand-title {
-        font-weight: bold;
-        margin-bottom: 6px;
-        color: white;
-        font-size: 13px;
-        background: #3b63a3;
-        padding: 3px 10px;
-        border-radius: 12px;
-    }
-
-    .group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .thumb-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 10px;
-    }
-
-        .thumb-section button {
-            width: 180px;
-        }
-
-        .thumb-section .slots {
-            display: flex;
-            gap: 20px;
-        }
-
-        /* Make thumb bigger */
-        .thumb-section .slot {
-            width: 100px;
-            height: 100px;
-        }
-    @@media (min-width: 600px) {
-        .thumb-section .slot {
-            width: 100px;
-        }
-    }
+   
 </style>

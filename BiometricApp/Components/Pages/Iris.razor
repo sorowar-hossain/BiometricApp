@@ -30,18 +30,18 @@
         <div class="button-bar mt-4" style="margin-left:100px;">
 
             <div class="btn-left">
-                <button class="btn btn-success px-4"
+                <button class="btn btn-success px-4 save-btn"
                         @onclick="CaptureIris"
                         disabled="@isProcessing">
                     <i class="bi bi-camera-fill"></i> Capture
                 </button>
 
-                <button class="btn btn-warning px-4"
+                <button class="btn btn-warning px-4 save-btn"
                         @onclick="Retake"
                         disabled="@isProcessing">
                     <i class="bi bi-arrow-repeat"></i> Retake
                 </button>
-                <button class="btn btn-success px-4"
+                <button class="btn btn-success px-4 save-btn save-btn"
                         disabled="@isProcessing">
                     Save
                 </button>
