@@ -34,27 +34,27 @@
 
                     <!-- Member ID -->
                     <div class="col-12">
-                        <label class="form-label-custom">Member ID</label>
+                        <label class="label-custom">Member ID</label>
                         <InputText class="form-control custom-input" readonly @bind-Value="model.PersonUniqueId" />
                     </div>
 
                     <!-- First Name -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">First Name *</label>
+                        <label class="label-custom">First Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.FirstName" placeholder="Enter First Name" />
                         <ValidationMessage For="@(() => model.FirstName)" />
                     </div>
 
                     <!-- Last Name -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Last Name *</label>
+                        <label class="label-custom">Last Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.LastName" placeholder="Enter Last Name" />
                         <ValidationMessage For="@(() => model.LastName)" />
                     </div>
 
                     <!-- Marital Status -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Marital Status *</label>
+                        <label class="label-custom">Marital Status *</label>
                         <InputSelect class="form-select custom-input" @bind-Value="model.MaritalStatus">
                             <option value="">Select</option>
                             <option>Single</option>
@@ -66,13 +66,13 @@
 
                     <!-- DOB -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Date of Birth *</label>
+                        <label class="label-custom">Date of Birth *</label>
                         <InputDate class="form-control custom-input" @bind-Value="model.DateOfBirth" />
                     </div>
 
                     <!-- Gender -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Gender *</label>
+                        <label class="label-custom">Gender *</label>
                         <InputSelect class="form-select custom-input" @bind-Value="model.Gender">
                             <option value="">Select</option>
                             <option>Male</option>
@@ -83,40 +83,40 @@
 
                     <!-- Expiry -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Expiry Date *</label>
+                        <label class="label-custom">Expiry Date *</label>
                         <InputDate class="form-control custom-input" @bind-Value="model.ExpiryDate" />
                     </div>
 
                     <!-- Parents -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Father's Name *</label>
+                        <label class="label-custom">Father's Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.FatherName" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label-custom">Mother's Name *</label>
+                        <label class="label-custom">Mother's Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.MotherName" />
                     </div>
 
                     <!-- Address -->
                     <div class="col-12">
-                        <label class="form-label-custom">Address *</label>
+                        <label class="label-custom">Address *</label>
                         <InputTextArea class="form-control custom-input" rows="3" @bind-Value="model.Address" />
                     </div>
 
                     <!-- Optional -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Place of Issue</label>
+                        <label class="label-custom">Place of Issue</label>
                         <InputText class="form-control custom-input" @bind-Value="model.PlaceOfIssue" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label-custom">Place of Birth</label>
+                        <label class="label-custom">Place of Birth</label>
                         <InputText class="form-control custom-input" @bind-Value="model.PlaceOfBirth" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label-custom">Weight (kg)</label>
+                        <label class="label-custom">Weight (kg)</label>
                         <InputNumber class="form-control custom-input" @bind-Value="model.Weight" />
                     </div>
 
@@ -147,13 +147,7 @@
 </div>
 
 <style>
-    .form-label-custom {
-        font-size: 14px;
-        font-weight: 600;
-        color: #34495e;
-        margin-bottom: 6px;
-        display: block;
-    }
+  
 
     .custom-input {
         border-radius: 8px;
