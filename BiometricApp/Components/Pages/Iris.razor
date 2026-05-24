@@ -27,10 +27,11 @@
         </div>
 
         <!-- BUTTONS -->
-        <div class="button-bar mt-4" style="margin-left:100px;">
+        <div class="d-flex justify-content-center mt-4">
 
             <div class="btn-left">
-                <button class="btn btn-success px-4 save-btn"
+
+                <button class="btn btn-success px-4 save-btn me-2"
                         @onclick="CaptureIris"
                         disabled="@isProcessing">
                     <i class="bi bi-camera-fill"></i> Capture
@@ -41,19 +42,15 @@
                         disabled="@isProcessing">
                     <i class="bi bi-arrow-repeat"></i> Retake
                 </button>
-                <button class="btn btn-success px-4 save-btn save-btn"
-                        disabled="@isProcessing">
-                    Save
-                </button>
+
             </div>
-
-
 
         </div>
     </div>
 
     <!-- RIGHT IRIS -->
     <div class="col-md-6 col-12 mb-3">
+
         <div class="iris-card">
 
             <div class="iris-title">Right Iris</div>
@@ -68,6 +65,17 @@
             <div class="status-text">@RightCaptureStatus</div>
 
         </div>
+
+        <!-- SAVE BUTTON -->
+        <div class="d-flex justify-content-center mt-4">
+
+            <button class="btn btn-success px-5 save-btn"
+                    disabled="@isProcessing">
+                Save
+            </button>
+
+        </div>
+
     </div>
 
    
