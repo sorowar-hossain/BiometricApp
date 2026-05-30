@@ -28,7 +28,11 @@ namespace BiometricApp.Services
         {
             // Each member gets their own folder
             string memberFolder = Path.Combine(baseFolder, member.PersonUniqueId);
-            Directory.CreateDirectory(memberFolder);
+            if (!Directory.Exists(memberFolder))
+            {
+                Directory.CreateDirectory(memberFolder);
+            }
+            
 
             // Save demographics JSON
             string jsonPath = Path.Combine(memberFolder, "demographics.json");

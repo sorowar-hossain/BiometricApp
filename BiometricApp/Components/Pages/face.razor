@@ -1,4 +1,5 @@
 ﻿@page "/face-capture"
+@inject UserSessionService SessionService
 
 @using BiometricApp.Models
 @using BiometricApp.Services
@@ -18,7 +19,7 @@
         <!-- LEFT PANEL -->
         <div class="col-lg-3 col-md-12 control-panel">
 
-            <h6>Select Member</h6>
+            @* <h6>Select Member</h6>
 
             <select class="form-control" @bind="selectedMemberId">
                 <option value="">-- Select Member --</option>
@@ -29,7 +30,7 @@
                         @item.FullName
                     </option>
                 }
-            </select>
+            </select> *@
 
             <!-- CONTROLS -->
             <div class="mt-3">
@@ -96,7 +97,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-secondary w-100 mt-3"
+            <button class="btn btn-secondary w-100 mt-3 save-btn"
                     @onclick="Retake">
                 Undo
             </button>
@@ -138,18 +139,18 @@
 
             <div class="camera-buttons mt-3">
 
-                <button class="btn btn-primary"
+                <button class="btn btn-primary save-btn"
                         @onclick="ToggleCamera">
-                    @(CameraConnected ? "Close Camera" : "Open Camera")
+                    @(CameraConnected ? "Close Camera" : "Start Camera")
                 </button>
 
-                <button class="btn btn-success"
+                <button class="btn btn-success save-btn"
                         @onclick="Capture"
                         disabled="@(!CameraConnected)">
                     Capture
                 </button>
 
-                <button class="btn btn-warning"
+                <button class="btn btn-warning save-btn"
                         @onclick="Retake"
                         disabled="@string.IsNullOrEmpty(CapturedImage)">
                     Retake
@@ -204,7 +205,7 @@
 
             
 
-            <button class="btn btn-success w-100 mt-2"
+            <button class="btn btn-success w-100 mt-2 save-btn" style="margin-top:20px;"
                     @onclick="SaveFace"
                     disabled="@string.IsNullOrEmpty(CapturedImage)">
                 Save Photo
@@ -257,8 +258,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        members = await LocalStorageService
-            .GetMembersForDropdownAsync();
+        //members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
     async Task ToggleCamera()
@@ -320,9 +320,10 @@
     {
         try
         {
+            selectedMemberId = SessionService.User.PersonUniqueId;
             if (string.IsNullOrWhiteSpace(selectedMemberId))
             {
-                Status = "Select member first";
+                Status = "Member not found..!";
                 return;
             }
 
@@ -528,16 +529,29 @@
         border-radius: 8px;
     }
 
-    .live-camera-box,
-    .preview-box {
+    .live-camera-box
+    {
         border: 1px solid #dcdcdc;
         border-radius: 10px;
-        height: 420px;
+        height: 300px;
+        width: 600px;
         display: flex;
         justify-content: center;
         align-items: center;
         overflow: hidden;
         background: #f8f8f8;
+    }
+
+    .preview-box {
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        background: #f8f8f8;
+        min-width: 300px;
+        min-height: 300px;
     }
 
     .camera-placeholder {

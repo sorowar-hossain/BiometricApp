@@ -18,7 +18,7 @@ namespace BiometricApp.Services
         IMDWrapper dev = new IMDWrapper();
         // 1. Start
 
-        public async Task<string> CaptureSignatureAsync()
+        public async Task<string> CaptureSignatureAsync(string folder)
         {
             try
             {
@@ -26,8 +26,11 @@ namespace BiometricApp.Services
                 imd_fap50.device_reset();
 
                 // create folder
-                string folder = @"C:\Signature";
-                Directory.CreateDirectory(folder);
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+               
 
                 string path = Path.Combine(folder, "sig.png");
 

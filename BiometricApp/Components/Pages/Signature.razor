@@ -1,101 +1,92 @@
 ﻿@page "/signature"
 @using BiometricApp.Services
+@inject UserSessionService SessionService
 
 @inject SignatureService signatureService
 
-<div class="container mt-4 main-box">
+<div class="row mt-4">
 
-    <!-- Header -->
-   @*  <div class="header text-center">
-        Data Capturing System
-    </div> *@
+    <!-- LEFT -->
+    <div class="col-md-6 text-center">
 
-    <div class="p-4">
+        <div class="signature-box">
 
-        <!-- Title -->
-      @*   <h5 class="fw-bold text-primary">
-            Capture Signature
-        </h5>
-
-        <p class="text-muted small">
-            Please sign on IMD device
-        </p> *@
-
-        <div class="row mt-4">
-
-            <!-- LEFT -->
-            <div class="col-md-6 text-center">
-
-                <div class="signature-box">
-
-                    @if (IsCapturing)
-                    {
-                        <div class="capture-text">
-                            Waiting for signature...
-                        </div>
-                    }
-                    else if (!string.IsNullOrEmpty(LiveSignatureBase64))
-                    {
-                        <img src="@LiveSignatureBase64"
-                             class="full-preview-img" />
-                    }
-                    else
-                    {
-                        <div class="capture-text">
-                            No Signature
-                        </div>
-                    }
-
+            @if (IsCapturing)
+            {
+                <div class="capture-text">
+                    Waiting for signature...
                 </div>
-
-                <!-- Buttons -->
-                <div class="mt-3">
-
-                    <button class="btn btn-primary px-4 me-2"
-                            @onclick="CaptureSignature">
-                        <i class="bi bi-pen me-1"></i> Capture
-                    </button>
-                    <button class="btn btn-dark px-4"
-                            @onclick="ClearSignature" disabled="@(isProcessing)">
-                        <i class="bi bi-eraser me-1"></i> Clear
-                    </button>
-                    <button class="btn btn-success px-4 me-2"
-                            @onclick="SaveSignature" disabled="@(isProcessing)">
-                        <i class="bi bi-check2-circle me-1"></i> Save
-                    </button>
-
-                    
-
+            }
+            else if (!string.IsNullOrEmpty(LiveSignatureBase64))
+            {
+                <img src="@LiveSignatureBase64"
+                     class="full-preview-img" />
+            }
+            else
+            {
+                <div class="capture-text">
+                    No Signature
                 </div>
+            }
 
-            </div>
+        </div>
 
-            <!-- RIGHT -->
-            <div class="col-md-6">
+        <!-- LEFT BUTTONS -->
+        <div class="d-flex justify-content-center mt-4">
 
-                <div class="full-preview-box">
+            <button class="btn btn-primary px-4 me-2 save-btn"
+                    @onclick="CaptureSignature">
+                <i class="bi bi-pen me-1"></i> Capture
+            </button>
 
-                    @if (IsCapturing)
-                    {
-                        <div class="preview-placeholder">
-                            Please sign on device...
-                        </div>
-                    }
-                    else if (!string.IsNullOrEmpty(SignatureBase64))
-                    {
-                        <img src="@SignatureBase64"
-                             class="full-preview-img" />
-                    }
-                    else
-                    {
-                        <div class="preview-placeholder">
-                            Signature Preview
-                        </div>
-                    }
+            <button class="btn btn-dark px-4 save-btn"
+                    @onclick="ClearSignature"
+                    disabled="@(isProcessing)">
+                <i class="bi bi-eraser me-1"></i> Clear
+            </button>
+            <button class="btn btn-success px-4 save-btn ms-4"
+                    @onclick="SaveSignature"
+                    disabled="@(isProcessing)">
+                <i class="bi bi-check2-circle me-1"></i> Save
+            </button>
 
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-md-6 text-center">
+
+        <div class="full-preview-box">
+
+            @if (IsCapturing)
+            {
+                <div class="preview-placeholder">
+                    Please sign on device...
                 </div>
+            }
+            else if (!string.IsNullOrEmpty(SignatureBase64))
+            {
+                <img src="@SignatureBase64"
+                     class="full-preview-img" />
+            }
+            else
+            {
+                <div class="preview-placeholder">
+                    Signature Preview
+                </div>
+            }
 
-            </div>
+        </div>
+
+        <!-- SAVE BUTTON -->
+        <div class="d-flex justify-content-center mt-4">
+
+          @*   <button class="btn btn-success px-5 save-btn"
+                    @onclick="SaveSignature"
+                    disabled="@(isProcessing)">
+                <i class="bi bi-check2-circle me-1"></i> Save
+            </button> *@
 
         </div>
 
@@ -196,12 +187,14 @@
     private bool IsCapturing = false;
     bool isProcessing = true;
     static string path = "";
+    private string PersonUniqueId = "";
 
     protected override async Task OnInitializedAsync()
     {
         isProcessing = true;
-        path = "";
         IsCapturing = false;
+        PersonUniqueId = SessionService.User.PersonUniqueId;
+        path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
     }
 
     private async Task CaptureSignature()
@@ -226,7 +219,7 @@
                 _cts.Token);
         });
         // START ACTUAL CAPTURE
-        path = await signatureService.CaptureSignatureAsync();
+        path = await signatureService.CaptureSignatureAsync(path);
 
         _cts.Cancel();
 
@@ -240,7 +233,8 @@
 
     private async Task SaveSignature()
     {
-        if (!string.IsNullOrEmpty(path) && File.Exists(path))
+ 
+        if (File.Exists(path))
         {
 
             byte[] bytes = await File.ReadAllBytesAsync(path);
@@ -253,13 +247,13 @@
         StateHasChanged();
     }
 
-    private Task ClearSignature()
+    private async Task ClearSignature()
     {
         LiveSignatureBase64 = null;
         path = "";
         isProcessing = true;
         StateHasChanged();
-        return Task.CompletedTask;
+        
     }
 
 }

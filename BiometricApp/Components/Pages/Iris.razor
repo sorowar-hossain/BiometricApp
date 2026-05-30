@@ -4,6 +4,7 @@
 @inject BiometricApp.Services.IrisService IrisService
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
+@inject UserSessionService SessionService
 
 <!-- IRIS SECTION -->
 <div class="iris-container row">
@@ -26,33 +27,34 @@
         </div>
 
         <!-- BUTTONS -->
-        <div class="button-bar mt-4" style="margin-left:100px;">
+        <div class="d-flex justify-content-center mt-4">
 
             <div class="btn-left">
-                <button class="btn btn-success px-4"
+
+                <button class="btn btn-success px-4 save-btn me-2"
                         @onclick="CaptureIris"
                         disabled="@isProcessing">
                     <i class="bi bi-camera-fill"></i> Capture
                 </button>
 
-                <button class="btn btn-warning px-4"
+                <button class="btn btn-warning px-4 save-btn"
                         @onclick="Retake"
                         disabled="@isProcessing">
                     <i class="bi bi-arrow-repeat"></i> Retake
                 </button>
-                <button class="btn btn-success px-4"
+                <button class="btn btn-success px-5 save-btn"
                         disabled="@isProcessing">
                     Save
                 </button>
+
             </div>
-
-
 
         </div>
     </div>
 
     <!-- RIGHT IRIS -->
     <div class="col-md-6 col-12 mb-3">
+
         <div class="iris-card">
 
             <div class="iris-title">Right Iris</div>
@@ -67,6 +69,17 @@
             <div class="status-text">@RightCaptureStatus</div>
 
         </div>
+
+        <!-- SAVE BUTTON -->
+       @*  <div class="d-flex justify-content-center mt-4">
+
+            <button class="btn btn-success px-5 save-btn"
+                    disabled="@isProcessing">
+                Save
+            </button>
+
+        </div> *@
+
     </div>
 
    
@@ -96,7 +109,7 @@
     protected override async Task OnInitializedAsync()
     {
         message = "";
-        members = await LocalStorageService.GetMembersForDropdownAsync();
+        //members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -119,11 +132,12 @@
 
     private async Task CaptureIris()
     {
+        selectedMemberId = SessionService.User.PersonUniqueId;
         if (string.IsNullOrWhiteSpace(selectedMemberId))
         {
             return;
         }
-
+      
         path = Path.Combine(path, selectedMemberId);
 
         // Attach device first (if not already attached)
@@ -240,6 +254,7 @@
         font-weight: 600;
         margin-bottom: 12px;
         color: #333;
+        font-size:18px;
     }
 
     /* BOX */

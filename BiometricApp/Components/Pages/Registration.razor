@@ -6,13 +6,14 @@
 @inject ApiService ApiService
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
+@inject UserSessionService SessionService
 
 
 <div class="container mt-4">
 
     <div class="card shadow-sm border-0">
 
-      @*   <!-- HEADER -->
+        @*   <!-- HEADER -->
         <div class="card-header bg-primary text-white text-center fw-bold fs-5">
             Member Information
         </div> *@
@@ -22,38 +23,38 @@
             <EditForm Model="model" OnValidSubmit="Save">
                 <DataAnnotationsValidator />
 
-                @if (!string.IsNullOrEmpty(message))
+            @*     @if (!string.IsNullOrEmpty(message))
                 {
                     <div class="alert alert-success py-2">
                         @message
                     </div>
-                }
+                } *@
 
                 <div class="row g-3">
 
                     <!-- Member ID -->
                     <div class="col-12">
-                        <label class="form-label-custom">Member ID</label>
+                        <label class="label-custom">Member ID</label>
                         <InputText class="form-control custom-input" readonly @bind-Value="model.PersonUniqueId" />
                     </div>
 
                     <!-- First Name -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">First Name *</label>
+                        <label class="label-custom">First Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.FirstName" placeholder="Enter First Name" />
                         <ValidationMessage For="@(() => model.FirstName)" />
                     </div>
 
                     <!-- Last Name -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Last Name *</label>
+                        <label class="label-custom">Last Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.LastName" placeholder="Enter Last Name" />
                         <ValidationMessage For="@(() => model.LastName)" />
                     </div>
 
                     <!-- Marital Status -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Marital Status *</label>
+                        <label class="label-custom">Marital Status *</label>
                         <InputSelect class="form-select custom-input" @bind-Value="model.MaritalStatus">
                             <option value="">Select</option>
                             <option>Single</option>
@@ -65,13 +66,13 @@
 
                     <!-- DOB -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Date of Birth *</label>
+                        <label class="label-custom">Date of Birth *</label>
                         <InputDate class="form-control custom-input" @bind-Value="model.DateOfBirth" />
                     </div>
 
                     <!-- Gender -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Gender *</label>
+                        <label class="label-custom">Gender *</label>
                         <InputSelect class="form-select custom-input" @bind-Value="model.Gender">
                             <option value="">Select</option>
                             <option>Male</option>
@@ -82,40 +83,40 @@
 
                     <!-- Expiry -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Expiry Date *</label>
+                        <label class="label-custom">Expiry Date *</label>
                         <InputDate class="form-control custom-input" @bind-Value="model.ExpiryDate" />
                     </div>
 
                     <!-- Parents -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Father's Name *</label>
+                        <label class="label-custom">Father's Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.FatherName" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label-custom">Mother's Name *</label>
+                        <label class="label-custom">Mother's Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.MotherName" />
                     </div>
 
                     <!-- Address -->
                     <div class="col-12">
-                        <label class="form-label-custom">Address *</label>
+                        <label class="label-custom">Address *</label>
                         <InputTextArea class="form-control custom-input" rows="3" @bind-Value="model.Address" />
                     </div>
 
                     <!-- Optional -->
                     <div class="col-md-6">
-                        <label class="form-label-custom">Place of Issue</label>
+                        <label class="label-custom">Place of Issue</label>
                         <InputText class="form-control custom-input" @bind-Value="model.PlaceOfIssue" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label-custom">Place of Birth</label>
+                        <label class="label-custom">Place of Birth</label>
                         <InputText class="form-control custom-input" @bind-Value="model.PlaceOfBirth" />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label-custom">Weight (kg)</label>
+                        <label class="label-custom">Weight (kg)</label>
                         <InputNumber class="form-control custom-input" @bind-Value="model.Weight" />
                     </div>
 
@@ -132,7 +133,7 @@
                     }
                     else
                     {
-                        <button type="button" class="btn btn-success px-4" @onclick="SaveAndNext">
+                        <button type="button" class="btn btn-success px-4 save-btn" @onclick="Save">
                             Save
                         </button>
                     }
@@ -146,13 +147,7 @@
 </div>
 
 <style>
-    .form-label-custom {
-        font-size: 14px;
-        font-weight: 600;
-        color: #34495e;
-        margin-bottom: 6px;
-        display: block;
-    }
+  
 
     .custom-input {
         border-radius: 8px;
@@ -179,6 +174,8 @@
 @code {
     private MemberModel model = new();
     private UserLoginResponse user = new();
+    [Parameter]
+    public EventCallback<string> OnActionMessage { get; set; }
     private int Id;
     private string buttonText = "Save";
     string message = "";
@@ -188,8 +185,10 @@
         // Get current user
         user = UserService.CurrentUser;
         // var id = await ApiService.GetPersonUniqueIdAsync(user.OrgId);
-        var id = CreateMemberId();
-        model.PersonUniqueId = id;
+        // var id = CreateMemberId();
+        // model.PersonUniqueId = id;
+        model.PersonUniqueId = SessionService.User.PersonUniqueId;
+        var name = SessionService.User.UserName;
         buttonText = "Save";
         StateHasChanged();
     }
@@ -206,14 +205,17 @@
             isEditMode = true;
         }
         else
-    {
-        isEditMode = false;
-    }
+        {
+            isEditMode = false;
+        }
         StateHasChanged();
     }
 
+   
+
     private async Task Save()
     {
+      
         model.OrgId = user.OrgId;
         model.UserId = user.UserId;
         model.CreatedBy = user.UserName;
@@ -228,33 +230,31 @@
         {
             var savePath = await LocalStorageService.SaveDemographicsAsync(model);
             message = "Member saved successfully to " + savePath;
-            model = new MemberModel
-            {
-                PersonUniqueId = CreateMemberId()
-            };
+            await OnActionMessage.InvokeAsync(message);
+
         }
-      
+
         StateHasChanged();
         //bool result = await ApiService.CreateDemographicAsync(model);
     }
     private async Task SaveAndNext()
-{
-    model.OrgId = user.OrgId;
-    model.UserId = user.UserId;
-    model.CreatedBy = user.UserName;
-
-    if (buttonText == "Update")
     {
-        await LocalStorageService.UpdateDemographicsAsync(model);
-    }
-    else
-    {
-        await LocalStorageService.SaveDemographicsAsync(model);
-    }
+        model.OrgId = user.OrgId;
+        model.UserId = user.UserId;
+        model.CreatedBy = user.UserName;
 
-    //Redirect to face capture with ID
-    Navigation.NavigateTo($"/face-capture?id={model.PersonUniqueId}");
-}
+        if (buttonText == "Update")
+        {
+            await LocalStorageService.UpdateDemographicsAsync(model);
+        }
+        else
+        {
+            await LocalStorageService.SaveDemographicsAsync(model);
+        }
+
+        //Redirect to face capture with ID
+        Navigation.NavigateTo($"/face-capture?id={model.PersonUniqueId}");
+    }
 
     private int GetNextMemberSequence()
     {
@@ -311,6 +311,6 @@
         return id;
     }
 
-  
+
 
 }

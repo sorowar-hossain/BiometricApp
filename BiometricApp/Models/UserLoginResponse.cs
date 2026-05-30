@@ -16,5 +16,11 @@ namespace BiometricApp.Models
         public string Message { get; internal set; }
         public string OrganizationName { get; internal set; }
         public string OrganizationCode { get; internal set; }
+
+        public string PersonUniqueId { get; set; } = string.Empty;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public string? CreatedBy { get; set; }
+        public DateTime? UpdatedOn { get; set; }
+        public string? UpdatedBy { get; set; }
     }
 }

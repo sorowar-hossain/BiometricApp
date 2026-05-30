@@ -1,20 +1,34 @@
 ﻿@page "/biometric-enrollment"
+@layout EmptyLayout
+@using BiometricApp.Components.Layout
+@using BiometricApp.Models
+@using BiometricApp.Services
+@inject UserService UserService
+@inject UserSessionService SessionService
+@inject NavigationManager NavigationManager
 
 <div class="container-fluid enrollment-container">
 
     <!-- PAGE TITLE -->
-    <div class="page-header mb-3">
+    <div class="page-header mb-3 sticky-header">
         <div>
             <h3 class="mb-0">Biometric Enrollment</h3>
-           @*  <small class="text-muted">
-                Demographic and Biometric Data Capture
-            </small> *@
         </div>
 
         <div>
-            <button class="btn btn-success">
-                <i class="bi bi-check-circle"></i>
-                Save Enrollment
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert alert-success py-2">
+                    @message
+                </div>
+            }
+        </div>
+        <div>
+            <button class="btn btn-danger"
+                    type="button"
+                    @onclick="ClearAll">
+                <i class="bi bi-x-circle"></i>
+                Clear All
             </button>
         </div>
     </div>
@@ -32,7 +46,7 @@
                         Demographic Data
                     </div>
                     <div class="module-body">
-                        <Registration />
+                        <Registration OnActionMessage="ShowMessage" />
                     </div>
                 </div>
             </div>
@@ -103,6 +117,25 @@
 </div>
 
 <style>
+    .label-custom {
+        font-size: 18px;
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: #ffffff;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e5e5e5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     .enrollment-container {
         padding: 12px;
         background: #f4f6f9;
@@ -133,7 +166,7 @@
     /* HEADER */
     .module-header {
         padding: 14px 18px;
-        font-size: 15px;
+        font-size: 20px;
         font-weight: 600;
         background: #f8fafc;
         border-bottom: 1px solid #e9ecef;
@@ -175,8 +208,97 @@
         display: block;
     }
 
+    .save-btn {
+        min-width: 140px;
+        height: 50px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 10px;
+    }
+
 </style>
 
 @code{
+    private UserLoginResponse user = new();
+    public string message = "";
+    protected override async Task OnInitializedAsync()
+    {
+        // Get current user
+        user = UserService.CurrentUser;
+        var id = CreateMemberId();
+        SessionService.SetUser(new UserLoginResponse
+        {
+            PersonUniqueId = id,
+            UserName = user.UserName
+        });
 
+        StateHasChanged();
+    }
+
+    private async Task ShowMessage(string msg)
+    {
+        message = msg;
+        StateHasChanged();
+    }
+
+
+    private void ClearAll()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private int GetNextMemberSequence()
+    {
+        // Absolute path for members
+        string baseFolder = AppSettings.BaseFolder;
+
+        // Create the folder if it doesn't exist
+        if (!Directory.Exists(baseFolder))
+        {
+            Directory.CreateDirectory(baseFolder);
+            return 1; // no members yet
+        }
+
+        // Get all subfolders (each folder = one member)
+        var allFolders = Directory.GetDirectories(baseFolder);
+
+        if (allFolders.Length == 0)
+            return 1; // no members yet
+
+        // Count members created today (optional, or just use total folders)
+        int maxSequence = 0;
+
+        foreach (var folder in allFolders)
+        {
+            string jsonPath = Path.Combine(folder, "demographics.json");
+            if (File.Exists(jsonPath))
+            {
+                var json = File.ReadAllText(jsonPath);
+                var member = System.Text.Json.JsonSerializer.Deserialize<MemberModel>(json);
+                if (member != null)
+                {
+                    // Extract last 6-7 digits from PersonUniqueId if your ID stores sequence
+                    // Or simply count existing members and take max + 1
+                    maxSequence++;
+                }
+            }
+        }
+
+        return maxSequence + 1; // next sequence number
+    }
+
+
+    private string CreateMemberId()
+    {
+        string userName = user.UserName;
+        int seq = GetNextMemberSequence();
+
+        // Format sequence as 6-digit or 7-digit number with leading zeros
+        string seqStr = seq.ToString("D6"); // 000001, 000002, etc.
+
+        // Include username + datetime + sequence
+        string id = $"BIO.{userName}.{DateTime.Now:yyyyMMddHHmm}.{seqStr}";
+
+        return id;
+    }
 }
