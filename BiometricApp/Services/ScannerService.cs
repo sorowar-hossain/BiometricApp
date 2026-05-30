@@ -21,6 +21,8 @@ namespace BiometricApp.Services
 
         public event Action? OnFrameUpdated;
 
+        private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
+
         private string _currentFrameBase64 = "";
         public string CurrentFrameBase64
         {
@@ -119,9 +121,11 @@ namespace BiometricApp.Services
 
             LoadVideoResources();
             InitVideoFrames();
-            StartVideoLoop();
 
-            OnFrameUpdated += () => { };
+            _currentFinger = FINGER_POSITION.LEFT_INDEX;
+            _phase = VideoShowPhase.GuideFrame;
+
+            StartVideoLoop();
         }
 
         #region PUBLIC METHODS
@@ -193,9 +197,24 @@ namespace BiometricApp.Services
 
                 await Task.Delay(1500);
 
+                if(fingerPosition.ToString().ToLower() == "left_four")
+                {
+                    fingerPosition = FINGER_POSITION.LEFT_INDEX;
+                }
+                else if (fingerPosition.ToString().ToLower() == "right_four")
+                {
+                    fingerPosition = FINGER_POSITION.RIGHT_INDEX;
+                }
+                else if (fingerPosition.ToString().ToLower() == "left_thumb")
+                {
+                    fingerPosition = FINGER_POSITION.LEFT_THUMB;
+                }
+
                 _currentFinger = fingerPosition;
 
                 _phase = VideoShowPhase.GuideFrame;
+
+                StartVideoLoop();
 
                 await Task.Delay(800);
 
@@ -397,7 +416,7 @@ namespace BiometricApp.Services
                 $"data:image/jpeg;base64,{Convert.ToBase64String(imgBytes)}";
 
             // IMPORTANT: ensure UI thread notification
-            OnFrameUpdated?.Invoke();
+            NotifyUI();
         }
 
         #endregion
@@ -935,6 +954,20 @@ namespace BiometricApp.Services
                             frames.Select(f => f.Clone()).ToList();
                     }
                 }
+            }
+        }
+        private void NotifyUI()
+        {
+            if (_uiContext != null)
+            {
+                _uiContext.Post(_ =>
+                {
+                    OnFrameUpdated?.Invoke();
+                }, null);
+            }
+            else
+            {
+                OnFrameUpdated?.Invoke();
             }
         }
     }

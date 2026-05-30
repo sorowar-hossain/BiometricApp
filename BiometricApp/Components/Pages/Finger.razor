@@ -28,11 +28,13 @@
 
     </div>
     <div class="hands-wrapper">
-
-        <!-- HAND IMAGES -->
-        <img src="@ScannerService.CurrentFrameBase64"
-             style="width:300px;height:300px;" />
-
+        @{
+            if (!string.IsNullOrWhiteSpace(ScannerService.CurrentFrameBase64))
+            {
+                <img src="@ScannerService.CurrentFrameBase64"
+                     style="width:300px;height:300px;" />
+            }
+        }
     </div>
 
     <!-- 4 FINGERS ROW -->
@@ -392,7 +394,7 @@
                 ScannerService.reScan = false;
                 await StartScanThums();
             }
-            
+
 
             if (result)
             {
@@ -470,7 +472,7 @@
 
     private void LoadThumbTwoFingerprints(string imagePath)
     {
-       
+
         string[] files =
         {
             "l_Left_Thumb_Left_Thumb.bmp",
@@ -496,7 +498,7 @@
     {
         try
         {
-           
+
             var users = await ApiService.GetUsersAsync();
 
             foreach (var user in users)
@@ -557,13 +559,11 @@
         ScannerService.OnFrameUpdated += RefreshFrame;
     }
 
-    private async void RefreshFrame()
+    private void RefreshFrame()
     {
-        await InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
+        _ = InvokeAsync(StateHasChanged);
     }
+
     public void Dispose()
     {
         ScannerService.OnFrameUpdated -= RefreshFrame;
