@@ -205,7 +205,7 @@ namespace BiometricApp.Services
                 {
                     fingerPosition = FINGER_POSITION.RIGHT_INDEX;
                 }
-                else if (fingerPosition.ToString().ToLower() == "left_thumb")
+                else if (fingerPosition.ToString().ToLower() == "both_thumbs")
                 {
                     fingerPosition = FINGER_POSITION.LEFT_THUMB;
                 }
@@ -216,7 +216,7 @@ namespace BiometricApp.Services
 
                 StartVideoLoop();
 
-                await Task.Delay(800);
+                await Task.Delay(5000);
 
                 StartScan();
 
@@ -230,6 +230,7 @@ namespace BiometricApp.Services
                 if (res != IMD_RESULT.SUCCESS)
                 {
                     message = "Scan start failed";
+                    
                     StopScan();
                     return false;
                 }
@@ -237,7 +238,7 @@ namespace BiometricApp.Services
                 _phase = VideoShowPhase.Scanning;
 
                 bool completed = await WaitScanComplete();
-
+                
                 StopScan();
 
                 if (!completed)
@@ -303,11 +304,28 @@ namespace BiometricApp.Services
 
         #region VIDEO LOOP
 
+        private bool _videoRunning;
+
         private void StartVideoLoop()
         {
+            if (_videoRunning)
+                return;
+
+            _videoRunning = true;
+
             _videoCTS = new CancellationTokenSource();
 
-            _ = VideoLoopAsync(_videoCTS.Token);
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await VideoLoopAsync(_videoCTS.Token);
+                }
+                finally
+                {
+                    _videoRunning = false;
+                }
+            });
         }
 
         private async Task VideoLoopAsync(CancellationToken token)

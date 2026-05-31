@@ -18,7 +18,7 @@
 
                 <div class="video-box">
 
-                    @if (!string.IsNullOrEmpty(ScannerService.CurrentFrameBase64))
+                    @if (!string.IsNullOrWhiteSpace(ScannerService.CurrentFrameBase64))
                     {
                         <img src="@ScannerService.CurrentFrameBase64"
                              class="live-video" />
@@ -30,15 +30,15 @@
                         </div>
                     }
 
-        
-
-    </div>
-    <div class="hands-wrapper">
-
-        <!-- HAND IMAGES -->
-        <img src="@ScannerService.CurrentFrameBase64"
-             style="width:300px;height:300px;" />
-
+                </div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(ScannerService.message))
+            {
+                <div class="capturing_status">
+                    <span style="font-size:15px;font-weight:bold;">@ScannerService.message</span>
+                </div>
+            }
+            
     </div>
 
         <!-- RIGHT SIDE -->
@@ -197,6 +197,7 @@
         {
             selectedMemberId = memberId;
         }
+        selectedMemberId = "BIO123456789";
     }
 
     private bool IsAllCompleted()
@@ -304,10 +305,6 @@
         {
             var result = false;
             string imagePath = Path.Combine(folder, selectedMemberId);
-            if (string.IsNullOrWhiteSpace(selectedMemberId))
-            {
-                return;
-            }
             ScannerService.message = "Capturing left finger.....";
             await InvokeAsync(StateHasChanged);
             await Task.Delay(100);
@@ -614,10 +611,22 @@
         overflow: hidden;
     }
 
+    .capturing_status {
+        width: 100%;
+        border: 2px solid #dcdcdc;
+        border-radius: 12px;
+        background: #f8f8f8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-top:15px;
+    }
+
     .live-video {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
     }
 
     .camera-placeholder {
