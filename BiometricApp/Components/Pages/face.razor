@@ -258,6 +258,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        selectedMemberId = SessionService.User.PersonUniqueId;
+
         //members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
@@ -320,7 +322,6 @@
     {
         try
         {
-            selectedMemberId = SessionService.User.PersonUniqueId;
             if (string.IsNullOrWhiteSpace(selectedMemberId))
             {
                 Status = "Member not found..!";

@@ -6,6 +6,7 @@
 @inject BiometricApp.Services.ApiService ApiService
 @inject LocalStorageService LocalStorageService
 @inject NavigationManager Navigation
+@inject UserSessionService SessionService
 
 <div class="container-fluid">
 
@@ -183,6 +184,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        selectedMemberId = SessionService.User.PersonUniqueId;
         ScannerService.message = "";
         // members = await LocalStorageService.GetMembersForDropdownAsync();
     }

@@ -108,6 +108,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        selectedMemberId = SessionService.User.PersonUniqueId;
         message = "";
         //members = await LocalStorageService.GetMembersForDropdownAsync();
     }
@@ -132,7 +133,6 @@
 
     private async Task CaptureIris()
     {
-        selectedMemberId = SessionService.User.PersonUniqueId;
         if (string.IsNullOrWhiteSpace(selectedMemberId))
         {
             return;
