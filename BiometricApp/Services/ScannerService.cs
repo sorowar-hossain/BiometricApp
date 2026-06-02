@@ -84,28 +84,28 @@ namespace BiometricApp.Services
         "left_4",
         new[]
         {
-            FINGER_POSITION.LEFT_INDEX,
-            FINGER_POSITION.LEFT_MIDDLE,
-            FINGER_POSITION.LEFT_RING,
-            FINGER_POSITION.LEFT_LITTLE
+            FINGER_POSITION.LEFT_FOUR
         }
     },
     {
         "right_4",
         new[]
         {
-            FINGER_POSITION.RIGHT_INDEX,
-            FINGER_POSITION.RIGHT_MIDDLE,
-            FINGER_POSITION.RIGHT_RING,
-            FINGER_POSITION.RIGHT_LITTLE
+            FINGER_POSITION.RIGHT_FOUR
         }
     },
     {
         "two_thumbs",
         new[]
         {
-            FINGER_POSITION.LEFT_THUMB,
-            FINGER_POSITION.RIGHT_THUMB
+            FINGER_POSITION.BOTH_THUMBS
+        }
+    },
+    {
+        "all_flow_with_text",
+        new[]
+        {
+            FINGER_POSITION.SOME_FINGERS
         }
     }
 };
@@ -122,7 +122,7 @@ namespace BiometricApp.Services
             LoadVideoResources();
             InitVideoFrames();
 
-            _currentFinger = FINGER_POSITION.LEFT_INDEX;
+            _currentFinger = FINGER_POSITION.SOME_FINGERS;
             _phase = VideoShowPhase.GuideFrame;
 
             StartVideoLoop();
@@ -678,44 +678,62 @@ namespace BiometricApp.Services
             switch (p.score_size)
             {
                 case 4:
-
-                    if (p.pos == FINGER_POSITION.LEFT_FOUR)
+                    if (p.pos == FINGER_POSITION.RIGHT_FOUR)
                     {
-                        score.L1 = managedArray[0] >= p.score_min;
-                        score.L2 = managedArray[1] >= p.score_min;
-                        score.L3 = managedArray[2] >= p.score_min;
-                        score.L4 = managedArray[3] >= p.score_min;
 
-                        validImgPath =
-                            Path.Combine(
-                                baseDir,
-                                $"panel/LeftHandPanel/Iterations/Iteration_{score.num}.png");
+                        score.R1 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                        score.R2 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
+                        score.R3 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[2] <= p.score_min : managedArray[2] >= p.score_min;
+                        score.R4 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[3] <= p.score_min : managedArray[3] >= p.score_min;
+
+                        isValid = score.R1 && score.R2 && score.R3 && score.R4;
+                        validImgPath = Path.Combine(baseDir, $"panel/RightHandPanel/Iterations/Iteration_{score.num}.png");
                     }
-                    else
+                    else if (p.pos == FINGER_POSITION.LEFT_FOUR)
                     {
-                        score.R1 = managedArray[0] >= p.score_min;
-                        score.R2 = managedArray[1] >= p.score_min;
-                        score.R3 = managedArray[2] >= p.score_min;
-                        score.R4 = managedArray[3] >= p.score_min;
+                        score.L1 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                        score.L2 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
+                        score.L3 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[2] <= p.score_min : managedArray[2] >= p.score_min;
+                        score.L4 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[3] <= p.score_min : managedArray[3] >= p.score_min;
 
-                        validImgPath =
-                            Path.Combine(
-                                baseDir,
-                                $"panel/RightHandPanel/Iterations/Iteration_{score.num}.png");
+                        isValid = score.L1 && score.L2 && score.L3 && score.L4;
+                        validImgPath = Path.Combine(baseDir, $"panel/LeftHandPanel/Iterations/Iteration_{score.num}.png");
                     }
-
                     break;
 
                 case 2:
+                    if (p.pos == FINGER_POSITION.BOTH_THUMBS)
+                    {
+                        score.L0 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                        score.R0 = p.score_ver == NFIQ_VERSION.V1 ? managedArray[1] <= p.score_min : managedArray[1] >= p.score_min;
 
-                    score.L0 = managedArray[0] >= p.score_min;
-                    score.R0 = managedArray[1] >= p.score_min;
+                        isValid = score.L0 && score.R0;
+                        validImgPath = Path.Combine(baseDir, $"panel/ThumbsPanel/Iterations/Iteration_{score.num}.png");
+                    }
+                    break;
 
-                    validImgPath =
-                        Path.Combine(
-                            baseDir,
-                            $"panel/ThumbsPanel/Iterations/Iteration_{score.num}.png");
+                case 1:
+                    bool passed = p.score_ver == NFIQ_VERSION.V1 ? managedArray[0] <= p.score_min : managedArray[0] >= p.score_min;
+                    isValid = passed;
 
+                    switch (p.pos)
+                    {
+                        case FINGER_POSITION.RIGHT_THUMB:
+                        case FINGER_POSITION.RIGHT_INDEX:
+                        case FINGER_POSITION.RIGHT_MIDDLE:
+                        case FINGER_POSITION.RIGHT_RING:
+                        case FINGER_POSITION.RIGHT_LITTLE:
+                            validImgPath = Path.Combine(baseDir, $"panel/RightRollingFingers/Iterations/RollFinger-{(passed ? "Done" : "Retry")}.png");
+                            break;
+
+                        case FINGER_POSITION.LEFT_THUMB:
+                        case FINGER_POSITION.LEFT_INDEX:
+                        case FINGER_POSITION.LEFT_MIDDLE:
+                        case FINGER_POSITION.LEFT_RING:
+                        case FINGER_POSITION.LEFT_LITTLE:
+                            validImgPath = Path.Combine(baseDir, $"panel/LeftRollingFingers/Iterations/RollFinger-{(passed ? "Done" : "Retry")}.png");
+                            break;
+                    }
                     break;
             }
 
@@ -910,7 +928,7 @@ namespace BiometricApp.Services
             switch (workType)
             {
                 case SampleSequence.Flat442:
-                    requiredMenus.AddRange(new[] { "left_4", "right_4", "two_thumbs" });
+                    requiredMenus.AddRange(new[] { "left_4", "right_4", "two_thumbs", "all_flow_with_text" });
                     break;
 
                 case SampleSequence.Flat442R:
@@ -919,6 +937,9 @@ namespace BiometricApp.Services
 
                 case SampleSequence.Signature:
                     requiredMenus.Add("signature");
+                    break;
+                case SampleSequence.FlatSomefingers:
+                    requiredMenus.Add("all_flow_with_text");
                     break;
             }
 
