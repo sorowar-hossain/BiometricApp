@@ -1,4 +1,5 @@
-﻿using FingerprintWrapper;
+﻿using BiometricApp.Models;
+using FingerprintWrapper;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BiometricApp.Services
@@ -103,6 +105,29 @@ namespace BiometricApp.Services
             bmp.Dispose();
 
             return true;
+        }
+
+        // save Iris data
+        public async Task<string> SaveIris(byte[] leftImageBytes, byte[] rightImageBytes, string path)
+        {
+            if (leftImageBytes != null && rightImageBytes != null)
+            {
+                string jsonPath = Path.Combine(path, "iris.json");
+
+                IrisData irisData = new IrisData
+                {
+                    LeftIrisImage = Convert.ToBase64String(leftImageBytes),
+                    RightIrisImage = Convert.ToBase64String(rightImageBytes)
+                };
+
+                string json = JsonSerializer.Serialize(
+                    irisData,
+                    new JsonSerializerOptions { WriteIndented = true });
+
+                File.WriteAllText(jsonPath, json);
+                return jsonPath;
+            }
+            return "";
         }
 
     }

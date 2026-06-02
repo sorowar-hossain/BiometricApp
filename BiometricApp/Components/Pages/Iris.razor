@@ -22,7 +22,7 @@
                 }
             </div>
 
-            <div class="status-text">@LeftCaptureStatus</div>
+            <div class="status-text iris-title">@LeftCaptureStatus</div>
 
         </div>
 
@@ -39,11 +39,12 @@
 
                 <button class="btn btn-warning px-4 save-btn"
                         @onclick="Retake"
-                        disabled="@isProcessing">
+                        disabled="@(!isProcessing)">
                     <i class="bi bi-arrow-repeat"></i> Retake
                 </button>
                 <button class="btn btn-success px-5 save-btn"
-                        disabled="@isProcessing">
+                        @onclick="SaveIris"
+                        disabled="@(!isProcessing)">
                     Save
                 </button>
 
@@ -66,7 +67,7 @@
                 }
             </div>
 
-            <div class="status-text">@RightCaptureStatus</div>
+            <div class="status-text iris-title">@RightCaptureStatus</div>
 
         </div>
 
@@ -97,6 +98,8 @@
 
     private string LeftCaptureStatus = "";
     private string RightCaptureStatus = "";
+    [Parameter]
+    public EventCallback<string> OnActionMessage { get; set; }
 
     private byte[] leftImageBytes;
     private byte[] rightImageBytes;
@@ -137,7 +140,7 @@
         {
             return;
         }
-      
+
         path = Path.Combine(path, selectedMemberId);
 
         // Attach device first (if not already attached)
@@ -200,14 +203,17 @@
         {
             IrisService.SaveImages(leftImageBytes, rightImageBytes, path);
             message = "Iris saved successfully to " + path;
+            isProcessing = true;
         }
     }
 
-    private void SaveIrisImagesToServer()
+    private async Task SaveIris()
     {
         if (leftImageBytes != null && rightImageBytes != null)
         {
-            // save to server later
+            string res= await IrisService.SaveIris(leftImageBytes, rightImageBytes, path);
+            await OnActionMessage.InvokeAsync(res);
+
         }
     }
 
@@ -223,6 +229,9 @@
         LeftCaptureStatus = "";
         RightCaptureStatus = "";
         message = "";
+        isProcessing = false;
+        leftImageBytes=[];
+        rightImageBytes=[];
         path = AppSettings.BaseFolder;
     }
 }

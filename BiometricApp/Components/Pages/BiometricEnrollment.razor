@@ -19,7 +19,7 @@
             @if (!string.IsNullOrEmpty(message))
             {
                 <div class="alert alert-success py-2">
-                    @message
+                    @($"Saved Data to {message}")
                 </div>
             }
         </div>
@@ -91,7 +91,7 @@
                         Iris Capture
                     </div>
                     <div class="module-body">
-                        <Iris />
+                        <Iris OnActionMessage="ShowMessage" />
                     </div>
                 </div>
             </div>
@@ -297,7 +297,7 @@
         string seqStr = seq.ToString("D6"); // 000001, 000002, etc.
 
         // Include username + datetime + sequence
-        string id = $"BIO.{userName}.{DateTime.Now:yyyyMMddHHmm}.{seqStr}";
+        string id = $"BIO{userName}{DateTime.Now:yyyyMMdd}{seqStr}";
 
         return id;
     }
