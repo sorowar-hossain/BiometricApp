@@ -181,6 +181,7 @@ namespace BiometricApp.Services
         {
             try
             {
+                FINGER_POSITION FfingerPosition = fingerPosition;
                 message = "";
                 reScan = false;
                 _scanCompleted = false;
@@ -196,19 +197,6 @@ namespace BiometricApp.Services
                 Connect_Pannel();
 
                 await Task.Delay(1500);
-
-                if(fingerPosition.ToString().ToLower() == "left_four")
-                {
-                    fingerPosition = FINGER_POSITION.LEFT_INDEX;
-                }
-                else if (fingerPosition.ToString().ToLower() == "right_four")
-                {
-                    fingerPosition = FINGER_POSITION.RIGHT_INDEX;
-                }
-                else if (fingerPosition.ToString().ToLower() == "both_thumbs")
-                {
-                    fingerPosition = FINGER_POSITION.LEFT_THUMB;
-                }
 
                 _currentFinger = fingerPosition;
 
@@ -236,6 +224,7 @@ namespace BiometricApp.Services
                 }
 
                 _phase = VideoShowPhase.Scanning;
+
 
                 bool completed = await WaitScanComplete();
                 
@@ -587,7 +576,7 @@ namespace BiometricApp.Services
 
                 waited += 200;
             }
-
+            
             return _scanCompleted;
         }
 
