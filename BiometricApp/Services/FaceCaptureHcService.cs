@@ -116,7 +116,7 @@ public class FaceCaptureHcService
 
         cam.EnableAutoCrop(1, _autoCropEnabled);
         var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
-        _ImgQuality = CalculateQuality(imgStr);
+        _ImgQuality = CalculateQualityPercentage(imgStr);
         return cam.CaptureBase64(cameraIndex);
     }
 
@@ -241,7 +241,7 @@ public class FaceCaptureHcService
         return "";
     }
 
-    public double CalculateQuality(byte[] imageBytes)
+    public double CalculateQualityPercentage(byte[] imageBytes)
     {
         Mat img = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
 
@@ -250,6 +250,14 @@ public class FaceCaptureHcService
 
         Cv2.MeanStdDev(laplacian, out _, out Scalar stddev);
 
-        return stddev.Val0 * stddev.Val0;
+        double variance = stddev.Val0 * stddev.Val0;
+
+        // Adjust based on your camera testing
+        const double maxSharpness = 500.0;
+
+        double percentage = Math.Min(100.0,
+            (variance / maxSharpness) * 100.0);
+
+        return Math.Round(percentage, 2);
     }
 }
