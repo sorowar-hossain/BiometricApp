@@ -3,6 +3,7 @@ using FAP50Demo;
 using OpenCvSharp;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using FINGER_POSITION = FAP50Demo.FINGER_POSITION;
 using GUI_SHOW_MODE = FAP50Demo.GUI_SHOW_MODE;
 using IMD_RESULT = FAP50Demo.IMD_RESULT;
@@ -998,5 +999,76 @@ namespace BiometricApp.Services
                 OnFrameUpdated?.Invoke();
             }
         }
+
+
+        private FingerData LoadFingerData(string path)
+        {
+            string file = Path.Combine(path, "finger.json");
+
+            if (!File.Exists(file))
+                return new FingerData();
+
+            return JsonSerializer.Deserialize<FingerData>(File.ReadAllText(file)) ?? new FingerData();
+        }
+        public async Task<string> SaveFinger(string[] fingers, int start, int end, string path) 
+        {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            string jsonPath = Path.Combine(path, "finger.json");
+
+            var fingerData = LoadFingerData(path);
+
+            //var encoded = Convert.ToBase64String(imageBytes);
+
+            for (int i = start; i <= end; i++)
+            {
+                var value = fingers[i];
+
+                switch (i)
+                {
+                    case 0: fingerData.LeftLittle = value; break;
+                    case 1: fingerData.LeftRing = value; break;
+                    case 2: fingerData.LeftMiddle = value; break;
+                    case 3: fingerData.LeftIndex = value; break;
+
+                    case 6: fingerData.RightIndex = value; break;
+                    case 7: fingerData.RightMiddle = value; break;
+                    case 8: fingerData.RightRing = value; break;
+                    case 9: fingerData.RightLittle = value; break;
+
+                    case 4: fingerData.LeftThumb = value; break;
+                    case 5: fingerData.RightThumb = value; break;
+                }
+            }
+
+            string json = JsonSerializer.Serialize(fingerData, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            File.WriteAllText(jsonPath, json);
+
+            return jsonPath;
+        }
+
+    }
+
+    public class FingerData
+    {
+        public string? LeftLittle { get; set; }
+        public string? LeftRing { get; set; }
+        public string? LeftMiddle { get; set; }
+        public string? LeftIndex { get; set; }
+
+        public string? LeftThumb { get; set; }
+        public string? RightThumb { get; set; }
+
+        public string? RightIndex { get; set; }
+        public string? RightMiddle { get; set; }
+        public string? RightRing { get; set; }
+        public string? RightLittle { get; set; }
+
+    
     }
 }

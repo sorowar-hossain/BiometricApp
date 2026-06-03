@@ -1,4 +1,5 @@
-﻿using FAP50Demo;
+﻿using BiometricApp.Models;
+using FAP50Demo;
 using FingerprintWrapper;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace BiometricApp.Services
@@ -30,7 +32,7 @@ namespace BiometricApp.Services
                 {
                     Directory.CreateDirectory(folder);
                 }
-               
+
 
                 string path = Path.Combine(folder, "sig.png");
 
@@ -69,7 +71,7 @@ namespace BiometricApp.Services
                     waited += 100;
                 }
 
-                
+
 
                 // finalize signature
                 imd_fap50.signature(SIGNATURE_ACTION.OK);
@@ -90,7 +92,7 @@ namespace BiometricApp.Services
                     return "";
                 }
 
-                return  Path.Combine(folder, "sig_Signature_.png"); ;
+                return Path.Combine(folder, "sig_Signature_.png"); ;
             }
             catch (Exception ex)
             {
@@ -161,5 +163,32 @@ namespace BiometricApp.Services
                 }
             }
         }
-    } 
+
+
+        public async Task<string> SaveSignature(string sigImage, string path) 
+        {
+            if (sigImage != null)
+            {
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                string jsonPath = Path.Combine(path, "signature.json");
+
+                SignatureData irisData = new SignatureData
+                {
+                    SignatureImage = sigImage
+
+                };
+
+                string json = JsonSerializer.Serialize(
+                    irisData,
+                    new JsonSerializerOptions { WriteIndented = true });
+
+                File.WriteAllText(jsonPath, json);
+                return jsonPath;
+            }
+            return "";
+        }
+    }
 }

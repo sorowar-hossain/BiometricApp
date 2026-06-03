@@ -187,6 +187,7 @@
     private bool IsCapturing = false;
     bool isProcessing = true;
     static string path = "";
+    static string folder = "";
     private string PersonUniqueId = "";
 
     protected override async Task OnInitializedAsync()
@@ -195,6 +196,7 @@
         IsCapturing = false;
         PersonUniqueId = SessionService.User.PersonUniqueId;
         path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
+        folder = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
     }
 
     private async Task CaptureSignature()
@@ -233,7 +235,7 @@
 
     private async Task SaveSignature()
     {
- 
+
         if (File.Exists(path))
         {
 
@@ -241,6 +243,9 @@
 
             SignatureBase64 =
                 $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+
+            await signatureService.SaveSignature(SignatureBase64, folder);
+
             path = "";
         }
 
@@ -250,6 +255,7 @@
     private async Task ClearSignature()
     {
         LiveSignatureBase64 = null;
+        SignatureBase64 = null;
         path = "";
         isProcessing = true;
         StateHasChanged();

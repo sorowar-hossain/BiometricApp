@@ -179,7 +179,7 @@
 
     string folder = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
-    private string selectedMemberId = "BIO123456789";
+    private string selectedMemberId = "";
     bool isProcessing = false;
 
     protected override async Task OnInitializedAsync()
@@ -199,7 +199,7 @@
         {
             selectedMemberId = memberId;
         }
-        selectedMemberId = "BIO123456789";
+
     }
 
     private bool IsAllCompleted()
@@ -209,8 +209,8 @@
 
     private async Task Save()
     {
-        
-    
+
+
     }
 
 
@@ -332,8 +332,9 @@
                     currentIndex = 6;
                 else if (!tFingerDone)
                     currentIndex = 4;
-                LoadLeftFourFingerprints(imagePath);
+                await LoadLeftFourFingerprints(imagePath);
                 ChangeImage();
+                await SaveFiger(imagePath, 0, 3);
                 StateHasChanged();
             }
         }
@@ -344,6 +345,20 @@
         StateHasChanged();
     }
 
+    private async Task SaveFiger(string imagePath, int start, int end)
+    {
+        if (start < 0) start = 0;
+        if (end >= Fingerprints.Length) end = Fingerprints.Length - 1;
+        if (start > end) return;
+
+        var result = Fingerprints
+            .Skip(start)
+            .Take(end - start + 1)
+            .ToArray();
+
+
+        await ScannerService.SaveFinger(Fingerprints, start, end, imagePath);
+    }
 
     private async Task StartScanRight()
     {
@@ -380,8 +395,9 @@
                     currentIndex = 0;
                 else if (!tFingerDone)
                     currentIndex = 4;
-                LoadRightFourFingerprints(imagePath);
+                await LoadRightFourFingerprints(imagePath);
                 ChangeImage();
+                await SaveFiger(imagePath, 6, 9);
                 StateHasChanged();
             }
         }
@@ -429,8 +445,9 @@
                     currentIndex = 0;
                 else if (!rFingerDone)
                     currentIndex = 6;
-                LoadThumbTwoFingerprints(imagePath);
+                await LoadThumbTwoFingerprints(imagePath);
                 ChangeImage();
+                await SaveFiger(imagePath, 4, 5);
                 StateHasChanged();
             }
 
@@ -444,7 +461,7 @@
     }
 
 
-    private void LoadLeftFourFingerprints(string imagePath)
+    private async Task LoadLeftFourFingerprints(string imagePath)
     {
         string[] files =
         {
@@ -470,7 +487,10 @@
 
     }
 
-    private void LoadRightFourFingerprints(string imagePath)
+
+
+
+    private async Task LoadRightFourFingerprints(string imagePath)
     {
 
         string[] files =
@@ -496,7 +516,7 @@
         // currentIndex = 5;
     }
 
-    private void LoadThumbTwoFingerprints(string imagePath)
+    private async Task LoadThumbTwoFingerprints(string imagePath)
     {
 
         string[] files =
@@ -656,31 +676,35 @@
     .slot {
         position: relative;
         width: 100%;
-        height: 140px;
+        height: 180px; /* 🔥 increase size */
         border: 2px solid #3b63a3;
         border-radius: 8px;
         overflow: hidden;
+        background: #fff;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: #fff;
     }
 
+    /* Finger image should fully use space */
     .finger-img {
         width: 100%;
         height: 100%;
         object-fit: contain;
+        padding: 6px; /* small inner spacing */
     }
 
+    /* Move label OUT of image space */
     .finger-label {
         position: absolute;
-        top: 2px;
-        left: 2px;
-        background: rgba(255,255,255,.9);
-        padding: 2px 5px;
+        top: 4px;
+        left: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        background: rgba(255,255,255,0.8);
+        padding: 2px 6px;
         border-radius: 4px;
-        font-size: 11px;
-        font-weight: bold;
+        z-index: 2;
     }
 
     .thumb-section {
