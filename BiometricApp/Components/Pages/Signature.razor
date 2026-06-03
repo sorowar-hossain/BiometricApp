@@ -228,6 +228,7 @@
         if (!string.IsNullOrEmpty(path) && File.Exists(path))
         {
             isProcessing = false;
+           
         }
 
         StateHasChanged();
@@ -246,7 +247,7 @@
 
             await signatureService.SaveSignature(SignatureBase64, folder);
 
-            path = "";
+            path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
         }
 
         StateHasChanged();
@@ -256,7 +257,7 @@
     {
         LiveSignatureBase64 = null;
         SignatureBase64 = null;
-        path = "";
+        path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId); 
         isProcessing = true;
         StateHasChanged();
         
