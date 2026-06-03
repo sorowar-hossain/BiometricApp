@@ -1,4 +1,7 @@
-﻿using FingerprintWrapper;
+﻿using BiometricApp.Models;
+using FingerprintWrapper;
+using System.Text.Json;
+
 
 #if WINDOWS
 using WinRT.Interop;
@@ -206,5 +209,31 @@ public class FaceCaptureHcService
         catch
         {
         }
+    }
+
+    public async Task<string> SaveFace(string faceImageBytes, string path)
+    {
+        if (faceImageBytes != null)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            string jsonPath = Path.Combine(path, "face.json");
+
+            FaceData irisData = new FaceData
+            {
+                FaceImage = faceImageBytes
+
+            };
+
+            string json = JsonSerializer.Serialize(
+                irisData,
+                new JsonSerializerOptions { WriteIndented = true });
+
+            File.WriteAllText(jsonPath, json);
+            return jsonPath;
+        }
+        return "";
     }
 }

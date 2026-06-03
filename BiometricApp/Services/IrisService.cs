@@ -112,6 +112,10 @@ namespace BiometricApp.Services
         {
             if (leftImageBytes != null && rightImageBytes != null)
             {
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
                 string jsonPath = Path.Combine(path, "iris.json");
 
                 IrisData irisData = new IrisData

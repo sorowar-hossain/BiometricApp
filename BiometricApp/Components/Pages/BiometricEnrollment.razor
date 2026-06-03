@@ -24,11 +24,11 @@
             }
         </div>
         <div>
-            <button class="btn btn-danger"
+            <button class="btn btn-info"
                     type="button"
                     @onclick="ClearAll">
-                <i class="bi bi-x-circle"></i>
-                Clear All
+                <i class="bi bi-person-plus"></i>
+                New Registration
             </button>
         </div>
     </div>
@@ -249,54 +249,35 @@
 
     private int GetNextMemberSequence()
     {
-        // Absolute path for members
         string baseFolder = AppSettings.BaseFolder;
 
-        // Create the folder if it doesn't exist
+        // Create base folder if not exists
         if (!Directory.Exists(baseFolder))
         {
             Directory.CreateDirectory(baseFolder);
-            return 1; // no members yet
+            return 1; // first member starts from 1 (000001)
         }
 
-        // Get all subfolders (each folder = one member)
+        // Get all member folders
         var allFolders = Directory.GetDirectories(baseFolder);
 
         if (allFolders.Length == 0)
-            return 1; // no members yet
+            return 1;
 
-        // Count members created today (optional, or just use total folders)
-        int maxSequence = 0;
-
-        foreach (var folder in allFolders)
-        {
-            string jsonPath = Path.Combine(folder, "demographics.json");
-            if (File.Exists(jsonPath))
-            {
-                var json = File.ReadAllText(jsonPath);
-                var member = System.Text.Json.JsonSerializer.Deserialize<MemberModel>(json);
-                if (member != null)
-                {
-                    // Extract last 6-7 digits from PersonUniqueId if your ID stores sequence
-                    // Or simply count existing members and take max + 1
-                    maxSequence++;
-                }
-            }
-        }
-
-        return maxSequence + 1; // next sequence number
+        // Next sequence = folder count + 1
+        return allFolders.Length + 1;
     }
 
 
     private string CreateMemberId()
     {
         string userName = user.UserName;
+
         int seq = GetNextMemberSequence();
 
-        // Format sequence as 6-digit or 7-digit number with leading zeros
-        string seqStr = seq.ToString("D6"); // 000001, 000002, etc.
+        // 000001 format
+        string seqStr = seq.ToString("D6");
 
-        // Include username + datetime + sequence
         string id = $"BIO{userName}{DateTime.Now:yyyyMMdd}{seqStr}";
 
         return id;
