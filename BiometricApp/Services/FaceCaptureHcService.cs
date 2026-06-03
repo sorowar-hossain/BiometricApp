@@ -1,5 +1,6 @@
 ﻿using BiometricApp.Models;
 using FingerprintWrapper;
+using OpenCvSharp;
 using System.Text.Json;
 
 
@@ -22,6 +23,8 @@ public class FaceCaptureHcService
     private CancellationTokenSource _previewCts;
 
     private bool _autoCropEnabled = false;
+
+    public static double _ImgQuality = 0.0;
 
     public void StartCamera()
     {
@@ -112,7 +115,7 @@ public class FaceCaptureHcService
             throw new Exception("Camera not started");
 
         cam.EnableAutoCrop(1, _autoCropEnabled);
-
+        _ImgQuality = CalculateQuality(File.ReadAllBytes(cam.CaptureBase64(cameraIndex)));
         return cam.CaptureBase64(cameraIndex);
     }
 
@@ -235,5 +238,17 @@ public class FaceCaptureHcService
             return jsonPath;
         }
         return "";
+    }
+
+    public double CalculateQuality(byte[] imageBytes)
+    {
+        Mat img = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
+
+        Mat laplacian = new();
+        Cv2.Laplacian(img, laplacian, MatType.CV_64F);
+
+        Cv2.MeanStdDev(laplacian, out _, out Scalar stddev);
+
+        return stddev.Val0 * stddev.Val0;
     }
 }
