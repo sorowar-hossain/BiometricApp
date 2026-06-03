@@ -139,21 +139,21 @@
 
             <div class="camera-buttons mt-3">
 
-                <button class="btn btn-primary save-btn"
+                <button class="btn btn-info save-btn"
                         @onclick="ToggleCamera">
                     @(CameraConnected ? "Close Camera" : "Start Camera")
                 </button>
 
-                <button class="btn btn-success save-btn"
+                <button class="btn btn-primary save-btn"
                         @onclick="Capture"
                         disabled="@(!CameraConnected)">
-                    Capture
+                    <i class="bi bi-check2-circle me-1"></i>Capture
                 </button>
 
                 <button class="btn btn-warning save-btn"
                         @onclick="Retake"
                         disabled="@string.IsNullOrEmpty(CapturedImage)">
-                    Retake
+                    <i class="bi bi-arrow-repeat"></i>Retake
                 </button>
 
             </div>
@@ -203,13 +203,16 @@
 
             </div>
 
-            
 
-            <button class="btn btn-success w-100 mt-2 save-btn" style="margin-top:20px;"
-                    @onclick="SaveFace"
-                    disabled="@string.IsNullOrEmpty(CapturedImage)">
-                Save Photo
-            </button>
+
+            <div class="d-flex justify-content-center mt-2">
+                <button class="btn btn-success save-btn"
+                        style="width:200px;"
+                        @onclick="SaveFace"
+                        disabled="@string.IsNullOrEmpty(CapturedImage)">
+                    <i class="bi bi-check2-circle me-1"></i>Save Photo
+                </button>
+            </div>
 
             <div class="status-box mt-3">
                 <h6>Status: @Status</h6>
