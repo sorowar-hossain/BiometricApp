@@ -115,7 +115,8 @@ public class FaceCaptureHcService
             throw new Exception("Camera not started");
 
         cam.EnableAutoCrop(1, _autoCropEnabled);
-        _ImgQuality = CalculateQuality(File.ReadAllBytes(cam.CaptureBase64(cameraIndex)));
+        var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
+        _ImgQuality = CalculateQuality(imgStr);
         return cam.CaptureBase64(cameraIndex);
     }
 
