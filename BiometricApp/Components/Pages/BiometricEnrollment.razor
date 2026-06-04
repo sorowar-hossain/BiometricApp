@@ -18,8 +18,9 @@
         <div>
             @if (!string.IsNullOrEmpty(message))
             {
-                <div class="alert alert-success py-2">
-                    @($"Saved Data to {message}")
+                <div class="alert alert-success py-2 mb-3 fade-message @(isVisible ? "show" : "hide")">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <span class="message-text">@message</span>
                 </div>
             }
         </div>
@@ -216,11 +217,37 @@
         border-radius: 10px;
     }
 
+    .alert-success {
+        border-radius: 10px;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .message-text {
+        font-size: 18px;
+    }
+
+    .fade-message {
+        opacity: 0;
+        transform: translateY(-5px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+        .fade-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-message.hide {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
 </style>
 
 @code{
     private UserLoginResponse user = new();
     public string message = "";
+    private bool isVisible;
     protected override async Task OnInitializedAsync()
     {
         // Get current user
@@ -235,10 +262,21 @@
         StateHasChanged();
     }
 
-    private async Task ShowMessage(string msg)
+    private async Task ShowMessage()
     {
-        message = msg;
-        StateHasChanged();
+        message = "Data Saved Successfully..";
+        isVisible = true;
+        await InvokeAsync(StateHasChanged);
+
+        await Task.Delay(1000);
+
+        isVisible = false;
+        await InvokeAsync(StateHasChanged);
+
+        await Task.Delay(300); // match fade duration
+
+        message = null;
+        await InvokeAsync(StateHasChanged);
     }
 
 
