@@ -2,7 +2,9 @@
 using FingerprintWrapper;
 using OpenCvSharp;
 using System.Text.Json;
-
+using FaceONNX;
+using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 
 #if WINDOWS
 using WinRT.Interop;
@@ -25,6 +27,18 @@ public class FaceCaptureHcService
     private bool _autoCropEnabled = false;
 
     public static double _ImgQuality = 0.0;
+
+    private readonly InferenceSession _detector;
+    private readonly InferenceSession _emotion;
+    private readonly InferenceSession _gender;
+
+
+    public FaceCaptureHcService()
+    {
+        _detector = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "face_detection.onnx"));
+        _emotion = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "emotion.onnx"));
+        _gender = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "gender.onnx"));
+    }
 
     public void StartCamera()
     {
@@ -117,6 +131,9 @@ public class FaceCaptureHcService
         cam.EnableAutoCrop(1, _autoCropEnabled);
         var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
         _ImgQuality = CalculateQualityPercentage(imgStr);
+        var face = Cv2.ImDecode(imgStr, ImreadModes.Grayscale);
+        GetEmotion(face);
+        GetGender(face);
         return cam.CaptureBase64(cameraIndex);
     }
 
@@ -259,5 +276,61 @@ public class FaceCaptureHcService
             (variance / maxSharpness) * 100.0);
 
         return Math.Round(percentage, 2);
+    }
+    private DenseTensor<float> Preprocess(byte[] imageBytes)
+    {
+        using var face = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
+
+        using var resized = new Mat();
+        Cv2.Resize(face, resized, new OpenCvSharp.Size(64, 64));
+
+        var tensor = new DenseTensor<float>(new[] { 1, 1, 64, 64 });
+
+        for (int y = 0; y < 64; y++)
+        {
+            for (int x = 0; x < 64; x++)
+            {
+                tensor[0, 0, y, x] =
+                    resized.At<byte>(y, x) / 255.0f;
+            }
+        }
+
+        return tensor;
+    }
+    private string GetEmotion(Mat face)
+    {
+        Cv2.ImEncode(".jpg", face, out byte[] imageBytes);
+        var tensor = Preprocess(imageBytes);
+
+        var inputs = new List<NamedOnnxValue>
+    {
+        NamedOnnxValue.CreateFromTensor("input", tensor)
+    };
+
+        using var result = _emotion.Run(inputs);
+
+        var output = result.First().AsEnumerable<float>().ToArray();
+
+        int maxIndex = Array.IndexOf(output, output.Max());
+
+        string[] labels = { "Angry", "Happy", "Sad", "Surprise", "Neutral" };
+
+        return labels[maxIndex];
+    }
+    private string GetGender(Mat face)
+    {
+        Cv2.ImEncode(".jpg", face, out byte[] imageBytes);
+        var tensor = Preprocess(imageBytes);
+
+        var inputs = new List<NamedOnnxValue>
+    {
+        NamedOnnxValue.CreateFromTensor("input", tensor)
+    };
+
+        using var result = _gender.Run(inputs);
+
+        var output = result.First().AsEnumerable<float>().ToArray();
+
+        return output[0] > 0.5 ? "Male" : "Female";
     }
 }
