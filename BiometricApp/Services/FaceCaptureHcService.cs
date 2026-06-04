@@ -5,6 +5,12 @@ using System.Text.Json;
 using FaceONNX;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
+using Windows.Media.FaceAnalysis;
+using System.Drawing;
+
+using OpenCvSharp.Extensions;
+
+
 
 #if WINDOWS
 using WinRT.Interop;
@@ -34,14 +40,14 @@ public class FaceCaptureHcService
     public static double _HappyEmoScore = 0.0;
     public static double _SurpriseEmoScore = 0.0;
 
-    private readonly InferenceSession _detector;
     private readonly InferenceSession _emotion;
     private readonly InferenceSession _gender;
+    private readonly FaceONNX.FaceDetector _detector;
 
 
     public FaceCaptureHcService()
     {
-        _detector = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "face_detection.onnx"));
+        _detector = new FaceONNX.FaceDetector();
         _emotion = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "emotion.onnx"));
         _gender = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "gender.onnx"));
     }
@@ -241,33 +247,69 @@ public class FaceCaptureHcService
             _latestBase64 =
                 cam.CaptureBase64(cameraIndex);
             var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
-            var face = Cv2.ImDecode(imgStr, ImreadModes.Grayscale);
-            var Emores = GetEmotionPercentages(face);
-            foreach (var item in Emores)
+            Mat frame = Cv2.ImDecode(imgStr, ImreadModes.Color);
+
+            var face = DetectFace(frame); // cropped face
+
+            if (face != null)
             {
-                if (item.Key.ToLower() == "angry")
+                var Emores = GetEmotionPercentages(face);
+                foreach (var item in Emores)
                 {
-                    _AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                }
-                else if (item.Key.ToLower() == "happy")
-                {
-                    _HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                }
-                else if (item.Key.ToLower() == "sad")
-                {
-                    _SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                }
-                else if (item.Key.ToLower() == "surprise")
-                {
-                    _SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                    if (item.Key.ToLower() == "angry")
+                    {
+                        _AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                    }
+                    else if (item.Key.ToLower() == "happy")
+                    {
+                        _HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                    }
+                    else if (item.Key.ToLower() == "sad")
+                    {
+                        _SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                    }
+                    else if (item.Key.ToLower() == "surprise")
+                    {
+                        _SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                    }
                 }
             }
+            
         }
         catch
         {
         }
     }
+    private Mat? DetectFace(Mat frame)
+    {
+        using Bitmap bitmap = BitmapConverter.ToBitmap(frame);
 
+        var faces = _detector.Forward(bitmap);
+
+        if (faces == null || faces.Length == 0)
+            return null;
+
+        var face = faces[0];
+
+        var r = face.Rectangle;
+
+        var rect = new OpenCvSharp.Rect(
+            r.X,
+            r.Y,
+            r.Width,
+            r.Height);
+
+        rect = rect & new OpenCvSharp.Rect(
+            0,
+            0,
+            frame.Width,
+            frame.Height);
+
+        if (rect.Width <= 0 || rect.Height <= 0)
+            return null;
+
+        return new Mat(frame, rect).Clone();
+    }
     public async Task<string> SaveFace(string faceImageBytes, string path)
     {
         if (faceImageBytes != null)
