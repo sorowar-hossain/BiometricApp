@@ -132,37 +132,8 @@
                     </div>
                 </div>
             </div>
-            <!-- EMOTION DETECTION -->
-            <div class="analytics-card mt-3">
-                <div class="analytics-header">
-                    <i class="bi bi-emoji-smile"></i>
-                    Emotion Detection
-                </div>
 
-                <div class="analytics-content">
-                    <div class="analytics-item">
-                        <span>Happy</span>
-                        <strong>@FaceCaptureHcService._HappyEmoScore%</strong>
-                    </div>
-
-                   
-
-                    <div class="analytics-item">
-                        <span>Sad</span>
-                        <strong>@FaceCaptureHcService._SadEmoScore%</strong>
-                    </div>
-
-                    <div class="analytics-item">
-                        <span>Angry</span>
-                        <strong>@FaceCaptureHcService._AngryEmoScore%</strong>
-                    </div>
-
-                    <div class="analytics-item">
-                        <span>Surprised</span>
-                        <strong>@FaceCaptureHcService._SurpriseEmoScore%</strong>
-                    </div>
-                </div>
-            </div>
+           
         </div>
 
         <!-- CENTER CAMERA -->
@@ -212,6 +183,42 @@
                 <h5>Image Quality Score: @FaceCaptureHcService._ImgQuality%</h5>
             </div>
 
+            <!-- EMOTION DETECTION -->
+            <div class="analytics-card mt-3">
+                <div class="analytics-header">
+                    <i class="bi bi-emoji-smile"></i>
+                    Emotion Detection
+                </div>
+
+                <div class="analytics-content emotion-grid">
+
+                    <div class="emotion-column">
+                        <div class="analytics-item">
+                            <span>Happy</span>
+                            <strong>@FaceCaptureHcService._HappyEmoScore%</strong>
+                        </div>
+
+                        <div class="analytics-item">
+                            <span>Sad</span>
+                            <strong>@FaceCaptureHcService._SadEmoScore%</strong>
+                        </div>
+                    </div>
+
+                    <div class="emotion-column">
+                        <div class="analytics-item">
+                            <span>Angry</span>
+                            <strong>@FaceCaptureHcService._AngryEmoScore%</strong>
+                        </div>
+
+                        <div class="analytics-item">
+                            <span>Surprised</span>
+                            <strong>@FaceCaptureHcService._SurpriseEmoScore%</strong>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
 
         <!-- RIGHT PREVIEW -->
@@ -237,7 +244,7 @@
 
 
 
-            <div class="d-flex justify-content-center mt-2">
+            <div class="d-flex justify-content-start mt-2">
                 <div class="d-flex justify-content-center mt-2">
                     <button class="btn btn-success save-btn custom-save-btn"
                             @onclick="SaveFace"
@@ -763,4 +770,20 @@
             font-size: 16px;
             font-weight: 700;
         }
+
+    .detection-box .analytics-card {
+        height: 100%;
+    }
+
+    .emotion-grid {
+        display: flex;
+        gap: 20px;
+    }
+
+    .emotion-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 </style>
