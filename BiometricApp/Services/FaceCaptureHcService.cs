@@ -138,26 +138,6 @@ public class FaceCaptureHcService
         var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
         _ImgQuality = CalculateQualityPercentage(imgStr);
         var face = Cv2.ImDecode(imgStr, ImreadModes.Grayscale);
-        var Emores = GetEmotionPercentages(face);
-        foreach(var item in Emores)
-        {
-            if (item.Key.ToLower() == "angry")
-            {
-                _AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
-            }
-            else if (item.Key.ToLower() == "happy")
-            {
-                _HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
-            }
-            else if (item.Key.ToLower() == "sad")
-            {
-                _SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
-            }
-            else if (item.Key.ToLower() == "surprise")
-            {
-                _SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
-            }
-        }
         var Gres = GetGender(face);
         if(Gres.ToLower() == "male")
         {
@@ -214,7 +194,7 @@ public class FaceCaptureHcService
         if (!isStarted)
             return;
 
-        cam.ZoomIn(0);
+        cam.ZoomIn(cameraIndex);
 
         RefreshPreview();
     }
@@ -243,8 +223,7 @@ public class FaceCaptureHcService
 
         try
         {
-            _latestBase64 =
-                cam.CaptureBase64(cameraIndex);
+            RefreshPreview();
         }
         catch
         {
@@ -261,6 +240,28 @@ public class FaceCaptureHcService
         {
             _latestBase64 =
                 cam.CaptureBase64(cameraIndex);
+            var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
+            var face = Cv2.ImDecode(imgStr, ImreadModes.Grayscale);
+            var Emores = GetEmotionPercentages(face);
+            foreach (var item in Emores)
+            {
+                if (item.Key.ToLower() == "angry")
+                {
+                    _AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                }
+                else if (item.Key.ToLower() == "happy")
+                {
+                    _HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                }
+                else if (item.Key.ToLower() == "sad")
+                {
+                    _SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                }
+                else if (item.Key.ToLower() == "surprise")
+                {
+                    _SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                }
+            }
         }
         catch
         {
