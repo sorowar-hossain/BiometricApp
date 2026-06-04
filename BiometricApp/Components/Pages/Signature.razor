@@ -228,7 +228,12 @@
         if (!string.IsNullOrEmpty(path) && File.Exists(path))
         {
             isProcessing = false;
-           
+
+        }
+
+        else
+        {
+            path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
         }
 
         StateHasChanged();
