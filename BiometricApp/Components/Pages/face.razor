@@ -40,65 +40,77 @@
             </select> *@
 
             <!-- CONTROLS -->
-            <div class="mt-3">
-
-                <div class="mt-3">
-                    <button class="btn btn-success"
-                            @onclick="EnableAutoCrop">
-                        Enable Auto Crop
-                    </button>
-
-                    <button class="btn btn-danger"
-                            @onclick="DisableAutoCrop">
-                        Disable Auto Crop
-                    </button>
+            <!-- CAMERA CONTROLS -->
+            <div class="analytics-card mt-3">
+                <div class="analytics-header">
+                    <i class="bi bi-sliders"></i>
+                    Camera Controls
                 </div>
 
-                <div class="mt-3">
-                    <button class="btn btn-primary"
-                            @onclick="RotateLeft">
-                        Rotate Left
-                    </button>
+                <div class="analytics-content">
 
-                    <button class="btn btn-primary"
-                            @onclick="RotateRight">
-                        Rotate Right
-                    </button>
-                </div>
-                       
+                    <!-- Auto Crop -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <button class="btn btn-success w-100"
+                                    @onclick="EnableAutoCrop">
+                                Enable Auto Crop
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-danger w-100"
+                                    @onclick="DisableAutoCrop">
+                                Disable Auto Crop
+                            </button>
+                        </div>
+                    </div>
 
-                <div class="mt-3">
-                    <button class="btn btn-primary"
-                            @onclick="ZoomIn">
-                        Zoom In
-                    </button>
+                    <!-- Rotation -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <button class="btn btn-primary w-100"
+                                    @onclick="RotateLeft">
+                                Rotate Left
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-primary w-100"
+                                    @onclick="RotateRight">
+                                Rotate Right
+                            </button>
+                        </div>
+                    </div>
 
-                    <button class="btn btn-primary"
-                            @onclick="ZoomOut">
-                        Zoom Out
-                    </button>
-                </div>
+                    <!-- Zoom -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <button class="btn btn-primary w-100"
+                                    @onclick="ZoomIn">
+                                Zoom In
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-primary w-100"
+                                    @onclick="ZoomOut">
+                                Zoom Out
+                            </button>
+                        </div>
+                    </div>
 
-                <div class="mt-3">
-                    <select class="form-control"
-                            @onchange="ChangeResolution">
+                    <!-- Resolution -->
+                    <div class="mt-2">
+                        <select class="form-select"
+                                @onchange="ChangeResolution">
+                            <option value="">Select Resolution</option>
+                            <option value="0">640×480</option>
+                            <option value="1">800×600</option>
+                            <option value="2">1280×720</option>
+                            <option value="3">1920×1080</option>
+                        </select>
+                    </div>
 
-                        <option value="">Select Resolution</option>
-
-                        <option value="0">640×480</option>
-
-                        <option value="1">800×600</option>
-
-                        <option value="2">1280×720</option>
-
-                        <option value="3">1920×1080</option>
-
-                    </select>
                 </div>
             </div>
-
-         
-
 
             <!-- FACE RECOGNITION -->
             <div class="analytics-card mt-4">
@@ -860,4 +872,16 @@
         flex-direction: column;
         gap: 10px;
     }
+
+    .analytics-content .btn {
+        min-width: 140px;
+    }
+
+    .analytics-content .analytics-item {
+        margin-bottom: 10px;
+    }
+
+        .analytics-content .analytics-item:last-child {
+            margin-bottom: 0;
+        }
 </style>

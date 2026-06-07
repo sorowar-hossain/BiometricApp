@@ -51,6 +51,7 @@
                 <div class="slots">
                     @for (int i = 0; i < 4; i++)
                     {
+                        var index = i;
                         <div class="slot @(GetSlotClass(i))">
 
                             <div class="finger-label">
@@ -168,8 +169,17 @@
         </div>
 
     </div>
-
+  
 </div>
+@if (isPreviewVisible)
+{
+    <div class="preview-overlay" @onclick="ClosePreview">
+        <div class="preview-box" @onclick:stopPropagation>
+            <img src="@($"data:image/bmp;base64,{previewImage}")" />
+            <button class="btn btn-danger mt-2" @onclick="ClosePreview">Close</button>
+        </div>
+    </div>
+}
 
 @code {
     bool lFingerDone = false, rFingerDone = false, tFingerDone = false;
@@ -212,8 +222,18 @@
 
 
     }
+    string? previewImage;
+    bool isPreviewVisible = false;
 
-
+    void ShowPreview(int index)
+    {
+        previewImage = Fingerprints[index];
+        isPreviewVisible = true;
+    }
+    void ClosePreview()
+    {
+        isPreviewVisible = false;
+    }
     private async Task GoNext()
     {
         if (isProcessing) return;
@@ -816,4 +836,16 @@
     }
 
     }
+
+    .preview-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+        .preview-box img {
+            max-width: 400px;
+            max-height: 400px;
+        }
 </style>
