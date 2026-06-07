@@ -9,6 +9,8 @@ using Windows.Media.FaceAnalysis;
 using System.Drawing;
 
 using OpenCvSharp.Extensions;
+using Windows.Perception.People;
+
 
 
 
@@ -44,6 +46,10 @@ public class FaceCaptureHcService
     public static InferenceSession _gender;
     public static FaceONNX.FaceDetector _detector;
 
+
+    public static double sharpness = 0.0;
+    public static double brightness = 0.0;
+    public static double contrast = 0.0;
 
     public FaceCaptureHcService()
     {
@@ -270,24 +276,91 @@ public class FaceCaptureHcService
         return "";
     }
 
-    public static double CalculateQualityPercentage(byte[] imageBytes)
+    public static double GetSharpnessScore(Mat gray)
     {
-        Mat img = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
+        using var lap = new Mat();
 
-        Mat laplacian = new();
-        Cv2.Laplacian(img, laplacian, MatType.CV_64F);
+        Cv2.Laplacian(gray, lap, MatType.CV_64F);
 
-        Cv2.MeanStdDev(laplacian, out _, out Scalar stddev);
+        Cv2.MeanStdDev(lap, out _, out Scalar stddev);
 
         double variance = stddev.Val0 * stddev.Val0;
 
-        // Adjust based on your camera testing
-        const double maxSharpness = 500.0;
+        const double maxSharpness = 500;
 
-        double percentage = Math.Min(100.0,
-            (variance / maxSharpness) * 100.0);
+        return Math.Min(100,
+            variance / maxSharpness * 100);
+    }
+    public static double GetBrightnessScore(Mat gray)
+    {
+        Scalar mean = Cv2.Mean(gray);
 
-        return Math.Round(percentage, 2);
+        double brightness = mean.Val0;
+
+        double ideal = 128;
+
+        double diff = Math.Abs(brightness - ideal);
+
+        return Math.Max(0,
+            100 - diff / 128 * 100);
+    }
+    public static double GetContrastScore(Mat gray)
+    {
+        Cv2.MeanStdDev(gray, out _, out Scalar stddev);
+
+        double contrast = stddev.Val0;
+
+        return Math.Min(100,
+            contrast / 60.0 * 100);
+    }
+    public static double GetFaceSizeScore(OpenCvSharp.Rect faceRect, OpenCvSharp.Size imageSize)
+    {
+        double ratio =
+            (double)faceRect.Height /
+            imageSize.Height;
+
+        double ideal = 0.7;
+
+        double diff = Math.Abs(ratio - ideal);
+
+        return Math.Max(0,
+            100 - diff / ideal * 100);
+    }
+    public static double GetCenterScore(OpenCvSharp.Rect faceRect, OpenCvSharp.Size imgSize)
+    {
+        double cx = faceRect.X + faceRect.Width / 2.0;
+        double cy = faceRect.Y + faceRect.Height / 2.0;
+
+        double dx = Math.Abs(cx - imgSize.Width / 2.0);
+        double dy = Math.Abs(cy - imgSize.Height / 2.0);
+
+        double dist =
+            Math.Sqrt(dx * dx + dy * dy);
+
+        double maxDist =
+            Math.Sqrt(
+                imgSize.Width * imgSize.Width +
+                imgSize.Height * imgSize.Height) / 2;
+
+        return Math.Max(0,
+            100 - dist / maxDist * 100);
+    }
+
+    public static double CalculateQualityPercentage(byte[] imageBytes)
+    {
+        using var img = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
+
+        sharpness = GetSharpnessScore(img);
+        brightness = GetBrightnessScore(img);
+        contrast = GetContrastScore(img);
+
+        // Normalize weights to 100%
+        double quality =
+              sharpness * 0.50
+            + brightness * 0.30
+            + contrast * 0.20;
+
+        return Math.Round(quality, 2);
     }
     
     public static DenseTensor<float> PreprocessGender(byte[] imageBytes)
