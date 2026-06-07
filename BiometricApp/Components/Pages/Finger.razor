@@ -54,7 +54,7 @@
                         <div class="slot @(GetSlotClass(i))">
 
                             <div class="finger-label">
-                                @GetFingerLabel(i)
+                                @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
                             </div>
 
                             @if (!string.IsNullOrEmpty(Fingerprints[i]))
@@ -84,7 +84,7 @@
                         <div class="slot @(GetSlotClass(i))">
 
                             <div class="finger-label">
-                                @GetFingerLabel(i)
+                                @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
                             </div>
 
                             @if (!string.IsNullOrEmpty(Fingerprints[i]))
@@ -113,7 +113,7 @@
                     <!-- LEFT THUMB -->
                     <div class="slot @(GetSlotClass(4))">
 
-                        <div class="finger-label">LT</div>
+                        <div class="finger-label">LT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(4)</span>)</div>
 
                         @if (!string.IsNullOrEmpty(Fingerprints[4]))
                         {
@@ -126,7 +126,7 @@
                     <!-- RIGHT THUMB -->
                     <div class="slot @(GetSlotClass(5))">
 
-                        <div class="finger-label">RT</div>
+                        <div class="finger-label">RT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(5)</span>)</div>
 
                         @if (!string.IsNullOrEmpty(Fingerprints[5]))
                         {
