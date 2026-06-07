@@ -868,18 +868,19 @@
     }
 
     .preview-image {
-        max-width: 90vw; /* increased from 100% */
-        max-height: 85vh; /* increased from 75vh */
+        max-width: 90vw;
+        max-height: 85vh;
         width: auto;
         height: auto;
         object-fit: contain;
+        transform: translateY(30px); /* move image down visually */
     }
 
     .preview-close-btn {
         margin-top: 15px;
         margin-bottom: 15px; /* space below button */
 
-        padding: 10px 30px; /* bigger button */
+        padding: 14px 40px; /* bigger button */
         font-size: 1.1rem;
         font-weight: 600;
         min-width: 140px;
