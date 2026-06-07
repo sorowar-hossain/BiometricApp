@@ -25,7 +25,7 @@ namespace BiometricApp.Services
             try
             {
                 // reset device
-                imd_fap50.device_reset();
+                var rr = imd_fap50.device_reset();
 
                 // create folder
                 if (!Directory.Exists(folder))
@@ -124,14 +124,14 @@ namespace BiometricApp.Services
             return bitmap;
         }
 
-        public async Task StartLivePreviewAsync(
-    Action<byte[]> onFrame,
-    CancellationToken token)
+        public async Task StartLivePreviewAsync( Action<byte[]> onFrame,CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
                 try
                 {
+                    // reset device
+                   //var rr= imd_fap50.device_reset();
                     if (!imd_fap50.is_scan_busy())
                     {
                         await Task.Delay(100, token);

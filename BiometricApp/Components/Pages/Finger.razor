@@ -61,7 +61,7 @@
                             @if (!string.IsNullOrEmpty(Fingerprints[i]))
                             {
                                 <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")"
-                                     class="finger-img" @onclick="() => ShowPreview(index)" />
+                                     class="finger-img" />
                             }
 
                         </div>
@@ -169,16 +169,17 @@
         </div>
 
     </div>
-    @if (isPreviewVisible)
-    {
-        <div class="preview-overlay" @onclick="ClosePreview">
-            <div class="preview-box" @onclick:stopPropagation>
-                <img src="@($"data:image/bmp;base64,{previewImage}")" />
-                <button class="btn btn-danger mt-2" @onclick="ClosePreview">Close</button>
-            </div>
-        </div>
-    }
+  
 </div>
+@if (isPreviewVisible)
+{
+    <div class="preview-overlay" @onclick="ClosePreview">
+        <div class="preview-box" @onclick:stopPropagation>
+            <img src="@($"data:image/bmp;base64,{previewImage}")" />
+            <button class="btn btn-danger mt-2" @onclick="ClosePreview">Close</button>
+        </div>
+    </div>
+}
 
 @code {
     bool lFingerDone = false, rFingerDone = false, tFingerDone = false;
