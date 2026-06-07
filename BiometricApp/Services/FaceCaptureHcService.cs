@@ -41,7 +41,7 @@ public class FaceCaptureHcService
     public static double _SurpriseEmoScore = 0.0;
 
     public static InferenceSession _emotion;
-    private readonly InferenceSession _gender;
+    public static InferenceSession _gender;
     public static FaceONNX.FaceDetector _detector;
 
 
@@ -142,19 +142,9 @@ public class FaceCaptureHcService
 
         cam.EnableAutoCrop(1, _autoCropEnabled);
         var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
-        _ImgQuality = CalculateQualityPercentage(imgStr);
+        
         var face = Cv2.ImDecode(imgStr, ImreadModes.Grayscale);
-        var Gres = GetGender(face);
-        if(Gres.ToLower() == "male")
-        {
-            _GenderMScore = 99.0;
-            _GenderFScore = 0.0;
-        }
-        else if (Gres.ToLower() == "female")
-        {
-            _GenderMScore = 0.0;
-            _GenderFScore = 99.0;
-        }
+        
         return cam.CaptureBase64(cameraIndex);
     }
 
@@ -280,7 +270,7 @@ public class FaceCaptureHcService
         return "";
     }
 
-    public double CalculateQualityPercentage(byte[] imageBytes)
+    public static double CalculateQualityPercentage(byte[] imageBytes)
     {
         Mat img = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
 
@@ -300,7 +290,7 @@ public class FaceCaptureHcService
         return Math.Round(percentage, 2);
     }
     
-    private DenseTensor<float> PreprocessGender(byte[] imageBytes)
+    public static DenseTensor<float> PreprocessGender(byte[] imageBytes)
     {
         using var face = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
         var resized = new Mat();
@@ -325,7 +315,7 @@ public class FaceCaptureHcService
 
         return tensor;
     }
-    private string GetGender(Mat face)
+    public static string GetGender(Mat face)
     {
         Cv2.ImEncode(".jpg", face, out byte[] imageBytes);
         var tensor = PreprocessGender(imageBytes);

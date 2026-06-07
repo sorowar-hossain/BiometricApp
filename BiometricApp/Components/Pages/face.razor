@@ -332,29 +332,6 @@
             Status = ex.Message;
         }
     }
-
-    // async Task Capture()
-    // {
-    //     try
-    //     {
-    //         if (string.IsNullOrWhiteSpace(selectedMemberId))
-    //         {
-    //             Status = "Select member first";
-    //             return;
-    //         }
-
-    //         CapturedImage = LiveImage;
-
-    //         Status = "Face Captured";
-
-    //         await InvokeAsync(StateHasChanged);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Status = ex.Message;
-    //     }
-    // }
-
     async Task Capture()
     {
         try
@@ -369,7 +346,7 @@
                 FaceCaptureService.CaptureFace();
             Status = "Face Captured";
 
-           
+
 
             await InvokeAsync(StateHasChanged);
         }
@@ -404,60 +381,6 @@
             Status = ex.Message;
         }
     }
-
-    // async Task AutoCropEnabled()
-    // {
-    //     try
-    //     {
-    //         bool isAutoCropEnable = true;
-    //         if (string.IsNullOrEmpty(CapturedImage))
-    //             return;
-
-    //         FaceCaptureService.AutoCropService(
-    //             isAutoCropEnable);
-
-    //         CapturedImage = LiveImage;
-    //         if (isAutoCropEnable)
-    //         {
-    //             Status = "Auto crop enabled";
-    //         }
-    //         else
-    //         {
-    //             Status = "Auto crop disabled";
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Status = ex.Message;
-    //     }
-    // }
-
-    // async Task AutoCropDisabled()
-    // {
-    //     try
-    //     {
-    //         bool isAutoCropEnable = false;
-    //         if (string.IsNullOrEmpty(CapturedImage))
-    //             return;
-
-    //         FaceCaptureService.AutoCropService(
-    //             isAutoCropEnable);
-
-    //         CapturedImage = LiveImage;
-    //         if (isAutoCropEnable)
-    //         {
-    //             Status = "Auto crop enabled";
-    //         }
-    //         else
-    //         {
-    //             Status = "Auto crop disabled";
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Status = ex.Message;
-    //     }
-    // }
     private Mat? DetectFace(Mat frame)
     {
         using Bitmap bitmap = BitmapConverter.ToBitmap(frame);
@@ -572,35 +495,52 @@
                 {
                     LiveImage =
                         FaceCaptureService.GetLiveBase64();
-                    var imgStr = Convert.FromBase64String(LiveImage);
-                    Mat frame = Cv2.ImDecode(imgStr, ImreadModes.Color);
-
-                    var face = DetectFace(frame); // cropped face
-
-                    if (face != null)
+                    await InvokeAsync(StateHasChanged);
+                    if (!string.IsNullOrWhiteSpace(LiveImage))
                     {
-                        var Emores = GetEmotionPercentages(face);
-                        foreach (var item in Emores)
+                        var imgStr = Convert.FromBase64String(LiveImage);
+                        FaceCaptureHcService._ImgQuality = Math.Round(FaceCaptureHcService.CalculateQualityPercentage(imgStr));
+                        Mat frame = Cv2.ImDecode(imgStr, ImreadModes.Color);
+
+                        var face = DetectFace(frame); // cropped face
+
+                        if (face != null)
                         {
-                            if (item.Key.ToLower() == "angry")
+                            var Emores = GetEmotionPercentages(face);
+                            foreach (var item in Emores)
                             {
-                                FaceCaptureHcService._AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                                if (item.Key.ToLower() == "angry")
+                                {
+                                    FaceCaptureHcService._AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                                }
+                                else if (item.Key.ToLower() == "happy")
+                                {
+                                    FaceCaptureHcService._HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                                }
+                                else if (item.Key.ToLower() == "sad")
+                                {
+                                    FaceCaptureHcService._SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                                }
+                                else if (item.Key.ToLower() == "surprise")
+                                {
+                                    FaceCaptureHcService._SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                                }
                             }
-                            else if (item.Key.ToLower() == "happy")
+                            var Gres = FaceCaptureHcService.GetGender(face);
+                            if (Gres.ToLower() == "male")
                             {
-                                FaceCaptureHcService._HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                                FaceCaptureHcService._GenderMScore = 99.0;
+                                FaceCaptureHcService._GenderFScore = 0.0;
                             }
-                            else if (item.Key.ToLower() == "sad")
+                            else if (Gres.ToLower() == "female")
                             {
-                                FaceCaptureHcService._SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                            }
-                            else if (item.Key.ToLower() == "surprise")
-                            {
-                                FaceCaptureHcService._SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
+                                FaceCaptureHcService._GenderMScore = 0.0;
+                                FaceCaptureHcService._GenderFScore = 99.0;
                             }
                         }
                     }
-                    await InvokeAsync(StateHasChanged);
+                    
+                    
                 }
             };
 
