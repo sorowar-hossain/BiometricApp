@@ -130,12 +130,12 @@
                 <div class="analytics-content">
                     <div class="analytics-item">
                         <span>Male</span>
-                        <strong>@FaceCaptureHcService._GenderMScore%</strong>
+                        <strong>@Math.Round(FaceCaptureHcService._GenderMScore)%</strong>
                     </div>
 
                     <div class="analytics-item">
                         <span>Female</span>
-                        <strong>@FaceCaptureHcService._GenderFScore%</strong>
+                        <strong>@Math.Round(FaceCaptureHcService._GenderFScore)%</strong>
                     </div>
                 </div>
             </div>
@@ -438,7 +438,6 @@
         "Sad",
         "Surprise"
     };
-
         var probabilities = Softmax(output);
 
         return labels
@@ -487,7 +486,7 @@
     {
         if (firstRender)
         {
-            _uiTimer = new System.Timers.Timer(100);
+            _uiTimer = new System.Timers.Timer(300);
 
             _uiTimer.Elapsed += async (s, e) =>
             {
