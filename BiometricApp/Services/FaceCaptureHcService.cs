@@ -40,9 +40,9 @@ public class FaceCaptureHcService
     public static double _HappyEmoScore = 0.0;
     public static double _SurpriseEmoScore = 0.0;
 
-    private readonly InferenceSession _emotion;
+    public static InferenceSession _emotion;
     private readonly InferenceSession _gender;
-    private readonly FaceONNX.FaceDetector _detector;
+    public static FaceONNX.FaceDetector _detector;
 
 
     public FaceCaptureHcService()
@@ -246,70 +246,13 @@ public class FaceCaptureHcService
         {
             _latestBase64 =
                 cam.CaptureBase64(cameraIndex);
-            var imgStr = Convert.FromBase64String(cam.CaptureBase64(cameraIndex));
-            Mat frame = Cv2.ImDecode(imgStr, ImreadModes.Color);
-
-            var face = DetectFace(frame); // cropped face
-
-            if (face != null)
-            {
-                var Emores = GetEmotionPercentages(face);
-                foreach (var item in Emores)
-                {
-                    if (item.Key.ToLower() == "angry")
-                    {
-                        _AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                    }
-                    else if (item.Key.ToLower() == "happy")
-                    {
-                        _HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                    }
-                    else if (item.Key.ToLower() == "sad")
-                    {
-                        _SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                    }
-                    else if (item.Key.ToLower() == "surprise")
-                    {
-                        _SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                    }
-                }
-            }
             
         }
         catch
         {
         }
     }
-    private Mat? DetectFace(Mat frame)
-    {
-        using Bitmap bitmap = BitmapConverter.ToBitmap(frame);
-
-        var faces = _detector.Forward(bitmap);
-
-        if (faces == null || faces.Length == 0)
-            return null;
-
-        var face = faces[0];
-
-        var r = face.Rectangle;
-
-        var rect = new OpenCvSharp.Rect(
-            r.X,
-            r.Y,
-            r.Width,
-            r.Height);
-
-        rect = rect & new OpenCvSharp.Rect(
-            0,
-            0,
-            frame.Width,
-            frame.Height);
-
-        if (rect.Width <= 0 || rect.Height <= 0)
-            return null;
-
-        return new Mat(frame, rect).Clone();
-    }
+    
     public async Task<string> SaveFace(string faceImageBytes, string path)
     {
         if (faceImageBytes != null)
@@ -355,26 +298,7 @@ public class FaceCaptureHcService
 
         return Math.Round(percentage, 2);
     }
-    private DenseTensor<float> Preprocess(byte[] imageBytes)
-    {
-        using var face = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
-
-        using var resized = new Mat();
-        Cv2.Resize(face, resized, new OpenCvSharp.Size(64, 64));
-
-        var tensor = new DenseTensor<float>(new[] { 1, 1, 64, 64 });
-
-        for (int y = 0; y < 64; y++)
-        {
-            for (int x = 0; x < 64; x++)
-            {
-                tensor[0, 0, y, x] =
-                    resized.At<byte>(y, x) / 255.0f;
-            }
-        }
-
-        return tensor;
-    }
+    
     private DenseTensor<float> PreprocessGender(byte[] imageBytes)
     {
         using var face = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
@@ -399,80 +323,6 @@ public class FaceCaptureHcService
         }
 
         return tensor;
-    }
-    private float[] Softmax(float[] values)
-    {
-        float max = values.Max();
-
-        var exp = values
-            .Select(v => MathF.Exp(v - max))
-            .ToArray();
-
-        float sum = exp.Sum();
-
-        return exp
-            .Select(v => v / sum)
-            .ToArray();
-    }
-    private Dictionary<string, float> GetEmotionPercentages(Mat face)
-    {
-        Cv2.ImEncode(".jpg", face, out byte[] imageBytes);
-        var tensor = Preprocess(imageBytes);
-
-        var inputs = new List<NamedOnnxValue>
-    {
-        NamedOnnxValue.CreateFromTensor(
-            _emotion.InputMetadata.Keys.First(),
-            tensor)
-    };
-
-        using var result = _emotion.Run(inputs);
-
-        var output = result.First().AsEnumerable<float>().ToArray();
-
-        string[] labels =
-        {
-        "Angry",
-        "Contempt",
-        "Disgust",
-        "Fear",
-        "Happy",
-        "Neutral",
-        "Sad",
-        "Surprise"
-    };
-
-        var probabilities = Softmax(output);
-
-        return labels
-            .Select((label, index) => new
-            {
-                Label = label,
-                Percentage = probabilities[index] * 100f
-            })
-            .ToDictionary(x => x.Label, x => x.Percentage);
-    }
-    private string GetEmotion(Mat face)
-    {
-        Cv2.ImEncode(".jpg", face, out byte[] imageBytes);
-        var tensor = Preprocess(imageBytes);
-
-        var inputs = new List<NamedOnnxValue>
-    {
-        NamedOnnxValue.CreateFromTensor(
-    _emotion.InputMetadata.Keys.First(),
-    tensor)
-    };
-
-        using var result = _emotion.Run(inputs);
-
-        var output = result.First().AsEnumerable<float>().ToArray();
-
-        int maxIndex = Array.IndexOf(output, output.Max());
-
-        string[] labels = { "Angry", "Happy", "Sad", "Surprise", "Neutral" };
-
-        return labels[maxIndex];
     }
     private string GetGender(Mat face)
     {
