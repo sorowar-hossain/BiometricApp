@@ -42,14 +42,14 @@
                     <div class="col-md-6">
                         <label class="label-custom">First Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.FirstName" placeholder="Enter First Name" />
-                        <ValidationMessage For="@(() => model.FirstName)" />
+                        @* <ValidationMessage For="@(() => model.FirstName)" /> *@
                     </div>
 
                     <!-- Last Name -->
                     <div class="col-md-6">
                         <label class="label-custom">Last Name *</label>
                         <InputText class="form-control custom-input" @bind-Value="model.LastName" placeholder="Enter Last Name" />
-                        <ValidationMessage For="@(() => model.LastName)" />
+                        @* <ValidationMessage For="@(() => model.LastName)" /> *@
                     </div>
 
                     <!-- Marital Status -->
@@ -133,7 +133,7 @@
                     }
                     else
                     {
-                        <button type="button" class="btn btn-success px-4 save-btn" @onclick="Save">
+                        <button type="submit" class="btn btn-success px-4 save-btn" @onclick="Save">
                             <i class="bi bi-check2-circle me-1"></i>Save
                         </button>
                     }
@@ -219,6 +219,24 @@
         model.OrgId = user.OrgId;
         model.UserId = user.UserId;
         model.CreatedBy = user.UserName;
+
+        var validationResults = new List<ValidationResult>();
+        var validationContext = new ValidationContext(model);
+
+        bool isValid = Validator.TryValidateObject(
+            model,
+            validationContext,
+            validationResults,
+            validateAllProperties: true);
+
+        if (!isValid)
+        {
+            // message = string.Join(", ",
+            //     validationResults.Select(x => x.ErrorMessage));
+
+            return;
+        }
+
 
         if (buttonText == "Update")
         {
