@@ -17,7 +17,7 @@
 <div class="container-fluid biometric-container">
 
     <!-- HEADER -->
- @*    <div class="header-bar text-center">
+    @*    <div class="header-bar text-center">
         <h4>Biometric Enrollment System</h4>
     </div> *@
 
@@ -152,14 +152,16 @@
                 </div>
             </div>
 
-           
+
         </div>
 
         <!-- CENTER CAMERA -->
         <div class="col-lg-6 col-md-12">
 
-            <h5 class="panel-title text-center">Live Camera</h5>
+            <h5 class="panel-title text-center mb-3">Live Camera</h5>
+            <div class="w-100">
 
+            </div>
             <div class="live-camera-box">
 
                 @if (CameraConnected &&
@@ -203,7 +205,7 @@
                     <i class="bi bi-emoji-image"></i>
                     <h5>Image Quality Score: @FaceCaptureHcService._ImgQuality%</h5>
                 </div>
-                
+
                 <div class="analytics-conten">
                     <div class="analytics-item">
                         <h8>Brightness: @FaceCaptureHcService.brightness</h8>
@@ -211,7 +213,7 @@
                         <h8>Contrast: @FaceCaptureHcService.contrast</h8>
                     </div>
                 </div>
-                
+
             </div>
 
             <!-- EMOTION DETECTION -->
@@ -295,13 +297,13 @@
                         <h6>@Status</h6>
                     </div>
                 </div>
-                
+
             </div>
             <div class="row mt-3"></div>
             <div class="row mt-3"></div>
             <div class="row mt-3"></div>
             <div class="row mt-3"></div>
-            
+
         </div>
     </div>
 
@@ -571,8 +573,8 @@
                             }
                         }
                     }
-                    
-                    
+
+
                 }
             };
 
@@ -669,14 +671,14 @@
     }
 
     /* =========================
-       LIVE CAMERA BOX
-       ========================= */
+           LIVE CAMERA BOX
+           ========================= */
     .live-camera-box {
         border: 1px solid #dcdcdc;
         border-radius: 10px;
         height: 300px;
         width: 100%;
-        max-width: 600px;
+        max-width: 670px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -685,8 +687,8 @@
     }
 
     /* =========================
-       PREVIEW BOX (CAPTURED FACE)
-       ========================= */
+           PREVIEW BOX (CAPTURED FACE)
+           ========================= */
     .preview-box {
         border: 1px solid #dcdcdc;
         border-radius: 10px;
@@ -735,82 +737,73 @@
     }
 
     /* =========================
-       TABLET
-       ========================= */
+           TABLET
+           ========================= */
     @@media (max-width: 992px) {
-        .control-panel, .preview-panel
-
-    {
-        margin-top: 20px;
-    }
-
-    .live-camera-box {
-        max-width: 100%;
-        height: 300px;
-    }
-
-    .preview-box {
-        min-width: 300px;
-        min-height: 300px;
-    }
-
-    }
-
-    /* =========================
-       MOBILE
-       ========================= */
-    @@media (max-width: 768px) {
-        .biometric-container
-
-    {
-        padding: 15px;
-    }
-
-    .camera-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-        .camera-buttons button {
-            width: 100%;
-            margin: 0;
+        .control-panel, .preview-panel {
+            margin-top: 20px;
         }
 
-    .save-btn {
-        width: 100% !important;
-    }
+        .live-camera-box {
+            max-width: 100%;
+            height: 300px;
+        }
 
-    .face_recog_second_column {
-        top: 0;
-    }
-
+        .preview-box {
+            min-width: 300px;
+            min-height: 300px;
+        }
     }
 
     /* =========================
-       SMALL MOBILE
-       ========================= */
+           MOBILE
+           ========================= */
+    @@media (max-width: 768px) {
+        .biometric-container {
+            padding: 15px;
+        }
+
+        .camera-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+            .camera-buttons button {
+                width: 100%;
+                margin: 0;
+            }
+
+        .save-btn {
+            width: 100% !important;
+        }
+
+        .face_recog_second_column {
+            top: 0;
+        }
+    }
+
+    /* =========================
+           SMALL MOBILE
+           ========================= */
     @@media (max-width: 576px) {
-        .biometric-container
+        .biometric-container {
+            padding: 10px;
+        }
 
-    {
-        padding: 10px;
-    }
+        .live-camera-box {
+            height: 220px;
+        }
 
-    .live-camera-box {
-        height: 220px;
-    }
+        .preview-box {
+            min-width: 300px;
+            min-height: 300px;
+        }
 
-    .preview-box {
-        min-width: 300px;
-        min-height: 300px;
-    }
-
-    .camera-placeholder {
-        font-size: 14px;
-        text-align: center;
-    }
-
+        .camera-placeholder {
+            font-size: 14px;
+            text-align: center;
+        }
     }
 
     .custom-save-btn {
@@ -818,12 +811,9 @@
     }
 
     @@media (max-width: 768px) {
-        .custom-save-btn
-
-    {
-        width: 100%;
-    }
-
+        .custom-save-btn {
+            width: 100%;
+        }
     }
 
 
@@ -864,7 +854,7 @@
             margin-bottom: 0;
         }
 
-        
+
 
         .analytics-item strong {
             color: #212529;
@@ -905,4 +895,10 @@
         .analytics-content .analytics-item:last-child {
             margin-bottom: 0;
         }
+
+    .panel-title {
+        text-align: center;
+        margin-bottom: 10px; /* space between title and camera box */
+        font-weight: 600;
+    }
 </style>
