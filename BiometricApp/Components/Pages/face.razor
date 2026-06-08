@@ -26,25 +26,12 @@
         <!-- LEFT PANEL -->
         <div class="col-lg-3 col-md-12 control-panel">
 
-            @* <h6>Select Member</h6>
-
-            <select class="form-control" @bind="selectedMemberId">
-                <option value="">-- Select Member --</option>
-
-                @foreach (var item in members)
-                {
-                    <option value="@item.PersonUniqueId">
-                        @item.FullName
-                    </option>
-                }
-            </select> *@
-
             <!-- CONTROLS -->
             <!-- CAMERA CONTROLS -->
-            <div class="analytics-card mt-3">
+            <div class="analytics-card">
                 <div class="analytics-header">
                     <i class="bi bi-sliders"></i>
-                    Camera Controls
+                    <h5>Camera Controls</h5>
                 </div>
 
                 <div class="analytics-content">
@@ -116,7 +103,7 @@
             <div class="analytics-card mt-4">
                 <div class="analytics-header">
                     <i class="bi bi-person-bounding-box"></i>
-                    Face Recognition
+                    <h5>Face Recognition</h5>
                 </div>
 
                 <div class="analytics-content">
@@ -136,7 +123,7 @@
             <div class="analytics-card mt-3">
                 <div class="analytics-header">
                     <i class="bi bi-gender-ambiguous"></i>
-                    Gender Detection
+                    <h5>Gender Detection</h5>
                 </div>
 
                 <div class="analytics-content">
@@ -157,52 +144,54 @@
 
         <!-- CENTER CAMERA -->
         <div class="col-lg-6 col-md-12">
+            <div class="analytics-card mb-3">
+                <div class="analytics-header">
+                    <i class="bi bi-camera"></i>
+                    <h5>Live Camera</h5>
+                </div>
+                <div class="analytics-content">
+                    <div class="live-camera-box">
 
-            <h5 class="panel-title text-center mb-3">Live Camera</h5>
-            <div class="w-100">
+                        @if (CameraConnected &&
+                                                !string.IsNullOrEmpty(LiveImage))
+                        {
+                            <img class="w-100 h-100 object-fit-contain"
+                                 src="@($"data:image/jpeg;base64,{LiveImage}")" />
+                        }
+                        else
+                        {
+                            <div class="camera-placeholder">
+                                Camera Not Started
+                            </div>
+                        }
 
-            </div>
-            <div class="live-camera-box">
-
-                @if (CameraConnected &&
-                                !string.IsNullOrEmpty(LiveImage))
-                {
-                    <img class="w-100 h-100 object-fit-contain"
-                         src="@($"data:image/jpeg;base64,{LiveImage}")" />
-                }
-                else
-                {
-                    <div class="camera-placeholder">
-                        Camera Not Started
                     </div>
-                }
+                    <div class="camera-buttons mt-3">
 
-            </div>
+                        <button class="btn btn-info save-btn"
+                                @onclick="ToggleCamera">
+                            @(CameraConnected ? "Close Camera" : "Start Camera")
+                        </button>
 
-            <div class="camera-buttons mt-3">
-
-                <button class="btn btn-info save-btn"
-                        @onclick="ToggleCamera">
-                    @(CameraConnected ? "Close Camera" : "Start Camera")
-                </button>
-
-                <button class="btn btn-primary px-4 save-btn me-2"
-                        @onclick="Capture"
-                        disabled="@(!CameraConnected)">
-                    <i class="bi bi-camera-fill"></i> Capture
-                </button>
+                        <button class="btn btn-primary px-4 save-btn me-2"
+                                @onclick="Capture"
+                                disabled="@(!CameraConnected)">
+                            <i class="bi bi-camera-fill"></i> Capture
+                        </button>
 
 
-                <button class="btn btn-warning save-btn"
-                        @onclick="Retake"
-                        disabled="@string.IsNullOrEmpty(CapturedImage)">
-                    <i class="bi bi-arrow-repeat"></i>Retake
-                </button>
+                        <button class="btn btn-warning save-btn"
+                                @onclick="Retake"
+                                disabled="@string.IsNullOrEmpty(CapturedImage)">
+                            <i class="bi bi-arrow-repeat"></i>Retake
+                        </button>
 
+                    </div>
+                </div>
             </div>
             <div class="analytics-card mt-3">
                 <div class="analytics-header">
-                    <i class="bi bi-emoji-image"></i>
+                    <i class="bi bi-image"></i>
                     <h5>Image Quality Score: @FaceCaptureHcService._ImgQuality%</h5>
                 </div>
 
@@ -220,7 +209,7 @@
             <div class="analytics-card mt-3">
                 <div class="analytics-header">
                     <i class="bi bi-emoji-smile"></i>
-                    Emotion Detection
+                    <h5>Emotion Detection</h5>
                 </div>
 
                 <div class="analytics-content emotion-grid">
@@ -256,37 +245,38 @@
 
         <!-- RIGHT PREVIEW -->
         <div class="col-lg-3 col-md-12 preview-panel">
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="bi bi-person-circle"></i>
+                    <h5>Captured Face</h5>
+                </div>
+                <div class="analytics-content">
+                    <div class="preview-box">
 
-            <h5 class="panel-title">Captured Face</h5>
+                        @if (!string.IsNullOrEmpty(CapturedImage))
+                        {
+                            <img class="w-100 h-100 object-fit-contain"
+                                 src="@($"data:image/jpeg;base64,{CapturedImage}")" />
+                        }
+                        else
+                        {
+                            <div class="camera-placeholder">
+                                No Captured Image
+                            </div>
+                        }
 
-            <div class="preview-box">
-
-                @if (!string.IsNullOrEmpty(CapturedImage))
-                {
-                    <img class="w-100 h-100 object-fit-contain"
-                         src="@($"data:image/jpeg;base64,{CapturedImage}")" />
-                }
-                else
-                {
-                    <div class="camera-placeholder">
-                        No Captured Image
                     </div>
-                }
-
-            </div>
-
-
-
-            <div class="d-flex justify-content-start mt-2">
-                <div class="d-flex justify-content-center mt-2">
-                    <button class="btn btn-success save-btn custom-save-btn"
-                            @onclick="SaveFace"
-                            disabled="@string.IsNullOrEmpty(CapturedImage)">
-                        <i class="bi bi-check2-circle me-1"></i>Save Photo
-                    </button>
+                    <div class="d-flex justify-content-start mt-2">
+                        <div class="d-flex justify-content-center mt-2">
+                            <button class="btn btn-success save-btn custom-save-btn"
+                                    @onclick="SaveFace"
+                                    disabled="@string.IsNullOrEmpty(CapturedImage)">
+                                <i class="bi bi-check2-circle me-1"></i>Save Photo
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-
             <div class="analytics-card status-box mt-4">
                 <div class="analytics-header">
                     <i class="bi bi-status"></i>
@@ -299,11 +289,6 @@
                 </div>
 
             </div>
-            <div class="row mt-3"></div>
-            <div class="row mt-3"></div>
-            <div class="row mt-3"></div>
-            <div class="row mt-3"></div>
-
         </div>
     </div>
 
