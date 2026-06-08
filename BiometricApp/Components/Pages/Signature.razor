@@ -79,6 +79,7 @@
 
         </div>
 
+        <h5 class="panel-title text-center mb-3">@status</h5>
         <!-- SAVE BUTTON -->
         <div class="d-flex justify-content-center mt-4">
 
@@ -189,6 +190,7 @@
     static string path = "";
     static string folder = "";
     private string PersonUniqueId = "";
+    private string status = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -204,6 +206,18 @@
         _cts = new CancellationTokenSource();
 
         LiveSignatureBase64 = null;
+        status = "";
+        bool res = await signatureService.ResetDevice();
+        if (!res)
+        {
+            status = "Device Reset Failed..!";
+            StateHasChanged();
+            return;
+        }
+        else
+        {
+            status = "Device Ready";
+        }
 
         StateHasChanged();
 
