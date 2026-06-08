@@ -312,7 +312,8 @@
 @code {
 
     private List<MemberDropdown> members = new();
-
+    [Parameter]
+    public EventCallback<string> OnActionMessage { get; set; }
     private string selectedMemberId;
 
     private bool CameraConnected;
@@ -410,6 +411,7 @@
             await FaceCaptureService.SaveFace(CapturedImage, folder);
 
             Status = "Photo Saved Successfully";
+            await OnActionMessage.InvokeAsync(Status);
         }
         catch (Exception ex)
         {

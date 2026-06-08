@@ -197,6 +197,8 @@
     private List<MemberDropdown> members = new();
     private string selectedMemberId = "";
     bool isProcessing = false;
+    [Parameter]
+    public EventCallback<string> OnActionMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -384,6 +386,7 @@
 
 
         await ScannerService.SaveFinger(Fingerprints, start, end, imagePath);
+        await OnActionMessage.InvokeAsync("");
     }
 
     private async Task StartScanRight()
@@ -578,6 +581,7 @@
                 Console.WriteLine(user);
             }
             ScannerService.message = "Finger Saved";
+
             //LoadTumTwoFingerprints();
         }
         catch (Exception ex)

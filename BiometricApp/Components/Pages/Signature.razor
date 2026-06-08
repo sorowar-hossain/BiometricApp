@@ -191,6 +191,8 @@
     static string folder = "";
     private string PersonUniqueId = "";
     private string status = "";
+    [Parameter]
+    public EventCallback<string> OnActionMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -267,6 +269,7 @@
             await signatureService.SaveSignature(SignatureBase64, folder);
 
             path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
+            await OnActionMessage.InvokeAsync("Saved");
         }
 
         StateHasChanged();
