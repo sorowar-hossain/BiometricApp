@@ -7,7 +7,7 @@
 @inject UserSessionService SessionService
 @inject NavigationManager NavigationManager
 
-<div class="container-fluid enrollment-container">
+<div class="enrollment-container">
 
     <!-- PAGE TITLE -->
     <div class="page-header mb-3 sticky-header">
@@ -24,8 +24,8 @@
                 </div>
             }
         </div>
-        <div>
-            <button class="btn btn-info"
+        <div class="new_regis_btn">
+            <button class="btn"
                     type="button"
                     @onclick="ClearAll">
                 <i class="bi bi-person-plus"></i>
@@ -138,20 +138,18 @@
     }
 
     .enrollment-container {
-        padding: 12px;
         background: #f4f6f9;
         min-height: calc(100vh - 60px);
     }
 
     /* HEADER */
     .page-header {
-        background: #ffffff;
-        border-radius: 14px;
-        padding: 16px 20px;
+        background: #009639;
         box-shadow: 0 2px 10px rgba(0,0,0,.06);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        color:white;
     }
 
     /* MODULE CARD */
@@ -242,6 +240,16 @@
             opacity: 0;
             transform: translateY(-5px);
         }
+
+    .new_regis_btn button{
+        border: 3px solid #FFC700;
+        color:white;
+        font-weight:bold;
+    }
+
+    .new_regis_btn button:hover {
+        border: 3px solid #FFC700;
+    }
 </style>
 
 @code{
