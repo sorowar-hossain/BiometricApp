@@ -6,95 +6,110 @@
 
 @inject SignatureService signatureService
 
-<div class="row mt-4">
-
-    <!-- LEFT -->
-    <div class="col-md-6 text-center">
-
-        <div class="signature-box">
-
-            @if (IsCapturing)
-            {
-                <div class="capture-text">
-                    Waiting for signature...
+<div class="container-fluid">
+    <div class="row">
+        <!-- LEFT -->
+        <div class="col-md-4">
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="bi bi-pencil-fill"></i>
+                    <h5>Live Signature</h5>
                 </div>
-            }
-            else if (!string.IsNullOrEmpty(LiveSignatureBase64))
-            {
-                <img src="@LiveSignatureBase64"
-                     class="full-preview-img" />
-            }
-            else
-            {
-                <div class="capture-text">
-                    No Signature
+                <div class="analytics-content">
+                    <div class="signature-box">
+
+                        @if (IsCapturing)
+                        {
+                            <div class="capture-text">
+                                Waiting for signature...
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(LiveSignatureBase64))
+                        {
+                            <img src="@LiveSignatureBase64"
+                                 class="full-preview-img" />
+                        }
+                        else
+                        {
+                            <div class="capture-text">
+                                No Signature
+                            </div>
+                        }
+
+                    </div>
                 </div>
-            }
-
+            </div>
         </div>
-
-        <!-- LEFT BUTTONS -->
-        <div class="d-flex justify-content-center mt-4">
-
-            <button class="btn btn-primary px-4 me-2 save-btn"
-                    @onclick="CaptureSignature">
-                <i class="bi bi-pen me-1"></i> Capture
-            </button>
-
-            <button class="btn btn-warning px-4 save-btn"
-                    @onclick="ClearSignature"
-                    disabled="@(isProcessing)">
-                <i class="bi bi-arrow-repeat"></i> Retake
-            </button>
-            <button class="btn btn-success px-4 save-btn ms-4"
-                    @onclick="SaveSignature"
-                    disabled="@(isProcessing)">
-                <i class="bi bi-check2-circle me-1"></i> Save
-            </button>
-
+        <div class="col-md-4">
+            <div class="text-center">
+                <div class="btn-left">
+                    <div class="mt-0">
+                        <button class="btn btn-primary save-btn"
+                                @onclick="CaptureSignature">
+                            <i class="bi bi-pen me-1"></i> Capture
+                        </button>
+                    </div>
+                    <div class="mt-0">
+                        <button class="btn btn-warning save-btn"
+                                @onclick="ClearSignature"
+                                disabled="@(isProcessing)">
+                            <i class="bi bi-arrow-repeat"></i> Retake
+                        </button>
+                    </div>
+                    <div class="mt-0">
+                        <button class="btn btn-success save-btn"
+                                @onclick="SaveSignature"
+                                disabled="@(isProcessing)">
+                            <i class="bi bi-check2-circle me-1"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="analytics-card mt-3">
+                <div class="analytics-header">
+                    <i class="bi bi-pencil-fill"></i>
+                    <h5>Status</h5>
+                </div>
+                <div class="analytics-content">
+                    <div class="analytics-item">
+                        <h6>@status</h6>
+                    </div>
+                </div>
+            </div>
         </div>
+        <!-- RIGHT -->
+        <div class="col-md-4">
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="bi bi-pencil-fill"></i>
+                    <h5>Preview Signature</h5>
+                </div>
+                <div class="analytics-content">
+                    <div class="full-preview-box">
 
+                        @if (IsCapturing)
+                        {
+                            <div class="preview-placeholder">
+                                Please sign on device...
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(SignatureBase64))
+                        {
+                            <img src="@SignatureBase64"
+                                 class="full-preview-img" />
+                        }
+                        else
+                        {
+                            <div class="preview-placeholder">
+                                Signature Preview
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <!-- RIGHT -->
-    <div class="col-md-6 text-center">
-
-        <div class="full-preview-box">
-
-            @if (IsCapturing)
-            {
-                <div class="preview-placeholder">
-                    Please sign on device...
-                </div>
-            }
-            else if (!string.IsNullOrEmpty(SignatureBase64))
-            {
-                <img src="@SignatureBase64"
-                     class="full-preview-img" />
-            }
-            else
-            {
-                <div class="preview-placeholder">
-                    Signature Preview
-                </div>
-            }
-
-        </div>
-
-        <h5 class="panel-title text-center mb-3">@status</h5>
-        <!-- SAVE BUTTON -->
-        <div class="d-flex justify-content-center mt-4">
-
-            @*   <button class="btn btn-success px-5 save-btn"
-                    @onclick="SaveSignature"
-                    disabled="@(isProcessing)">
-                <i class="bi bi-check2-circle me-1"></i> Save
-            </button> *@
-
-        </div>
-
-    </div>
-
 </div>
 
 <style>
@@ -180,6 +195,9 @@
         padding: 10px;
     }
 
+    .save-btn {
+        width: 145px;
+    }
 </style>
 
 @code {

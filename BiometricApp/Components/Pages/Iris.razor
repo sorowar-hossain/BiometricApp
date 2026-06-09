@@ -7,83 +7,82 @@
 @inject UserSessionService SessionService
 
 <!-- IRIS SECTION -->
-<div class="iris-container row">
-
-    <!-- LEFT IRIS -->
-    <div class="col-md-6 col-12 mb-3">
-        <div class="iris-card">
-
-            <div class="iris-title">Left Iris</div>
-
-            <div class="iris-box">
-                @if (!string.IsNullOrEmpty(LeftIrisImage))
-                {
-                    <img src="@LeftIrisImage" class="iris-img" />
-                }
+<div class="container-fluid">
+    <div class="row">
+        <!-- LEFT IRIS -->
+        <div class="col-md-4">
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="bi bi-eye-slash"></i>
+                    <h5>Left Iris</h5>
+                </div>
+                <div class="analytics-content">
+                    <div class="iris-box">
+                        @if (!string.IsNullOrEmpty(LeftIrisImage))
+                        {
+                            <img src="@LeftIrisImage" class="iris-img" />
+                        }
+                    </div>
+                </div>
             </div>
-
-            <div class="status-text iris-title">@LeftCaptureStatus</div>
-
         </div>
-
-        <!-- BUTTONS -->
-        <div class="d-flex justify-content-center mt-4">
-
-            <div class="btn-left">
-
-                <button class="btn btn-primary px-4 save-btn me-2"
-                        @onclick="CaptureIris"
-                        disabled="@isProcessing">
-                    <i class="bi bi-camera-fill"></i> Capture
-                </button>
-
-                <button class="btn btn-warning px-4 save-btn"
-                        @onclick="Retake"
-                        disabled="@(!isProcessing)">
-                    <i class="bi bi-arrow-repeat"></i> Retake
-                </button>
-                <button class="btn btn-success px-5 save-btn"
-                        @onclick="SaveIris"
-                        disabled="@(!isProcessing)">
-                    <i class="bi bi-check2-circle me-1"></i>Save
-                </button>
-
+        <div class="col-md-4">
+            <div class="text-center">
+                <div class="btn-left">
+                    <div class="mt-0">
+                        <button class="btn btn-primary save-btn"
+                                @onclick="CaptureIris"
+                                disabled="@isProcessing">
+                            <i class="bi bi-camera-fill"></i> Capture
+                        </button>
+                    </div>
+                    <div class="mt-0">
+                        <button class="btn btn-warning save-btn"
+                                @onclick="Retake"
+                                disabled="@(!isProcessing)">
+                            <i class="bi bi-arrow-repeat"></i> Retake
+                        </button>
+                    </div>
+                    <div class="mt-0">
+                        <button class="btn btn-success save-btn"
+                                @onclick="SaveIris"
+                                disabled="@(!isProcessing)">
+                            <i class="bi bi-check2-circle me-1"></i>Save
+                        </button>
+                    </div>
+                </div>
             </div>
-
+            <div class="analytics-card mt-3">
+                <div class="analytics-header">
+                    <i class="bi bi-pencil-fill"></i>
+                    <h5>Status</h5>
+                </div>
+                <div class="analytics-content">
+                    <div class="analytics-item">
+                        <h6></h6>
+                    </div>
+                </div>
+            </div>
         </div>
+        <!-- RIGHT IRIS -->
+        <div class="col-md-4">
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="bi bi-eye-slash"></i>
+                    <h5>Right Iris</h5>
+                </div>
+                <div class="analytics-content">
+                    <div class="iris-box">
+                        @if (!string.IsNullOrEmpty(RightIrisImage))
+                        {
+                            <img src="@RightIrisImage" class="iris-img" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </div>
-
-    <!-- RIGHT IRIS -->
-    <div class="col-md-6 col-12 mb-3">
-
-        <div class="iris-card">
-
-            <div class="iris-title">Right Iris</div>
-
-            <div class="iris-box">
-                @if (!string.IsNullOrEmpty(RightIrisImage))
-                {
-                    <img src="@RightIrisImage" class="iris-img" />
-                }
-            </div>
-
-            <div class="status-text iris-title">@RightCaptureStatus</div>
-
-        </div>
-
-        <!-- SAVE BUTTON -->
-       @*  <div class="d-flex justify-content-center mt-4">
-
-            <button class="btn btn-success px-5 save-btn"
-                    disabled="@isProcessing">
-                Save
-            </button>
-
-        </div> *@
-
-    </div>
-
-   
 </div>
 
 
@@ -344,6 +343,10 @@
         max-width: 100%;
     }
 
+    }
+
+    .save-btn{
+        width:145px;
     }
 </style>
 

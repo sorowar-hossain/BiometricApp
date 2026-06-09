@@ -37,11 +37,13 @@
             {
                 <div class="analytics-card mt-3">
                     <div class="analytics-header">
-                        <i class="bi bi-finger"></i>
+                        <i class="bi bi-check-circle-fill"></i>
                         <h5>Status</h5>
                     </div>
                     <div class="analytics-content">
-                        <span style="font-size:15px;font-weight:bold;">@ScannerService.message</span>
+                        <div class="analytics-item">
+                            <h6>@ScannerService.message</h6>
+                        </div>
                     </div>
                 </div>
 
@@ -54,7 +56,7 @@
             <!-- LEFT 4 -->
             <div class="analytics-card">
                 <div class="analytics-header">
-                    <i class="bi bi-finger"></i>
+                    <i class="bi bi-fingerprint"></i>
                     <h5>Left Four Fingers</h5>
                     <button class="btn btn_scan_button"
                             @onclick="StartScanLeft"
@@ -92,7 +94,7 @@
             <!-- RIGHT 4 -->
             <div class="analytics-card mt-3">
                 <div class="analytics-header">
-                    <i class="bi bi-finger"></i>
+                    <i class="bi bi-fingerprint"></i>
                     <h5>Right Four Fingers</h5>
                     <button class="btn btn_scan_button"
                             @onclick="StartScanRight"
@@ -130,7 +132,7 @@
             <!-- THUMBS -->
             <div class="analytics-card mt-3">
                 <div class="analytics-header">
-                    <i class="bi bi-finger"></i>
+                    <i class="bi bi-fingerprint"></i>
                     <h5>Two Thumb Fingers</h5>
                     <button class="btn btn_scan_button"
                             @onclick="StartScanThums"
