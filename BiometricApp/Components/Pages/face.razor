@@ -197,9 +197,11 @@
 
                 <div class="analytics-conten">
                     <div class="analytics-item">
-                        <h8>Brightness: @Math.Round(FaceCaptureHcService.brightness)</h8>
-                        <h8>Sharpness: @Math.Round(FaceCaptureHcService.sharpness)</h8>
-                            <h8> Contrast: @Math.Round(FaceCaptureHcService.contrast) </h8 >
+                        <h8><strong>Brightness: @Math.Round(FaceCaptureHcService.brightness, 2)</strong></h8>
+                        <h8><strong>Sharpness: @Math.Round(FaceCaptureHcService.sharpness, 2)</strong></h8>
+                        <h8><strong>Contrast: @Math.Round(FaceCaptureHcService.contrast, 2)</strong></h8>
+                        <h8><strong>Face Size: @Math.Round(FaceCaptureHcService.faceSize, 2)</strong></h8>
+                        <h8><strong>Center: @Math.Round(FaceCaptureHcService.faceCenter, 2)</strong></h8>
                     </div>
                 </div>
 
@@ -695,7 +697,7 @@
         .preview-box img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: fill;
         }
 
     /* PLACEHOLDER */

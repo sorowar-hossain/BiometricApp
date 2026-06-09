@@ -10,6 +10,8 @@ using System.Drawing;
 
 using OpenCvSharp.Extensions;
 using Windows.Perception.People;
+using Rect = OpenCvSharp.Rect;
+
 
 
 
@@ -50,6 +52,8 @@ public class FaceCaptureHcService
     public static double sharpness = 0.0;
     public static double brightness = 0.0;
     public static double contrast = 0.0;
+    public static double faceSize = 0.0;
+    public static double faceCenter = 0.0;
 
     public FaceCaptureHcService()
     {
@@ -313,7 +317,7 @@ public class FaceCaptureHcService
         return Math.Min(100,
             contrast / 60.0 * 100);
     }
-    public static double GetFaceSizeScore(OpenCvSharp.Rect faceRect, OpenCvSharp.Size imageSize)
+    public static double GetFaceSizeScore(OpenCvSharp.Mat faceRect, OpenCvSharp.Size imageSize)
     {
         double ratio =
             (double)faceRect.Height /
@@ -348,21 +352,36 @@ public class FaceCaptureHcService
 
     public static double CalculateQualityPercentage(byte[] imageBytes)
     {
-        using var img = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
+        using var gray = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
+        using var color = Cv2.ImDecode(imageBytes, ImreadModes.Color);
 
-        sharpness = GetSharpnessScore(img);
-        brightness = GetBrightnessScore(img);
-        contrast = GetContrastScore(img);
+        if (gray.Empty() || color.Empty())
+            return 0;
 
-        // Normalize weights to 100%
+        double sharpness = GetSharpnessScore(gray);
+        double brightness = GetBrightnessScore(gray);
+        double contrast = GetContrastScore(gray);
+
+        Mat faceRect = DetectFace(color);
+        faceSize = GetFaceSizeScore(faceRect, color.Size());
+
+        Rect faceCenterRect = DetectFaceRect(color);
+        faceCenter = GetCenterScore(faceCenterRect, color.Size());
+
+        // Optional: include face center score (recommended if meaningful)
         double quality =
-              sharpness * 0.50
-            + brightness * 0.30
-            + contrast * 0.20;
+              sharpness * 0.40
+            + brightness * 0.20
+            + contrast * 0.15
+            + faceSize * 0.15
+            + faceCenter * 0.10;
+
+        // clamp to 0–100 range
+        quality = Math.Clamp(quality, 0, 100);
 
         return Math.Round(quality, 2);
     }
-    
+
     public static DenseTensor<float> PreprocessGender(byte[] imageBytes)
     {
         using var face = Cv2.ImDecode(imageBytes, ImreadModes.Grayscale);
@@ -405,5 +424,53 @@ public class FaceCaptureHcService
         var output = result.First().AsEnumerable<float>().ToArray();
 
         return output[0] > 0.5 ? "Male" : "Female";
+    }
+    private static Mat? DetectFace(Mat frame)
+    {
+        using Bitmap bitmap = BitmapConverter.ToBitmap(frame);
+
+        var faces = FaceCaptureHcService._detector.Forward(bitmap);
+
+        if (faces == null || faces.Length == 0)
+            return null;
+
+        var face = faces[0];
+
+        var r = face.Rectangle;
+
+        var rect = new OpenCvSharp.Rect(
+            r.X,
+            r.Y,
+            r.Width,
+            r.Height);
+
+        rect = rect & new OpenCvSharp.Rect(
+            0,
+            0,
+            frame.Width,
+            frame.Height);
+
+        if (rect.Width <= 0 || rect.Height <= 0)
+            return null;
+
+        return new Mat(frame, rect).Clone();
+    }
+    public static Rect DetectFaceRect(Mat frame)
+    {
+        using Bitmap bitmap = BitmapConverter.ToBitmap(frame);
+
+        var results = _detector.Forward(bitmap);
+
+        if (results == null || results.Length == 0)
+            return new Rect();
+
+        var face = results[0];
+
+        return new Rect(
+            (int)face.Box.X,
+            (int)face.Box.Y,
+            (int)face.Box.Width,
+            (int)face.Box.Height
+        );
     }
 }
