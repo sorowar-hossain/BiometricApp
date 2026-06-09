@@ -317,7 +317,7 @@ public class FaceCaptureHcService
         return Math.Min(100,
             contrast / 60.0 * 100);
     }
-    public static double GetFaceSizeScore(OpenCvSharp.Mat faceRect, OpenCvSharp.Size imageSize)
+    public static double GetFaceSizeScore(OpenCvSharp.Rect faceRect, OpenCvSharp.Size imageSize)
     {
         double ratio =
             (double)faceRect.Height /
@@ -358,15 +358,13 @@ public class FaceCaptureHcService
         if (gray.Empty() || color.Empty())
             return 0;
 
-        double sharpness = GetSharpnessScore(gray);
-        double brightness = GetBrightnessScore(gray);
-        double contrast = GetContrastScore(gray);
+        sharpness = GetSharpnessScore(gray);
+        brightness = GetBrightnessScore(gray);
+        contrast = GetContrastScore(gray);
 
-        Mat faceRect = DetectFace(color);
+        Rect faceRect = DetectFaceRect(color);
         faceSize = GetFaceSizeScore(faceRect, color.Size());
-
-        Rect faceCenterRect = DetectFaceRect(color);
-        faceCenter = GetCenterScore(faceCenterRect, color.Size());
+        faceCenter = GetCenterScore(faceRect, color.Size());
 
         // Optional: include face center score (recommended if meaningful)
         double quality =
