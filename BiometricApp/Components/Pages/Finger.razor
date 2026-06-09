@@ -14,8 +14,20 @@
 
         <!-- LEFT SIDE : VIDEO -->
         <div class="col-md-4">
+            @if (!string.IsNullOrWhiteSpace(ScannerService.message))
+            {
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <i class="bi bi-finger"></i>
+                        <h5>Status</h5>
+                    </div>
+                    <div class="analytics-content">
+                        <span style="font-size:15px;font-weight:bold;">@ScannerService.message</span>
+                    </div>
+                </div>
 
-            <div class="video-panel">
+            }
+            <div class="video-panel mt-3">
 
                 <div class="video-box">
 
@@ -33,112 +45,133 @@
 
                 </div>
             </div>
-            @if (!string.IsNullOrWhiteSpace(ScannerService.message))
-            {
-                <div class="capturing_status">
-                    <span style="font-size:15px;font-weight:bold;">@ScannerService.message</span>
-                </div>
-            }
-            
     </div>
 
         <!-- RIGHT SIDE -->
         <div class="col-md-8">
 
             <!-- LEFT 4 -->
-            <div class="scan-section">
-
-                <div class="slots">
-                    @for (int i = 0; i < 4; i++)
-                    {
-                        var index = i;
-                        <div class="slot @(GetSlotClass(i))">
-
-                            <div class="finger-label">
-                                @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
-                            </div>
-
-                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
-                            {
-                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")"
-                                     class="finger-img" @onclick="() => ShowPreview(index)" />
-                            }
-
-                        </div>
-                    }
+            <div class="analytics-card">
+                <div class="analytics-header">
+                    <i class="bi bi-finger"></i>
+                    <h5>Left Four Fingers</h5>
+                    <button class="btn btn_scan_button"
+                            @onclick="StartScanLeft"
+                            disabled="@(isProcessing)">
+                        Scan
+                    </button>
                 </div>
+                <div class="analytics-content">
+                    <div class="scan-section">
 
-                <button class="btn btn-success mt-2"
-                        @onclick="StartScanLeft"
-                        disabled="@(isProcessing)">
-                    Scan Left 4
-                </button>
+                        <div class="slots">
+                            @for (int i = 0; i < 4; i++)
+                            {
+                                var index = i;
+                                <div class="slot @(GetSlotClass(i))">
 
+                                    <div class="finger-label">
+                                        @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                                    {
+                                        <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")"
+                                             class="finger-img" @onclick="() => ShowPreview(index)" />
+                                    }
+
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
+            
 
             <!-- RIGHT 4 -->
-            <div class="scan-section mt-4">
+            <div class="analytics-card mt-3">
+                <div class="analytics-header">
+                    <i class="bi bi-finger"></i>
+                    <h5>Right Four Fingers</h5>
+                    <button class="btn btn_scan_button"
+                            @onclick="StartScanRight"
+                            disabled="@(isProcessing)">
+                        Scan
+                    </button>
+                </div>
+                <div class="analytics-content">
+                    <div class="scan-section">
 
-                <div class="slots">
-                    @for (int i = 6; i < 10; i++)
-                    {
-                        var index = i;
-                        <div class="slot @(GetSlotClass(i))">
-
-                            <div class="finger-label">
-                                @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
-                            </div>
-
-                            @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                        <div class="slots">
+                            @for (int i = 6; i < 10; i++)
                             {
-                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")"
-                                     class="finger-img" @onclick="() => ShowPreview(index)" />
+                                var index = i;
+                                <div class="slot @(GetSlotClass(i))">
+
+                                    <div class="finger-label">
+                                        @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(Fingerprints[i]))
+                                    {
+                                        <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")"
+                                             class="finger-img" @onclick="() => ShowPreview(index)" />
+                                    }
+
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- THUMBS -->
+            <div class="analytics-card mt-3">
+                <div class="analytics-header">
+                    <i class="bi bi-finger"></i>
+                    <h5>Two Thumb Fingers</h5>
+                    <button class="btn btn_scan_button"
+                            @onclick="StartScanThums"
+                            disabled="@(isProcessing)">
+                        Scan
+                    </button>
+                </div>
+                <div class="analytics-content">
+                    <div class="slots">
+
+                        <!-- LEFT THUMB -->
+                        <div class="slot @(GetSlotClass(4))">
+
+                            <div class="finger-label">LT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(4)</span>)</div>
+
+                            @if (!string.IsNullOrEmpty(Fingerprints[4]))
+                            {
+                                <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")"
+                                     class="finger-img" @onclick="() => ShowPreview(4)" />
                             }
 
                         </div>
-                    }
+
+                        <!-- RIGHT THUMB -->
+                        <div class="slot @(GetSlotClass(5))">
+
+                            <div class="finger-label">RT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(5)</span>)</div>
+
+                            @if (!string.IsNullOrEmpty(Fingerprints[5]))
+                            {
+                                <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")"
+                                     class="finger-img" @onclick="() => ShowPreview(4)" />
+                            }
+
+                        </div>
+
+                    </div>
                 </div>
-
-                <button class="btn btn-success mt-2"
-                        @onclick="StartScanRight"
-                        disabled="@(isProcessing)">
-                    Scan Right 4
-                </button>
-
             </div>
+            <div class="thumb-section">
 
-            <!-- THUMBS -->
-            <div class="thumb-section mt-4">
-
-                <div class="slots thumb-slots">
-
-                    <!-- LEFT THUMB -->
-                    <div class="slot @(GetSlotClass(4))">
-
-                        <div class="finger-label">LT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(4)</span>)</div>
-
-                        @if (!string.IsNullOrEmpty(Fingerprints[4]))
-                        {
-                            <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")"
-                                 class="finger-img" @onclick="() => ShowPreview(4)" />
-                        }
-
-                    </div>
-
-                    <!-- RIGHT THUMB -->
-                    <div class="slot @(GetSlotClass(5))">
-
-                        <div class="finger-label">RT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(5)</span>)</div>
-
-                        @if (!string.IsNullOrEmpty(Fingerprints[5]))
-                        {
-                            <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")"
-                                 class="finger-img" @onclick="() => ShowPreview(4)" />
-                        }
-
-                    </div>
-
-                </div>
+                
 
                 <div class="thumb-action-row mt-3">
 
@@ -147,11 +180,7 @@
 
                     <!-- CENTER BUTTON -->
                     <div class="text-center">
-                        <button class="btn btn-success"
-                                @onclick="StartScanThums"
-                                disabled="@(isProcessing)">
-                            Scan Thumb 2
-                        </button>
+                        
                     </div>
 
                     <!-- RIGHT SAVE -->
@@ -653,7 +682,7 @@
 
     .video-box {
         width: 100%;
-        height: 450px;
+        height: 710px;
         border: 2px solid #dcdcdc;
         border-radius: 12px;
         background: #f8f8f8;
@@ -888,5 +917,18 @@
         font-size: 1.1rem;
         font-weight: 600;
         min-width: 140px;
+    }
+
+    .btn_scan_button{
+        background-color: #FFC700;
+        color:#454545;
+        margin-left: auto;
+        width:100px;
+        font-weight:bold;
+    }
+
+    .btn_scan_button:hover {
+        background-color: #FFC700;
+        color: #454545;
     }
 </style>
