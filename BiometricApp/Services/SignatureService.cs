@@ -89,8 +89,8 @@ namespace BiometricApp.Services
                     Console.WriteLine($"save_file failed: {saveRes}");
                     return "";
                 }
-
-                return Path.Combine(folder, "sig_Signature_.png"); ;
+               await RenameFile(folder);
+                return Path.Combine(folder, "signature.png"); ;
             }
             catch (Exception ex)
             {
@@ -107,39 +107,63 @@ namespace BiometricApp.Services
         }
 
 
-        public void RenameFile(string folder)
+        public async Task RenameFile(string folder)
         {
-           
-            string targetFileName = "signature.png";
+            var sigPngFiles = Directory.GetFiles(folder, "*.png")
+                .Where(f => Path.GetFileName(f)
+                .Contains("sig", StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
-            var sigFiles = Directory.GetFiles(folder, "*.png")
-              .Where(f => Path.GetFileName(f)
-              .Contains("sig", StringComparison.OrdinalIgnoreCase))
-              .ToList();
+            if (!sigPngFiles.Any())
+                return;
 
-            if (sigFiles.Any())
+            // Get newest PNG
+            string latestPng = sigPngFiles
+                .OrderByDescending(File.GetLastWriteTime)
+                .First();
+
+            // Extract base filename without extension
+            string latestBaseName = Path.GetFileNameWithoutExtension(latestPng);
+
+            // Find matching HTML
+            string latestHtml = Path.Combine(folder, $"{latestBaseName}.xml");
+
+            // Delete all other signature PNG files
+            foreach (var file in sigPngFiles.Where(f => f != latestPng))
             {
-                // Get the most recently modified file
-                string latestFile = sigFiles
-                    .OrderByDescending(File.GetLastWriteTime)
-                    .First();
-
-                // Delete all other PNG files
-                foreach (var file in sigFiles.Where(f => f != latestFile))
-                {
-                    File.Delete(file);
-                }
-
-                // Rename latest file
-                string newPath = Path.Combine(folder, targetFileName);
-
-                if (File.Exists(newPath))
-                {
-                    File.Delete(newPath);
-                }
-
-                File.Move(latestFile, newPath);
+                File.Delete(file);
             }
+
+            // Delete all other signature HTML files
+            var sigHtmlFiles = Directory.GetFiles(folder, "*.xml")
+                .Where(f => Path.GetFileName(f)
+                .Contains("sig", StringComparison.OrdinalIgnoreCase));
+
+            foreach (var file in sigHtmlFiles.Where(f => !string.Equals(f, latestHtml, StringComparison.OrdinalIgnoreCase)))
+            {
+                File.Delete(file);
+            }
+
+            // Rename PNG
+            string newPngPath = Path.Combine(folder, "signature.png");
+
+            if (File.Exists(newPngPath))
+                File.Delete(newPngPath);
+
+            File.Move(latestPng, newPngPath);
+
+            // Rename HTML if found
+            if (File.Exists(latestHtml))
+            {
+                string newHtmlPath = Path.Combine(folder, "signature.xml");
+
+                if (File.Exists(newHtmlPath))
+                    File.Delete(newHtmlPath);
+
+                File.Move(latestHtml, newHtmlPath);
+            }
+
+            await Task.CompletedTask;
         }
 
         public static Bitmap U8PtrToBitmap32(IntPtr img, int width, int height)
