@@ -246,7 +246,7 @@
         </div>
 
         <!-- RIGHT PREVIEW -->
-        <div class="col-lg-3 col-md-12 preview-panel">
+        <div  class="col-lg-3 col-md-12 preview-panel px-0">
             <div class="analytics-card">
                 <div class="analytics-header">
                     <i class="bi bi-person-circle"></i>
@@ -268,6 +268,7 @@
                         }
 
                     </div>
+
                     <div class="d-flex justify-content-start mt-2">
                         <div class="d-flex justify-content-center mt-2">
                             <button class="btn btn-success save-btn custom-save-btn"
@@ -652,6 +653,9 @@
         padding: 20px;
     }
 
+    /* =========================
+       HEADER
+    ========================= */
     .header-bar {
         background: #4868a8;
         color: white;
@@ -660,152 +664,8 @@
     }
 
     /* =========================
-           LIVE CAMERA BOX
-           ========================= */
-    .live-camera-box {
-        border: 1px solid #dcdcdc;
-        border-radius: 10px;
-        height: 300px;
-        width: 100%;
-        max-width: 670px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        background: #f8f8f8;
-    }
-
-    /* =========================
-           PREVIEW BOX (CAPTURED FACE)
-           ========================= */
-    .preview-box {
-        border: 1px solid #dcdcdc;
-        border-radius: 10px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        background: #f8f8f8;
-        width: 100%;
-        height: 100%;
-        min-width: 300px;
-        min-height: 300px;
-    }
-
-        /* IMAGE FIT */
-        .live-camera-box img,
-        .preview-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    /* PLACEHOLDER */
-    .camera-placeholder {
-        color: gray;
-        font-size: 18px;
-    }
-
-    /* BUTTONS */
-    .camera-buttons button {
-        margin: 5px;
-        min-width: 140px;
-    }
-
-    /* STATUS */
-    .status-box {
-        font-size: 14px;
-        color: #444;
-    }
-
-    /* FACE RECOGNITION LINE */
-    .face_recog_second_column {
-        border-top: 1px solid #ccc;
-        position: relative;
-        top: -4px;
-    }
-
-    /* =========================
-           TABLET
-           ========================= */
-    @@media (max-width: 992px) {
-        .control-panel, .preview-panel {
-            margin-top: 20px;
-        }
-
-        .live-camera-box {
-            max-width: 100%;
-            height: 300px;
-        }
-
-        .preview-box {
-            min-width: 300px;
-            min-height: 300px;
-        }
-    }
-
-    /* =========================
-           MOBILE
-           ========================= */
-    @@media (max-width: 768px) {
-        .biometric-container {
-            padding: 15px;
-        }
-
-        .camera-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-            .camera-buttons button {
-                width: 100%;
-                margin: 0;
-            }
-
-        .save-btn {
-            width: 100% !important;
-        }
-
-        .face_recog_second_column {
-            top: 0;
-        }
-    }
-
-    /* =========================
-           SMALL MOBILE
-           ========================= */
-    @@media (max-width: 576px) {
-        .biometric-container {
-            padding: 10px;
-        }
-
-        .live-camera-box {
-            height: 220px;
-        }
-
-        .preview-box {
-            min-width: 300px;
-            min-height: 300px;
-        }
-
-        .camera-placeholder {
-            font-size: 14px;
-            text-align: center;
-        }
-    }
-
-    .custom-save-btn {
-        width: 220px;
-    }
-
-    @@media (max-width: 768px) {
-        .custom-save-btn {
-            width: 100%;
-        }
-    }
-
-
+       ANALYTICS CARD
+    ========================= */
     .analytics-card {
         background: #fff;
         border-radius: 12px;
@@ -814,21 +674,67 @@
         overflow: hidden;
     }
 
-    .analytics-header {
-        background: linear-gradient(135deg, #0d6efd, #4f8cff);
-        color: #fff;
-        padding: 10px 14px;
-        font-size: 15px;
-        font-weight: 600;
+        /* REMOVE ALL INTERNAL PADDING (KEY FIX) */
+        .control-panel .analytics-content,
+        .preview-panel .analytics-content,
+        .analytics-card .analytics-content {
+            padding: 10px !important;
+        }
+
+    /* =========================
+       LIVE CAMERA + PREVIEW BOX
+    ========================= */
+    .live-camera-box,
+    .preview-box {
+        position: relative;
+        width: 100%;
+        height: 320px;
+        border: 1px solid #dcdcdc;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #f8f8f8;
+        margin: 0;
+        min-height: 300px;
+        min-width: 100%;
+    }
+
+        /* IMAGE FULL FILL */
+        .live-camera-box img,
+        .preview-box img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    /* PLACEHOLDER */
+    .camera-placeholder {
         display: flex;
+        justify-content: center;
         align-items: center;
-        gap: 8px;
+        height: 100%;
+        color: gray;
+        font-size: 16px;
+        text-align: center;
     }
 
-    .analytics-content {
-        padding: 12px;
+    /* =========================
+       BUTTONS
+    ========================= */
+    .camera-buttons button {
+        margin: 5px;
+        min-width: 140px;
     }
 
+    .custom-save-btn {
+        width: 220px;
+    }
+
+    /* =========================
+       ANALYTICS ITEMS
+    ========================= */
     .analytics-item {
         display: flex;
         justify-content: space-between;
@@ -843,24 +749,15 @@
             margin-bottom: 0;
         }
 
-
-
-        .analytics-item strong {
-            color: #212529;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
         .analytics-item span,
         .analytics-item strong {
             font-size: 16px;
             font-weight: 700;
         }
 
-    .detection-box .analytics-card {
-        height: 100%;
-    }
-
+    /* =========================
+       EMOTION GRID
+    ========================= */
     .emotion-grid {
         display: flex;
         gap: 20px;
@@ -873,21 +770,97 @@
         gap: 10px;
     }
 
-    .analytics-content .btn {
-        min-width: 140px;
+    /* =========================
+       STATUS
+    ========================= */
+    .status-box {
+        font-size: 14px;
+        color: #444;
     }
 
-    .analytics-content .analytics-item {
-        margin-bottom: 10px;
+    /* =========================
+       RESPONSIVE
+    ========================= */
+    @@media (max-width: 992px) {
+        .control-panel, .preview-panel
+
+    {
+        margin-top: 20px;
     }
 
-        .analytics-content .analytics-item:last-child {
-            margin-bottom: 0;
+    .live-camera-box,
+    .preview-box {
+        height: 300px;
+    }
+
+    }
+
+    @@media (max-width: 768px) {
+        .biometric-container
+
+    {
+        padding: 15px;
+    }
+
+    .camera-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+        .camera-buttons button {
+            width: 100%;
+            margin: 0;
         }
 
+    .save-btn {
+        width: 100% !important;
+    }
+
+    .custom-save-btn {
+        width: 100%;
+    }
+
+    }
+
+    @@media (max-width: 576px) {
+        .biometric-container
+
+    {
+        padding: 10px;
+    }
+
+    .live-camera-box,
+    .preview-box {
+        height: 220px;
+    }
+
+    .camera-placeholder {
+        font-size: 14px;
+    }
+
+    }
+
+    /* =========================
+       HEADER HEADER STYLE
+    ========================= */
+    .analytics-header {
+        background: linear-gradient(135deg, #0d6efd, #4f8cff);
+        color: #fff;
+        padding: 10px 14px;
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* =========================
+       MINOR FIXES
+    ========================= */
     .panel-title {
         text-align: center;
-        margin-bottom: 10px; /* space between title and camera box */
+        margin-bottom: 10px;
         font-weight: 600;
     }
 </style>
