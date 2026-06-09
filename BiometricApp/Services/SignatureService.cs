@@ -106,6 +106,42 @@ namespace BiometricApp.Services
             }
         }
 
+
+        public void RenameFile(string folder)
+        {
+           
+            string targetFileName = "signature.png";
+
+            var sigFiles = Directory.GetFiles(folder, "*.png")
+              .Where(f => Path.GetFileName(f)
+              .Contains("sig", StringComparison.OrdinalIgnoreCase))
+              .ToList();
+
+            if (sigFiles.Any())
+            {
+                // Get the most recently modified file
+                string latestFile = sigFiles
+                    .OrderByDescending(File.GetLastWriteTime)
+                    .First();
+
+                // Delete all other PNG files
+                foreach (var file in sigFiles.Where(f => f != latestFile))
+                {
+                    File.Delete(file);
+                }
+
+                // Rename latest file
+                string newPath = Path.Combine(folder, targetFileName);
+
+                if (File.Exists(newPath))
+                {
+                    File.Delete(newPath);
+                }
+
+                File.Move(latestFile, newPath);
+            }
+        }
+
         public static Bitmap U8PtrToBitmap32(IntPtr img, int width, int height)
         {
             // 創建 Mat 指向非託管數據的灰階圖

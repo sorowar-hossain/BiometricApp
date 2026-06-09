@@ -197,9 +197,9 @@
 
                 <div class="analytics-conten">
                     <div class="analytics-item">
-                        <h8>Brightness: @FaceCaptureHcService.brightness</h8>
-                        <h8>Sharpness: @FaceCaptureHcService.sharpness</h8>
-                        <h8>Contrast: @FaceCaptureHcService.contrast</h8>
+                        <h8>Brightness: @Math.Round(FaceCaptureHcService.brightness)</h8>
+                        <h8>Sharpness: @Math.Round(FaceCaptureHcService.sharpness)</h8>
+                            <h8> Contrast: @Math.Round(FaceCaptureHcService.contrast) </h8 >
                     </div>
                 </div>
 
@@ -255,7 +255,7 @@
 
                         @if (!string.IsNullOrEmpty(CapturedImage))
                         {
-                            <img class="w-100 h-100 object-fit-contain"
+                            <img class=""
                                  src="@($"data:image/jpeg;base64,{CapturedImage}")" />
                         }
                         else
@@ -695,7 +695,7 @@
         .preview-box img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
         }
 
     /* PLACEHOLDER */
