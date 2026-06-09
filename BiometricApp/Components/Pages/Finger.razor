@@ -14,20 +14,8 @@
 
         <!-- LEFT SIDE : VIDEO -->
         <div class="col-md-4">
-            @if (!string.IsNullOrWhiteSpace(ScannerService.message))
-            {
-                <div class="analytics-card">
-                    <div class="analytics-header">
-                        <i class="bi bi-finger"></i>
-                        <h5>Status</h5>
-                    </div>
-                    <div class="analytics-content">
-                        <span style="font-size:15px;font-weight:bold;">@ScannerService.message</span>
-                    </div>
-                </div>
-
-            }
-            <div class="video-panel mt-3">
+            
+            <div class="video-panel">
 
                 <div class="video-box">
 
@@ -45,6 +33,19 @@
 
                 </div>
             </div>
+            @if (!string.IsNullOrWhiteSpace(ScannerService.message))
+            {
+                <div class="analytics-card mt-3">
+                    <div class="analytics-header">
+                        <i class="bi bi-finger"></i>
+                        <h5>Status</h5>
+                    </div>
+                    <div class="analytics-content">
+                        <span style="font-size:15px;font-weight:bold;">@ScannerService.message</span>
+                    </div>
+                </div>
+
+            }
     </div>
 
         <!-- RIGHT SIDE -->
@@ -682,7 +683,7 @@
 
     .video-box {
         width: 100%;
-        height: 710px;
+        height: 450px;
         border: 2px solid #dcdcdc;
         border-radius: 12px;
         background: #f8f8f8;
