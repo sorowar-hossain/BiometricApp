@@ -1,5 +1,7 @@
 ﻿@page "/signature"
+@using BiometricApp.Models
 @using BiometricApp.Services
+@using System.Text.Json
 @inject UserSessionService SessionService
 
 @inject SignatureService signatureService
@@ -83,7 +85,7 @@
         <!-- SAVE BUTTON -->
         <div class="d-flex justify-content-center mt-4">
 
-          @*   <button class="btn btn-success px-5 save-btn"
+            @*   <button class="btn btn-success px-5 save-btn"
                     @onclick="SaveSignature"
                     disabled="@(isProcessing)">
                 <i class="bi bi-check2-circle me-1"></i> Save
@@ -100,7 +102,7 @@
     .main-box {
         border: none;
         background: #f8f9fa;
-        height:auto;
+        height: auto;
     }
 
     .header {
@@ -255,6 +257,7 @@
         StateHasChanged();
     }
 
+
     private async Task SaveSignature()
     {
 
@@ -263,13 +266,41 @@
 
             byte[] bytes = await File.ReadAllBytesAsync(path);
 
-            SignatureBase64 =
-                $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
+            string signatureBase64 =
+                 $"data:image/png;base64,{Convert.ToBase64String(bytes)}";
 
-            await signatureService.SaveSignature(SignatureBase64, folder);
+            await signatureService.SaveSignature(signatureBase64, folder);
 
             path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
-            await OnActionMessage.InvokeAsync("Saved");
+            await ShowSignature();
+
+        }
+
+
+    }
+
+
+    private async Task ShowSignature()
+    {
+
+        string jsonPath = Path.Combine(folder, "signature.json");
+
+        if (File.Exists(jsonPath))
+        {
+            string json = await File.ReadAllTextAsync(jsonPath);
+
+            var signatureData = JsonSerializer.Deserialize<SignatureData>(json);
+
+            if (!string.IsNullOrWhiteSpace(signatureData?.SignatureImage))
+            {
+                SignatureBase64 = signatureData.SignatureImage;
+
+                await signatureService.SaveSignature(SignatureBase64, folder);
+
+                path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
+
+                await OnActionMessage.InvokeAsync("Saved");
+            }
         }
 
         StateHasChanged();
@@ -279,10 +310,11 @@
     {
         LiveSignatureBase64 = null;
         SignatureBase64 = null;
-        path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId); 
+        path = Path.Combine(AppSettings.BaseFolder, PersonUniqueId);
         isProcessing = true;
+        status = "";
         StateHasChanged();
-        
+
     }
 
 }
