@@ -12,7 +12,7 @@
     <!-- PAGE TITLE -->
     <div class="page-header mb-3 sticky-header">
         <div>
-            <h3 class="mb-0">Biometric Enrollment</h3>
+            <h3 class="mb-0"><span class="page-header_content">Biometric Enrollment</span></h3>
         </div>
 
         <div>
@@ -30,6 +30,18 @@
                     @onclick="ClearAll">
                 <i class="bi bi-person-plus"></i>
                 New Registration
+            </button>
+            <button class="btn"
+                    type="button"
+                    >
+                <i class="bi bi-journal-text"></i>
+                Details
+            </button>
+            <button class="btn"
+                    type="button"
+                    >
+                <i class="bi bi-database-fill"></i>
+                Save to DB
             </button>
         </div>
     </div>
@@ -118,6 +130,9 @@
 </div>
 
 <style>
+    .page-header_content{
+        color:white;
+    }
     .label-custom {
         font-size: 18px;
         font-weight: 600;
@@ -241,7 +256,14 @@
             transform: translateY(-5px);
         }
 
+    .new_regis_btn {
+        display: flex;
+        gap: 15px;
+    }
     .new_regis_btn button{
+        display: flex;
+        align-items: center;
+        gap: 5px;
         border: 3px solid #FFC700;
         color:white;
         font-weight:bold;
