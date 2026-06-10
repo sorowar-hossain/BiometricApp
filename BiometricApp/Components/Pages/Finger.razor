@@ -204,16 +204,14 @@
     </div>
     @if (isPreviewVisible)
     {
-        <div class="preview-overlay" @onclick="ClosePreview">
-            <div class="preview-box" @onclick:stopPropagation="true">
-                <img src="@($"data:image/bmp;base64,{previewImage}")"
-                     class="preview-image" />
+        <div class="preview-overlay" @onclick:stopPropagation="true">
+            <img src="@($"data:image/bmp;base64,{previewImage}")"
+                 class="preview-image" />
 
-                <button class="btn btn-danger mt-3 preview-close-btn"
-                        @onclick="ClosePreview">
-                    Close
-                </button>
-            </div>
+            <button class="btn btn-danger mt-3 preview-close-btn"
+                    @onclick="ClosePreview">
+                Close
+            </button>
         </div>
     }
 </div>
@@ -261,6 +259,10 @@
     {
 
 
+    }
+    void TestClick()
+    {
+        Console.WriteLine("clicked");
     }
     string? previewImage;
     bool isPreviewVisible = false;
@@ -754,6 +756,7 @@
         height: 100%;
         object-fit: contain;
         padding: 6px; /* small inner spacing */
+        cursor: pointer;
     }
 
     /* Move label OUT of image space */
@@ -767,6 +770,7 @@
         padding: 2px 6px;
         border-radius: 4px;
         z-index: 2;
+        pointer-events: none;
     }
 
     .thumb-section {
@@ -881,45 +885,27 @@
 
     .preview-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 9999;
-    }
-
-    .preview-box {
-        background: #fff;
-        padding: 20px;
-        border-radius: 12px;
-        max-width: 95vw;
-        max-height: 95vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        inset: 0;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 99999;
     }
 
     .preview-image {
-        max-width: 90vw;
-        max-height: 85vh;
-        width: auto;
-        height: auto;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 100vw;
+        max-height: 100vh;
         object-fit: contain;
-        transform: translateY(30px); /* move image down visually */
     }
 
     .preview-close-btn {
-        margin-top: 15px;
-        margin-bottom: 15px; /* space below button */
-
-        padding: 14px 40px; /* bigger button */
-        font-size: 1.1rem;
-        font-weight: 600;
-        min-width: 140px;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 100000;
     }
 
     .btn_scan_button{
