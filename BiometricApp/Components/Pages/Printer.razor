@@ -1,0 +1,80 @@
+﻿@page "/printer-test"
+@using FingerprintWrapper
+@inject IJSRuntime JS
+
+<h3>Printer Test</h3>
+
+<button class="btn btn-primary" @onclick="TestPrint">
+    Test Printer
+</button>
+
+
+
+<p>@status</p>
+
+@code {
+    private string status = "";
+
+    private IMDPrinter printer = new IMDPrinter();
+
+
+
+    private async Task TestPrint()
+    {
+        try
+        {
+            status = "Connecting...";
+            StateHasChanged();
+
+            int conn = printer.AutoConnectUSB();
+            if (conn != 0)
+            {
+                status = "USB connection failed: " + conn;
+                return;
+            }
+
+           var res= printer.Init();
+            await Task.Delay(500);
+
+            status = "Printing...";
+            StateHasChanged();
+
+            // var res2 = printer.SetAlign(1);
+            // var res3 = printer.PrintText("===== TEST PRINT =====");
+            // var res4 = printer.PrintLine(1);
+
+            // var res5 = printer.SetAlign(1);
+            // var res6 = printer.PrintText("HELLO PRINTER");
+            var res3 = printer.PrintText(@"
+                                        ===== TEST PRINT =====
+                                        This is an official test print for the registration and verification system.
+                                        The purpose of this print is to ensure that the printer is correctly connected,
+                                        initialized, and capable of handling continuous text output without any interruption.
+                                        It also verifies that line wrapping, alignment,
+                                        and spacing are working as expected in real-world usage scenarios.
+                                        If this message is printed clearly and without distortion, the printer setup is considered successful and ready for production use.
+                                        ");
+            var res7 = printer.PrintLine(2);
+
+            var res8 = printer.PrintQRCode("TEST123");
+            var res11 = printer.PrintLine(7);
+
+            var res9 = printer.CutPaper();
+
+            await Task.Delay(1000); // VERY IMPORTANT
+
+            var res10 = printer.Close();
+
+            status = "Print sent successfully";
+        }
+        catch (Exception ex)
+        {
+            status = "Error: " + ex.Message;
+        }
+    }
+
+   
+}
+
+
+

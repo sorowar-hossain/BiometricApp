@@ -44,6 +44,15 @@
                 <i class="bi bi-database-fill"></i>
                 Save to DB
             </button>
+
+            <button class="btn"
+                    type="button"
+                    @onclick="TestPrinter">
+
+                <i class="bi bi-database-fill"></i>
+                Test Printer
+            </button>
+
         </div>
     </div>
 
@@ -355,5 +364,9 @@
     private void GoToSavePage()
     {
         NavigationManager.NavigateTo("/save-to-database");
+    }
+    private void TestPrinter()
+    {
+        NavigationManager.NavigateTo("/printer-test");
     }
 }
