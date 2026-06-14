@@ -1,4 +1,10 @@
-﻿namespace BiometricApp
+﻿#if WINDOWS
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
+using WinRT.Interop;
+#endif
+namespace BiometricApp
 {
     public partial class App : Application
     {
@@ -9,7 +15,42 @@
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new MainPage()) { Title = "BiometricApp" };
+            var window = new Window(new MainPage());
+
+#if WINDOWS
+            window.Created += (s, e) =>
+            {
+                MoveToSecondMonitor(window);
+            };
+#endif
+
+            return window;
         }
+#if WINDOWS
+        private void MoveToSecondMonitor(Window window)
+        {
+            var mauiWindow = window.Handler.PlatformView;
+
+            var hwnd = WindowNative.GetWindowHandle(mauiWindow);
+
+            var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+
+            var appWindow = AppWindow.GetFromWindowId(windowId);
+
+            var displays = DisplayArea.FindAll();
+
+            if (displays.Count > 1)
+            {
+                var second = displays[1].WorkArea;
+
+                appWindow.MoveAndResize(new RectInt32(
+                    second.X,
+                    second.Y,
+                    second.Width,
+                    second.Height
+                ));
+            }
+        }
+#endif
     }
 }
