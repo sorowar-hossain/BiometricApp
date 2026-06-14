@@ -89,7 +89,7 @@ public class FaceCaptureHcService
         var hwnd =
             WindowNative.GetWindowHandle(window);
 
-        cam.OpenCamera(cameraIndex, hwnd);
+        cam.OpenCamera(cameraIndex, IntPtr.Zero);
 #endif
 
         isStarted = true;
