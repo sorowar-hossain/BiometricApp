@@ -66,7 +66,7 @@ public class FaceCaptureHcService
         _detector = new FaceONNX.FaceDetector();
         _emotion = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "emotion.onnx"));
         _gender = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "gender.onnx"));
-        _session = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "Natives","models","u2net.onnx"));
+        _session = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models","u2net.onnx"));
     }
 
     public void StartCamera()
