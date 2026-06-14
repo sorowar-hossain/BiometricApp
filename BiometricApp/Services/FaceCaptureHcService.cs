@@ -143,7 +143,7 @@ public class FaceCaptureHcService
                     // optionally log error
                 }
 
-                await Task.Delay(50, token);
+                await Task.Delay(1000, token);
             }
         }, token);
     }
