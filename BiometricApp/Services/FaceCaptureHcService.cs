@@ -128,14 +128,19 @@ public class FaceCaptureHcService
             {
                 try
                 {
-                    if (isStarted)
+                    if (isStarted && cam != null)
                     {
-                        _latestBase64 =
-                            cam.CaptureBase64(cameraIndex);
+                        var frame = cam.CaptureBase64(cameraIndex);
+
+                        if (!string.IsNullOrWhiteSpace(frame))
+                        {
+                            _latestBase64 = frame;
+                        }
                     }
                 }
                 catch
                 {
+                    // optionally log error
                 }
 
                 await Task.Delay(50, token);

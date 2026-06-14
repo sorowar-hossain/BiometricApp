@@ -33,7 +33,7 @@
             </button>
             <button class="btn"
                     type="button"
-                    >
+                    @onclick="GoToDetailsPage">
                 <i class="bi bi-journal-text"></i>
                 Details
             </button>
@@ -45,13 +45,7 @@
                 Save to DB
             </button>
 
-            <button class="btn"
-                    type="button"
-                    @onclick="TestPrinter">
-
-                <i class="bi bi-database-fill"></i>
-                Test Printer
-            </button>
+            
 
         </div>
     </div>
@@ -288,6 +282,7 @@
     private UserLoginResponse user = new();
     public string message = "";
     private bool isVisible;
+    private string personUniqueId;
     protected override async Task OnInitializedAsync()
     {
         // Get current user
@@ -300,6 +295,12 @@
         });
 
         StateHasChanged();
+    }
+  
+
+    private void ReceivePersonId(string id)
+    {
+        personUniqueId = id;
     }
 
     private async Task ShowMessage()
@@ -364,6 +365,10 @@
     private void GoToSavePage()
     {
         NavigationManager.NavigateTo("/save-to-database");
+    }
+    private void GoToDetailsPage()
+    {
+        NavigationManager.NavigateTo($"/detail-review");
     }
     private void TestPrinter()
     {

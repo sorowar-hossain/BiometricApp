@@ -1,8 +1,14 @@
 ﻿@page "/detail-review"
+@layout EmptyLayout
+@using BiometricApp.Components.Layout
 @using BiometricApp.Models
 @using BiometricApp.Services
+@using FingerprintWrapper
+@using System.Text
+@using System.Text.Json
 @inject LocalStorageService LocalStorageService
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
+@inject UserSessionService SessionService
 
 <div class="container main-container">
     <div class="card shadow-sm">
@@ -164,7 +170,7 @@
                         <div class="mb-3">
                             <label class="biometric-label">Signatures</label>
                             <div class="signature-container">
-                                @for (int i = 12; i < 14; i++)
+                                @for (int i = 12; i < 13; i++)
                                 {
 
                                     <div class="signature-box">
@@ -231,10 +237,18 @@
                             <textarea class="form-control" rows="3" readonly>@Model.Address</textarea>
                         </div>
 
-                        <div class="info-row d-flex justify-content-end mt-3">
-                            <button class="btn btn-primary px-4" @onclick="UpdateInfo">Update</button>
-                        </div>
+                      
 
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-warning back-btn" @onclick="GoBack">
+                            <i class="bi bi-arrow-left-circle-fill"></i>
+                            Back
+                        </button>
+
+                        <div class="info-row d-flex justify-content-end mt-3">
+                            <button class="btn btn-primary px-4" @onclick="PrintInfo">Print</button>
+                        </div>
                     </div>
                 </div>
 
@@ -524,6 +538,14 @@
             max-width: 400px;
             max-height: 400px;
         }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+        width: 100%;
+    }
 </style>
 
 @code {
@@ -536,6 +558,12 @@
     private string path = AppSettings.BaseFolder;
     private List<MemberDropdown> members = new();
     private string? _selectedMemberId;
+    private IMDPrinter printer;
+    bool faceCaptured = false;
+    bool fingerCaptured = false;
+    bool irisCaptured = false;
+    bool signatureCaptured = false;
+    private string status = "";
 
     string? previewImage;
     bool isPreviewVisible = false;
@@ -567,11 +595,14 @@
     protected override async Task OnInitializedAsync()
     {
         members = await LocalStorageService.GetMembersForDropdownAsync();
+        selectedMemberId = SessionService.User.PersonUniqueId;
+        printer = new IMDPrinter();
+        StateHasChanged();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         string? memberId = query["id"];
 
@@ -584,13 +615,103 @@
         StateHasChanged();
     }
 
+
+
+    private async Task PrintInfo()
+    {
+        try
+        {
+            status = "Connecting...";
+            StateHasChanged();
+
+            int conn = printer.AutoConnectUSB();
+            if (conn != 0)
+            {
+                status = "USB connection failed: " + conn;
+                return;
+            }
+
+            var res = printer.Init();
+            await Task.Delay(500);
+
+            status = "Printing...";
+            StateHasChanged();
+
+            var sb = await GetData();
+
+            var res3 = printer.PrintText(sb.ToString());
+            var res7 = printer.PrintLine(2);
+
+            var res8 = printer.PrintQRCode("TEST123");
+            var res11 = printer.PrintLine(7);
+
+            var res9 = printer.CutPaper();
+
+            await Task.Delay(1000); // VERY IMPORTANT
+
+            var res10 = printer.Close();
+
+            status = "Print sent successfully";
+        }
+        catch (Exception ex)
+        {
+            status = "Error: " + ex.Message;
+        }
+    }
+
+    private async Task<StringBuilder> GetData()
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine("================================");
+        sb.AppendLine("        GOV REGISTRATION        ");
+        sb.AppendLine("================================");
+        sb.AppendLine("Token ID : " + selectedMemberId);
+        sb.AppendLine("Office: Kaliganj Service Center");
+        sb.AppendLine("Date  : " + DateTime.Now.ToString("dd-MMM-yyyy HH:mm"));
+        sb.AppendLine("--------------------------------");
+
+        // USER INFO SECTION
+        sb.AppendLine("Applicant Information");
+        sb.AppendLine("--------------------------------");
+        sb.AppendLine("Name        : " + Model.FirstName+ " "+ Model.LastName);
+        sb.AppendLine("Father Name : " + Model.FatherName);
+        sb.AppendLine("Mother Name : " + Model.MotherName);
+        sb.AppendLine("Gender      : " + Model.Gender);
+        sb.AppendLine("DOB         : " + (Model.DateOfBirth?.ToString("dd-MMM-yyyy") ?? "N/A"));
+        sb.AppendLine("Expiry Date : " + (Model.ExpiryDate?.ToString("dd-MMM-yyyy") ?? "N/A"));
+        sb.AppendLine("--------------------------------");
+
+        // BIOMETRIC CAPTURE STATUS
+        sb.AppendLine("Biometric Capture Status");
+        sb.AppendLine("--------------------------------");
+
+        sb.AppendLine("Face        : " + (faceCaptured ? "SUCCESS" : "FAILED"));
+        sb.AppendLine("Fingerprint : " + (fingerCaptured ? "SUCCESS" : "FAILED"));
+        sb.AppendLine("Iris        : " + (irisCaptured ? "SUCCESS" : "FAILED"));
+        sb.AppendLine("Signature   : " + (signatureCaptured ? "SUCCESS" : "FAILED"));
+
+        sb.AppendLine("--------------------------------");
+
+
+
+        sb.AppendLine("This is an automated system generated slip.");
+        sb.AppendLine("Keep this for future reference.");
+
+        sb.AppendLine("================================");
+        sb.AppendLine("     THANK YOU / PLEASE VISIT     ");
+        sb.AppendLine("================================");
+
+        return sb;
+    }
+
     private void UpdateInfo()
     {
-        if (string.IsNullOrWhiteSpace(selectedMemberId))
-        {
-            return;
-        }
-        Navigation.NavigateTo($"/registration?id=" + selectedMemberId + "");
+        // if (string.IsNullOrWhiteSpace(selectedMemberId))
+        // {
+        //     return;
+        // }
+        // NavigationManager.NavigateTo($"/registration?id=" + selectedMemberId + "");
     }
 
     private void SelectMember(MemberDropdown item)
@@ -755,12 +876,12 @@
 
     private void LoadIris(string imagePath)
     {
-
+        irisCaptured = false;
         string[] files =
         {
             "left_iris.png",
             "right_iris.png"
-        };
+    };
 
         int j = 10;
         for (int i = 0; i < files.Length; i++)
@@ -772,6 +893,7 @@
                 var bytes = File.ReadAllBytes(path);
                 Fingerprints[j] = Convert.ToBase64String(bytes);
                 j++;
+                irisCaptured = true;
             }
         }
 
@@ -779,12 +901,12 @@
 
     private void LoadSignature(string imagePath)
     {
-
+        signatureCaptured = false;
         string[] files =
         {
             "signature1.jpg",
             "signature2.jpg"
-        };
+    };
 
         int j = 12;
         for (int i = 0; i < files.Length; i++)
@@ -796,11 +918,35 @@
                 var bytes = File.ReadAllBytes(path);
                 Fingerprints[j] = Convert.ToBase64String(bytes);
                 j++;
+                signatureCaptured = true;
+            }
+            else
+            {
+                signatureCaptured = false;
             }
         }
 
     }
     private void LoadFace(string imagePath)
+    {
+        faceCaptured = false;
+        string jsonPath = Path.Combine(imagePath, "face.json");
+
+        if (!File.Exists(jsonPath))
+            return;
+
+        string json = File.ReadAllText(jsonPath);
+
+        var faceData = JsonSerializer.Deserialize<FaceData>(json);
+
+        if (!string.IsNullOrWhiteSpace(faceData?.FaceImage))
+        {
+            Fingerprints[14] = faceData.FaceImage; // already Base64
+            faceCaptured = true;
+        }
+    }
+
+    private void LoadFace_bak(string imagePath)
     {
 
         string[] files =
@@ -828,7 +974,7 @@
 
     void GoBack()
     {
-        // Navigation logic
+        NavigationManager.NavigateTo("/biometric-enrollment");
     }
 
     void Submit()
