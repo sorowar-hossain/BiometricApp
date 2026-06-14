@@ -11,6 +11,12 @@ using System.Drawing;
 using OpenCvSharp.Extensions;
 using Windows.Perception.People;
 using Rect = OpenCvSharp.Rect;
+using System;
+using System.IO;
+using SixLabors.ImageSharp.PixelFormats;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 
 
@@ -54,12 +60,13 @@ public class FaceCaptureHcService
     public static double contrast = 0.0;
     public static double faceSize = 0.0;
     public static double faceCenter = 0.0;
-
+    private static  InferenceSession _session;
     public FaceCaptureHcService()
     {
         _detector = new FaceONNX.FaceDetector();
         _emotion = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "emotion.onnx"));
         _gender = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "models", "gender.onnx"));
+        _session = new InferenceSession(Path.Combine(AppContext.BaseDirectory, "Natives","models","u2net.onnx"));
     }
 
     public void StartCamera()
@@ -131,7 +138,7 @@ public class FaceCaptureHcService
                 {
                 }
 
-                await Task.Delay(1000, token);
+                await Task.Delay(50, token);
             }
         }, token);
     }
@@ -156,6 +163,91 @@ public class FaceCaptureHcService
         var face = Cv2.ImDecode(imgStr, ImreadModes.Grayscale);
         
         return cam.CaptureBase64(cameraIndex);
+    }
+
+    public async Task<string> RemoveBackground(string base64Image)
+    {
+        return await Task.Run(() =>
+        {
+            if (base64Image.Contains(","))
+                base64Image = base64Image.Split(',')[1];
+
+            byte[] bytes = Convert.FromBase64String(base64Image);
+
+            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(bytes);
+
+            int w = 320;
+            int h = 320;
+
+            image.Mutate(x => x.Resize(w, h));
+
+            // -----------------------------
+            // Create input tensor (CHW)
+            // -----------------------------
+            var input = new DenseTensor<float>(new[] { 1, 3, h, w });
+
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    var p = image[x, y];
+
+                    input[0, 0, y, x] = p.R / 255f;
+                    input[0, 1, y, x] = p.G / 255f;
+                    input[0, 2, y, x] = p.B / 255f;
+                }
+            }
+
+            // -----------------------------
+            // Run ONNX model
+            // -----------------------------
+            var inputName = _session.InputMetadata.Keys.First();
+
+            using var results = _session.Run(
+                new[] { NamedOnnxValue.CreateFromTensor(inputName, input) }
+            );
+
+            var maskData = results.First().AsTensor<float>().ToArray();
+
+            // -----------------------------
+            // Build mask
+            // -----------------------------
+            using var mask = new Image<L8>(w, h);
+
+            for (int i = 0; i < maskData.Length; i++)
+            {
+                byte val = (byte)(Math.Clamp(maskData[i], 0, 1) * 255);
+                mask[i % w, i / w] = new L8(val);
+            }
+
+            // -----------------------------
+            // Apply white background
+            // -----------------------------
+            using var output = new Image<Rgba32>(w, h, new Rgba32(255, 255, 255));
+
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float alpha = mask[x, y].PackedValue / 255f;
+                    var src = image[x, y];
+
+                    output[x, y] = new Rgba32(
+                        (byte)(src.R * alpha + 255 * (1 - alpha)),
+                        (byte)(src.G * alpha + 255 * (1 - alpha)),
+                        (byte)(src.B * alpha + 255 * (1 - alpha))
+                    );
+                }
+            }
+
+            // -----------------------------
+            // Convert back to Base64
+            // -----------------------------
+            using var ms = new MemoryStream();
+            output.SaveAsPng(ms);
+
+            return Convert.ToBase64String(ms.ToArray());
+        });
     }
 
     // =============================
@@ -243,7 +335,7 @@ public class FaceCaptureHcService
     private void RefreshPreview()
     {
         try
-        {
+        {  
             _latestBase64 =
                 cam.CaptureBase64(cameraIndex);
             
