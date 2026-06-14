@@ -150,12 +150,25 @@
                     <h5>Live Camera</h5>
                 </div>
                 <div class="analytics-content">
-                    <div class="live-camera-box">
+                    <div class="live-camera-box"> 
 
                         @if (CameraConnected && !string.IsNullOrEmpty(LiveImage))
                         {
-                            <img class="live-camera-box img"
-                                 src="@($"data:image/jpeg;base64,{LiveImage}")" />
+                            <div class="live-camera-wrapper">
+
+                                <img class="live-camera-img"
+                                     src="@($"data:image/jpeg;base64,{LiveImage}")" />
+
+                                <div class="face-box"
+                                     style="
+                                        left:@BoxLeft%;
+                                        top:@BoxTop%;
+                                        width:@BoxWidth%;
+                                        height:@BoxHeight%;
+                                     ">
+                                </div>
+
+                            </div>
                         }
                         else
                         {
@@ -315,6 +328,10 @@
     string path = "";
 
     private System.Timers.Timer _uiTimer;
+    private float BoxLeft;
+    private float BoxTop;
+    private float BoxWidth;
+    private float BoxHeight;
 
     protected override async Task OnInitializedAsync()
     {
@@ -366,8 +383,8 @@
                 return;
             }
 
-            CapturedImage =
-                FaceCaptureService.CaptureFace();
+            var resImage = FaceCaptureService.CaptureFace();
+            CapturedImage = await FaceCaptureService.RemoveBackground(resImage);
             Status = "Face Captured";
 
 
@@ -406,7 +423,7 @@
             Status = ex.Message;
         }
     }
-    private Mat? DetectFace(Mat frame)
+    private Mat? DetectFace_bak(Mat frame)
     {
         using Bitmap bitmap = BitmapConverter.ToBitmap(frame);
 
@@ -436,6 +453,32 @@
 
         return new Mat(frame, rect).Clone();
     }
+
+    private FaceResult? DetectFace(Mat frame)
+    {
+        using Bitmap bitmap = BitmapConverter.ToBitmap(frame);
+
+        var faces = FaceCaptureHcService._detector.Forward(bitmap);
+
+        if (faces == null || faces.Length == 0)
+            return null;
+
+        var r = faces[0].Rectangle;
+
+        var rect = new OpenCvSharp.Rect(r.X, r.Y, r.Width, r.Height);
+
+        rect = rect & new OpenCvSharp.Rect(0, 0, frame.Width, frame.Height);
+
+        if (rect.Width <= 0 || rect.Height <= 0)
+            return null;
+
+        return new FaceResult
+        {
+            Rect = rect,
+            Face = new Mat(frame, rect).Clone()
+        };
+    }
+
     private Dictionary<string, float> GetEmotionPercentages(Mat face)
     {
         Cv2.ImEncode(".jpg", face, out byte[] imageBytes);
@@ -512,60 +555,83 @@
         if (firstRender)
         {
             _uiTimer = new System.Timers.Timer(300);
+            _uiTimer.AutoReset = true;
+            _uiTimer.Enabled = true;
 
             _uiTimer.Elapsed += async (s, e) =>
             {
-                if (CameraConnected)
+                if (!CameraConnected)
+                    return;
+
+                var base64 = FaceCaptureService.GetLiveBase64();
+
+                if (string.IsNullOrWhiteSpace(base64))
+                    return;
+
+                await InvokeAsync(() =>
                 {
-                    LiveImage =
-                        FaceCaptureService.GetLiveBase64();
-                    await InvokeAsync(StateHasChanged);
-                    if (!string.IsNullOrWhiteSpace(LiveImage))
+                    LiveImage = FaceCaptureService.GetLiveBase64();
+                    StateHasChanged();
+                });
+
+                var imgBytes = Convert.FromBase64String(base64);
+
+                FaceCaptureHcService._ImgQuality =
+                    Math.Round(FaceCaptureHcService.CalculateQualityPercentage(imgBytes));
+
+                Mat frame = Cv2.ImDecode(imgBytes, ImreadModes.Color);
+
+                var faceResult = DetectFace(frame);
+
+                if (faceResult != null)
+                {
+                    var r = faceResult.Rect;
+
+                    // ✅ GREEN BOX CALCULATION (IMPORTANT)
+                    BoxLeft = (float)r.X / frame.Width * 100;
+                    BoxTop = (float)r.Y / frame.Height * 100;
+                    BoxWidth = (float)r.Width / frame.Width * 100;
+                    BoxHeight = (float)r.Height / frame.Height * 100;
+
+                    var Emores = GetEmotionPercentages(faceResult.Face);
+
+                    foreach (var item in Emores)
                     {
-                        var imgStr = Convert.FromBase64String(LiveImage);
-                        FaceCaptureHcService._ImgQuality = Math.Round(FaceCaptureHcService.CalculateQualityPercentage(imgStr));
-                        Mat frame = Cv2.ImDecode(imgStr, ImreadModes.Color);
-
-                        var face = DetectFace(frame); // cropped face
-
-                        if (face != null)
+                        switch (item.Key.ToLower())
                         {
-                            var Emores = GetEmotionPercentages(face);
-                            foreach (var item in Emores)
-                            {
-                                if (item.Key.ToLower() == "angry")
-                                {
-                                    FaceCaptureHcService._AngryEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                                }
-                                else if (item.Key.ToLower() == "happy")
-                                {
-                                    FaceCaptureHcService._HappyEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                                }
-                                else if (item.Key.ToLower() == "sad")
-                                {
-                                    FaceCaptureHcService._SadEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                                }
-                                else if (item.Key.ToLower() == "surprise")
-                                {
-                                    FaceCaptureHcService._SurpriseEmoScore = Math.Round(Convert.ToDouble(item.Value));
-                                }
-                            }
-                            var Gres = FaceCaptureHcService.GetGender(face);
-                            if (Gres.ToLower() == "male")
-                            {
-                                FaceCaptureHcService._GenderMScore = 99.0;
-                                FaceCaptureHcService._GenderFScore = 0.0;
-                            }
-                            else if (Gres.ToLower() == "female")
-                            {
-                                FaceCaptureHcService._GenderMScore = 0.0;
-                                FaceCaptureHcService._GenderFScore = 99.0;
-                            }
+                            case "angry":
+                                FaceCaptureHcService._AngryEmoScore = Math.Round(item.Value);
+                                break;
+
+                            case "happy":
+                                FaceCaptureHcService._HappyEmoScore = Math.Round(item.Value);
+                                break;
+
+                            case "sad":
+                                FaceCaptureHcService._SadEmoScore = Math.Round(item.Value);
+                                break;
+
+                            case "surprise":
+                                FaceCaptureHcService._SurpriseEmoScore = Math.Round(item.Value);
+                                break;
                         }
                     }
 
+                    var gender = FaceCaptureHcService.GetGender(faceResult.Face);
 
+                    if (gender.ToLower() == "male")
+                    {
+                        FaceCaptureHcService._GenderMScore = 99.0;
+                        FaceCaptureHcService._GenderFScore = 0.0;
+                    }
+                    else if (gender.ToLower() == "female")
+                    {
+                        FaceCaptureHcService._GenderMScore = 0.0;
+                        FaceCaptureHcService._GenderFScore = 99.0;
+                    }
                 }
+
+                await InvokeAsync(StateHasChanged);
             };
 
             _uiTimer.Start();
@@ -877,5 +943,19 @@
         text-align: center;
         margin-bottom: 10px;
         font-weight: 600;
+    }
+
+    .live-camera-wrapper {
+        position: relative;
+        width: 100%;
+        height: 320px;
+    }
+
+    .face-box {
+        position: absolute;
+        border: 2px solid #00ff00;
+        box-shadow: 0 0 10px #00ff00;
+        pointer-events: none;
+        transition: all 0.08s linear;
     }
 </style>
