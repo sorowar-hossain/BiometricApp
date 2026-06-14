@@ -19,7 +19,7 @@ namespace BiometricApp
             var window = new Window(new MainPage());
             Process.Start(new ProcessStartInfo
             {
-                FileName = "DisplaySwitch.exe",
+                FileName = @"C:\Windows\System32\DisplaySwitch.exe",
                 Arguments = "/extend",
                 UseShellExecute = true
             });
