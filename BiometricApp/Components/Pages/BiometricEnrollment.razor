@@ -39,7 +39,8 @@
             </button>
             <button class="btn"
                     type="button"
-                    >
+                    @onclick="GoToSavePage">
+                    
                 <i class="bi bi-database-fill"></i>
                 Save to DB
             </button>
@@ -349,5 +350,10 @@
         string id = $"BIO{userName}{DateTime.Now:yyyyMMdd}{seqStr}";
 
         return id;
+    }
+
+    private void GoToSavePage()
+    {
+        NavigationManager.NavigateTo("/save-to-database");
     }
 }
