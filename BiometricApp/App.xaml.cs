@@ -1,6 +1,7 @@
 ﻿#if WINDOWS
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
+using System.Diagnostics;
 using Windows.Graphics;
 using WinRT.Interop;
 #endif
@@ -16,10 +17,24 @@ namespace BiometricApp
         protected override Window CreateWindow(IActivationState? activationState)
         {
             var window = new Window(new MainPage());
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "DisplaySwitch.exe",
+                Arguments = "/extend",
+                UseShellExecute = true
+            });
 
 #if WINDOWS
-            window.Created += (s, e) =>
+            window.Created += async (s, e) =>
             {
+                for (int i = 0; i < 10; i++)
+                {
+                    if (DisplayArea.FindAll().Count > 1)
+                        break;
+
+                    await Task.Delay(1000);
+                }
+
                 MoveToSecondMonitor(window);
             };
 #endif
