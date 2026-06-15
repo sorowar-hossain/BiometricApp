@@ -384,7 +384,7 @@
             }
 
             var resImage = FaceCaptureService.CaptureFace();
-            CapturedImage = await FaceCaptureService.RemoveBackground(resImage);
+            CapturedImage = resImage;// await FaceCaptureService.RemoveBackground(resImage); Later 
             Status = "Face Captured";
 
 
@@ -412,8 +412,8 @@
             if (string.IsNullOrEmpty(CapturedImage))
                 return;
             string folder = Path.Combine(path, selectedMemberId);
-
-            await FaceCaptureService.SaveFace(CapturedImage, folder);
+            string signatureBase64 = $"data:image/png;base64,{CapturedImage}";
+            await FaceCaptureService.SaveFace(signatureBase64, folder);
 
             Status = "Photo Saved Successfully";
             await OnActionMessage.InvokeAsync(Status);

@@ -1061,22 +1061,24 @@ namespace BiometricApp.Services
 
             for (int i = start; i <= end; i++)
             {
-                var value = fingers[i];
+                var value = fingers[i]; // byte[]
+
+                string base64 = $"data:image/png;base64,{fingers[i]}";
 
                 switch (i)
                 {
-                    case 0: fingerData.LeftLittle = value; break;
-                    case 1: fingerData.LeftRing = value; break;
-                    case 2: fingerData.LeftMiddle = value; break;
-                    case 3: fingerData.LeftIndex = value; break;
+                    case 0: fingerData.LeftLittle = base64; break;
+                    case 1: fingerData.LeftRing = base64; break;
+                    case 2: fingerData.LeftMiddle = base64; break;
+                    case 3: fingerData.LeftIndex = base64; break;
 
-                    case 6: fingerData.RightIndex = value; break;
-                    case 7: fingerData.RightMiddle = value; break;
-                    case 8: fingerData.RightRing = value; break;
-                    case 9: fingerData.RightLittle = value; break;
+                    case 4: fingerData.LeftThumb = base64; break;
 
-                    case 4: fingerData.LeftThumb = value; break;
-                    case 5: fingerData.RightThumb = value; break;
+                    case 5: fingerData.RightThumb = base64; break;
+                    case 6: fingerData.RightIndex = base64; break;
+                    case 7: fingerData.RightMiddle = base64; break;
+                    case 8: fingerData.RightRing = base64; break;
+                    case 9: fingerData.RightLittle = base64; break;
                 }
             }
 

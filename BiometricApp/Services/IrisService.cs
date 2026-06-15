@@ -120,8 +120,8 @@ namespace BiometricApp.Services
 
                 IrisData irisData = new IrisData
                 {
-                    LeftIrisImage = Convert.ToBase64String(leftImageBytes),
-                    RightIrisImage = Convert.ToBase64String(rightImageBytes)
+                    LeftIrisImage = $"data:image/png;base64,{Convert.ToBase64String(leftImageBytes)}",
+                    RightIrisImage = $"data:image/png;base64,{Convert.ToBase64String(rightImageBytes)}"
                 };
 
                 string json = JsonSerializer.Serialize(
