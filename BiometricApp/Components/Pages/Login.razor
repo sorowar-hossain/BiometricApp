@@ -20,12 +20,12 @@
         <ValidationSummary />
 
         <div class="form-group">
-            <InputText @bind-Value="loginModel.Username" placeholder="Username" class="form-control" disabled="@(isExpired)" />
+            <InputText @bind-Value="loginModel.Username" placeholder="Username" class="form-control"  />
             <ValidationMessage For="@(() => loginModel.Username)" />
         </div>
 
         <div class="form-group">
-            <InputText @bind-Value="loginModel.Password" type="password" placeholder="Password" class="form-control" disabled="@(isExpired)" />
+            <InputText @bind-Value="loginModel.Password" type="password" placeholder="Password" class="form-control" />
             <ValidationMessage For="@(() => loginModel.Password)" />
         </div>
         <!-- Instruction points -->
@@ -72,6 +72,7 @@
         margin-bottom: 20px; /* add a little space below */
         font-size: 14px; /* smaller than h2 */
         font-weight: bold; /* optional color */
+       
     }
 
     .login-container {
@@ -148,15 +149,26 @@
     private string loginMessage = "We're so excited to see you login";
     private UserLoginResponse res = new();
     private bool isExpired = false;
-    private DateTime expiredDate = new DateTime(2026, 6, 30);
-
+    private DateTime expiredDate = new DateTime(2026, 7, 15);
+    private DateTime startDate = new DateTime(2026, 6, 16);
+    private DateTime sysDate = DateTime.Now;
+   
     protected override async Task OnInitializedAsync()
     {
-        if (DateTime.Now > expiredDate)
+      
+        if (sysDate.Date < startDate.Date)
         {
             isExpired = true;
-            StateHasChanged();
+            loginMessage = @"A problem has been identified with the device.
+                    Please contact the development team for further assistance";
         }
+        else if (sysDate.Date > expiredDate.Date)
+        {
+            isExpired = true;
+            loginMessage = "You can login now please contact with authority";
+        }
+
+        StateHasChanged();
     }
     private async Task HandleLogin()
     {
