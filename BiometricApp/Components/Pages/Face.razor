@@ -282,14 +282,20 @@
 
                     </div>
 
-                    <div class="d-flex justify-content-start mt-2">
-                        <div class="d-flex justify-content-center mt-2">
-                            <button class="btn btn-success save-btn custom-save-btn"
-                                    @onclick="SaveFace"
-                                    disabled="@string.IsNullOrEmpty(CapturedImage)">
-                                <i class="bi bi-check2-circle me-1"></i>Save Photo
-                            </button>
-                        </div>
+                    <div class="d-flex justify-content-start mt-2 gap-3">
+
+                        <button class="btn btn-success save-btn custom-save-btn"
+                                @onclick="SaveFace"
+                                disabled="@string.IsNullOrEmpty(CapturedImage)">
+                            <i class="bi bi-check2-circle me-1"></i>Save Photo
+                        </button>
+
+                        <button class="btn btn-primary save-btn custom-save-btn"
+                                @onclick="RemoveBackground"
+                                disabled="@string.IsNullOrEmpty(CapturedImage)">
+                            <i class="bi bi-magic me-1"></i>Remove BG
+                        </button>
+
                     </div>
                 </div>
             </div>
@@ -361,7 +367,7 @@
 
                 LiveImage = null;
 
-                CapturedImage = null;
+                //CapturedImage = null;
 
                 Status = "Camera Closed";
             }
@@ -384,7 +390,7 @@
             }
 
             var resImage = FaceCaptureService.CaptureFace();
-            CapturedImage = resImage;// await FaceCaptureService.RemoveBackground(resImage); Later 
+            CapturedImage = resImage;
             Status = "Face Captured";
 
 
@@ -422,6 +428,10 @@
         {
             Status = ex.Message;
         }
+    }
+    async Task RemoveBackground()
+    {
+        CapturedImage = await FaceCaptureService.RemoveBackground(CapturedImage);
     }
     private Mat? DetectFace_bak(Mat frame)
     {
