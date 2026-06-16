@@ -266,17 +266,18 @@
                     <h5>Captured Face</h5>
                 </div>
                 <div class="analytics-content">
-                    <div class="preview-box">
+                    <div class="preview-box position-relative">
 
                         @if (!string.IsNullOrEmpty(CapturedImage))
                         {
-                            <img class=""
-                                 src="@($"data:image/jpeg;base64,{CapturedImage}")" />
+                            <img src="@($"data:image/jpeg;base64,{CapturedImage}")"
+                                 class="img-fluid" />
                         }
-                        else
+
+                        @if (IsLoading)
                         {
-                            <div class="camera-placeholder">
-                                No Captured Image
+                            <div class="loading-overlay">
+                                <div class="spinner-border text-light"></div>
                             </div>
                         }
 
@@ -329,7 +330,7 @@
     private byte[] faceImageBytes;
 
     private string CapturedImage;
-
+    private bool IsLoading = false;
     private string Status = "Idle";
     string path = "";
 
@@ -431,7 +432,9 @@
     }
     async Task RemoveBackground()
     {
+        IsLoading = true;
         CapturedImage = await FaceCaptureService.RemoveBackground(CapturedImage);
+        IsLoading = false;
     }
     private Mat? DetectFace_bak(Mat frame)
     {
@@ -967,5 +970,14 @@
         box-shadow: 0 0 10px #00ff00;
         pointer-events: none;
         transition: all 0.08s linear;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 </style>
