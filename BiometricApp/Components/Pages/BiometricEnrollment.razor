@@ -45,8 +45,13 @@
                 Save to DB
             </button>
 
-            
-
+           
+            <button class="btn"
+                    type="button"
+                    @onclick="GoToLogout">
+                <i class="bi bi-box-arrow-right"></i>
+                Logout
+            </button>
         </div>
     </div>
 
@@ -361,7 +366,11 @@
 
         return id;
     }
-
+    
+    private void GoToLogout()
+    {
+        NavigationManager.NavigateTo("/");
+    }
     private void GoToSavePage()
     {
         NavigationManager.NavigateTo("/save-to-database");
