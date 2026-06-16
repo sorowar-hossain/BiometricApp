@@ -215,7 +215,7 @@ namespace BiometricApp.Services
                     GUI_SHOW_MODE.FLAT,
                     ref finger,
                     1);
-
+                SystemPropertyInitialization();
                 if (res != IMD_RESULT.SUCCESS)
                 {
                     message = "Scan start failed";
@@ -241,7 +241,7 @@ namespace BiometricApp.Services
                 {
                     return false;
                 }
-
+                
                 string folder =
                     Path.Combine(basePath, selectedMemberId);
 
@@ -746,7 +746,18 @@ namespace BiometricApp.Services
         #endregion
 
         string[,] score = new string[(int)GUI_SHOW_MODE.SIZE, (int)FINGER_POSITION.SIZE];
-        public string GetAllFingersNFIQ(int fingerPos)
+
+        public void SystemPropertyInitialization()
+        {
+            FAP50Demo.SystemProperty p = default;
+
+            var res = imd_fap50.get_system_property(ref p);
+
+            p.nfiq_ver = NFIQ_VERSION.V2;
+
+            res = imd_fap50.set_system_property(ref p);
+        }
+        public string GetSpoofingFingersScore(int fingerPos)
         {
             FAP50Demo.ImageProperty img_pty = default;
             string str_score = "";
@@ -762,6 +773,118 @@ namespace BiometricApp.Services
                             ? FINGER_POSITION.RIGHT_MIDDLE : fingerPos == 8
                             ? FINGER_POSITION.RIGHT_RING : fingerPos == 9
                             ? FINGER_POSITION.RIGHT_LITTLE : FINGER_POSITION.UNKNOW_FINGER);
+
+            imd_fap50.get_image(ref img_pty);
+
+            unsafe
+            {
+                switch (img_pty.score_size)
+                {
+                    case 1:
+                        str_score = $"{img_pty.spoofing_array[0]}";
+                        break;
+                    case 2:
+                        str_score = $"{img_pty.spoofing_array[0]}-{img_pty.spoofing_array[1]}";
+                        break;
+                    default:
+                        break;
+                }
+                score[(int)img_pty.mode, (int)img_pty.pos] = str_score;
+            }
+
+            return str_score;
+        }
+        public string GetLeftFingersNFIQ(int fingerPos)
+        {
+            FAP50Demo.ImageProperty img_pty = default;
+            string str_score = "";
+
+            img_pty.mode = GUI_SHOW_MODE.FLAT;
+            img_pty.pos = (fingerPos == 0 ? FINGER_POSITION.LEFT_LITTLE : fingerPos == 1
+                            ? FINGER_POSITION.LEFT_RING : fingerPos == 2
+                            ? FINGER_POSITION.LEFT_MIDDLE : fingerPos == 3
+                            ? FINGER_POSITION.LEFT_INDEX : fingerPos == 4
+                            ? FINGER_POSITION.LEFT_THUMB : fingerPos == 5
+                            ? FINGER_POSITION.RIGHT_THUMB : fingerPos == 6
+                            ? FINGER_POSITION.RIGHT_INDEX : fingerPos == 7
+                            ? FINGER_POSITION.RIGHT_MIDDLE : fingerPos == 8
+                            ? FINGER_POSITION.RIGHT_RING : fingerPos == 9
+                            ? FINGER_POSITION.RIGHT_LITTLE : FINGER_POSITION.UNKNOW_FINGER);
+            
+            imd_fap50.get_image(ref img_pty);
+
+            unsafe
+            {
+                switch (img_pty.score_size)
+                {
+                    case 1:
+                        str_score = $"{img_pty.score_array[0]}";
+                        break;
+                    case 2:
+                        str_score = $"{img_pty.score_array[0]}-{img_pty.score_array[1]}";
+                        break;
+                    default:
+                        break;
+                }
+                score[(int)img_pty.mode, (int)img_pty.pos] = str_score;
+            }
+
+            return str_score;
+        }
+        public string GetRightFingersNFIQ(int fingerPos)
+        {
+            FAP50Demo.ImageProperty img_pty = default;
+            string str_score = "";
+
+            img_pty.mode = GUI_SHOW_MODE.FLAT;
+            img_pty.pos = (fingerPos == 0 ? FINGER_POSITION.LEFT_LITTLE : fingerPos == 1
+                            ? FINGER_POSITION.LEFT_RING : fingerPos == 2
+                            ? FINGER_POSITION.LEFT_MIDDLE : fingerPos == 3
+                            ? FINGER_POSITION.LEFT_INDEX : fingerPos == 4
+                            ? FINGER_POSITION.LEFT_THUMB : fingerPos == 5
+                            ? FINGER_POSITION.RIGHT_THUMB : fingerPos == 6
+                            ? FINGER_POSITION.RIGHT_INDEX : fingerPos == 7
+                            ? FINGER_POSITION.RIGHT_MIDDLE : fingerPos == 8
+                            ? FINGER_POSITION.RIGHT_RING : fingerPos == 9
+                            ? FINGER_POSITION.RIGHT_LITTLE : FINGER_POSITION.UNKNOW_FINGER);
+
+            imd_fap50.get_image(ref img_pty);
+
+            unsafe
+            {
+                switch (img_pty.score_size)
+                {
+                    case 1:
+                        str_score = $"{img_pty.score_array[0]}";
+                        break;
+                    case 2:
+                        str_score = $"{img_pty.score_array[0]}-{img_pty.score_array[1]}";
+                        break;
+                    default:
+                        break;
+                }
+                score[(int)img_pty.mode, (int)img_pty.pos] = str_score;
+            }
+
+            return str_score;
+        }
+        public string GetThumbFingersNFIQ(int fingerPos)
+        {
+            FAP50Demo.ImageProperty img_pty = default;
+            string str_score = "";
+
+            img_pty.mode = GUI_SHOW_MODE.FLAT;
+            img_pty.pos = (fingerPos == 0 ? FINGER_POSITION.LEFT_LITTLE : fingerPos == 1
+                            ? FINGER_POSITION.LEFT_RING : fingerPos == 2
+                            ? FINGER_POSITION.LEFT_MIDDLE : fingerPos == 3
+                            ? FINGER_POSITION.LEFT_INDEX : fingerPos == 4
+                            ? FINGER_POSITION.LEFT_THUMB : fingerPos == 5
+                            ? FINGER_POSITION.RIGHT_THUMB : fingerPos == 6
+                            ? FINGER_POSITION.RIGHT_INDEX : fingerPos == 7
+                            ? FINGER_POSITION.RIGHT_MIDDLE : fingerPos == 8
+                            ? FINGER_POSITION.RIGHT_RING : fingerPos == 9
+                            ? FINGER_POSITION.RIGHT_LITTLE : FINGER_POSITION.UNKNOW_FINGER);
+
             imd_fap50.get_image(ref img_pty);
 
             unsafe

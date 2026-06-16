@@ -74,7 +74,7 @@
                                 <div class="slot @(GetSlotClass(i))">
 
                                     <div class="finger-label">
-                                        @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
+                                        @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetLeftFingersNFIQ(i)</span>&nbsp;|&nbsp;<span>Spoofing: @ScannerService.GetSpoofingFingersScore(i)</span>)
                                     </div>
 
                                     @if (!string.IsNullOrEmpty(Fingerprints[i]))
@@ -112,7 +112,7 @@
                                 <div class="slot @(GetSlotClass(i))">
 
                                     <div class="finger-label">
-                                        @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetAllFingersNFIQ(i)</span>)
+                                        @GetFingerLabel(i) (<span>Score Level: @ScannerService.GetRightFingersNFIQ(i)</span>&nbsp;|&nbsp;<span>Spoofing: @ScannerService.GetSpoofingFingersScore(i)</span>)
                                     </div>
 
                                     @if (!string.IsNullOrEmpty(Fingerprints[i]))
@@ -146,7 +146,7 @@
                         <!-- LEFT THUMB -->
                         <div class="slot @(GetSlotClass(4))">
 
-                            <div class="finger-label">LT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(4)</span>)</div>
+                            <div class="finger-label">LT (<span>Score Level: @ScannerService.GetThumbFingersNFIQ(4)</span>&nbsp;|&nbsp;<span>Spoofing: @ScannerService.GetSpoofingFingersScore(4)</span>)</div>
 
                             @if (!string.IsNullOrEmpty(Fingerprints[4]))
                             {
@@ -159,12 +159,12 @@
                         <!-- RIGHT THUMB -->
                         <div class="slot @(GetSlotClass(5))">
 
-                            <div class="finger-label">RT (<span>Score Level: @ScannerService.GetAllFingersNFIQ(5)</span>)</div>
+                            <div class="finger-label">RT (<span>Score Level: @ScannerService.GetThumbFingersNFIQ(5)</span>&nbsp;|&nbsp;<span>Spoofing: @ScannerService.GetSpoofingFingersScore(5)</span>)</div>
 
                             @if (!string.IsNullOrEmpty(Fingerprints[5]))
                             {
                                 <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")"
-                                     class="finger-img" @onclick="() => ShowPreview(4)" />
+                                     class="finger-img" @onclick="() => ShowPreview(5)" />
                             }
 
                         </div>
@@ -234,7 +234,6 @@
     {
         selectedMemberId = SessionService.User.PersonUniqueId;
         ScannerService.message = "";
-        // members = await LocalStorageService.GetMembersForDropdownAsync();
     }
 
     protected override async Task OnParametersSetAsync()
