@@ -50,7 +50,7 @@
                                 <div class="photo-wrapper">
                                     @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                     {
-                                        <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="photo-box" />
+                                        <img src="@Fingerprints[i]" )" class="photo-box" />
                                     }
 
                                 </div>
@@ -63,7 +63,7 @@
                         <div class="mb-3">
                             <label class="biometric-label">Iris</label>
                             <div class="iris-container">
-                                @for (int i = 10; i < 12; i++)
+                                 @for (int i = 10; i < 12; i++)
                                 {
                                     var label = (i == 10) ? "Left Iris" : "Right Iris";
                                     <div class="iris-item">
@@ -72,12 +72,12 @@
                                         <div class="iris-box">
                                             @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                             {
-                                                <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="iris-img" />
+                                                <img src="@($"data:image/png;base64,{Fingerprints[i]}")" class="iris-img" />
                                             }
                                         </div>
                                     </div>
                                 }
-
+ 
 
                             </div>
                         </div>
@@ -104,7 +104,7 @@
                                                 <!-- Image -->
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
-                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" @onclick="() => ShowPreview(index)" />
+                                                    <img src="@Fingerprints[i]" class="finger-img" @onclick="() => ShowPreview(index)" />
                                                 }
 
                                             </div>
@@ -128,7 +128,7 @@
                                                 <div class="finger-label">@GetFingerLabel(i)</div>
                                                 @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                                 {
-                                                    <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="finger-img" @onclick="() => ShowPreview(index)" />
+                                                    <img src="@Fingerprints[i]" class="finger-img" @onclick="() => ShowPreview(index)" />
                                                 }
                                             </div>
                                         }
@@ -148,17 +148,17 @@
 
                                         @if (!string.IsNullOrEmpty(Fingerprints[4]))
                                         {
-                                            <img src="@($"data:image/bmp;base64,{Fingerprints[4]}")" class="finger-img" @onclick="() => ShowPreview(4)" />
+                                            <img src="@Fingerprints[4]" class="finger-img" @onclick="() => ShowPreview(4)" />
                                         }
-                                    </div>
+                                    </div> 
 
                                     <!-- RIGHT THUMB -->
-                                    <div class="slot @(GetSlotClass(5))">
+                                     <div class="slot @(GetSlotClass(5))">
                                         <div class="finger-label">@GetFingerLabel(5)</div>
 
                                         @if (!string.IsNullOrEmpty(Fingerprints[5]))
                                         {
-                                            <img src="@($"data:image/bmp;base64,{Fingerprints[5]}")" class="finger-img" @onclick="() => ShowPreview(5)" />
+                                            <img src="@Fingerprints[5]" class="finger-img" @onclick="() => ShowPreview(5)" />
                                         }
                                     </div>
                                 </div>
@@ -177,7 +177,7 @@
                                         <small>Signature @(i - 11)</small>
                                         @if (!string.IsNullOrEmpty(Fingerprints[i]))
                                         {
-                                            <img src="@($"data:image/bmp;base64,{Fingerprints[i]}")" class="signature-img" />
+                                            <img src="@Fingerprints[i]" class="signature-img" />
                                         }
                                     </div>
 
@@ -735,9 +735,7 @@
         Model = await LocalStorageService.LoadDemographicsAsync(memberId);
         Fingerprints = new string[16];
         string memberFolder = Path.Combine(path, memberId);
-        LoadLeftFourFingerprints(memberFolder);
-        LoadRightFourFingerprints(memberFolder);
-        LoadThumbsFingerprints(memberFolder);
+        LoadFingerprints(memberFolder);
         LoadIris(memberFolder);
         LoadSignature(memberFolder);
         LoadFace(memberFolder);
@@ -797,6 +795,118 @@
     }
 
     // Fingerprint list
+
+
+    private void LoadFingerprints(string imagePath)
+    {
+        fingerCaptured = false;
+        string jsonPath = Path.Combine(imagePath, "finger.json");
+
+        if (!File.Exists(jsonPath))
+            return;
+
+        string json = File.ReadAllText(jsonPath);
+
+        var data = JsonSerializer.Deserialize<FingerprintData>(json);
+
+        if (data == null)
+            return;
+
+        Fingerprints[0] = data.LeftLittle;
+        Fingerprints[1] = data.LeftRing;
+        Fingerprints[2] = data.LeftMiddle;
+        Fingerprints[3] = data.LeftIndex;
+
+        Fingerprints[4] = data.LeftThumb;
+        Fingerprints[5] = data.RightThumb;
+
+        Fingerprints[6] = data.RightIndex;
+        Fingerprints[7] = data.RightMiddle;
+        Fingerprints[8] = data.RightRing;
+        Fingerprints[9] = data.RightLittle;
+        fingerCaptured = true;
+    }
+    private void LoadSignature(string imagePath)
+    {
+        signatureCaptured = false;
+        string jsonPath = Path.Combine(imagePath, "signature.json");
+
+        if (!File.Exists(jsonPath))
+            return;
+
+        string json = File.ReadAllText(jsonPath);
+
+        var data = JsonSerializer.Deserialize<SignatureData>(json);
+
+        if (data == null)
+            return;
+
+     
+        Fingerprints[12] = data.SignatureImage;
+        signatureCaptured = true;
+    }
+    private void LoadIris2(string imagePath)
+    {
+        irisCaptured = false;
+        string jsonPath = Path.Combine(imagePath, "iris.json");
+
+        if (!File.Exists(jsonPath))
+            return;
+
+        string json = File.ReadAllText(jsonPath);
+
+        var data = JsonSerializer.Deserialize<IrisData>(json);
+
+        if (data == null)
+            return;
+
+
+        Fingerprints[10] = data.LeftIrisImage;
+        Fingerprints[11] = data.RightIrisImage;
+        irisCaptured = true;
+    }
+    private void LoadFace(string imagePath)
+    {
+        faceCaptured = false;
+        string jsonPath = Path.Combine(imagePath, "face.json");
+
+        if (!File.Exists(jsonPath))
+            return;
+
+        string json = File.ReadAllText(jsonPath);
+
+        var faceData = JsonSerializer.Deserialize<FaceData>(json);
+
+        if (!string.IsNullOrWhiteSpace(faceData?.FaceImage))
+        {
+            Fingerprints[14] = faceData.FaceImage; // already Base64
+            faceCaptured = true;
+        }
+    }
+    private void LoadIris(string imagePath)
+    {
+        irisCaptured = false;
+        string[] files =
+        {
+            "left_iris.png",
+            "right_iris.png"
+    };
+
+        int j = 10;
+        for (int i = 0; i < files.Length; i++)
+        {
+            string path = Path.Combine(imagePath, files[i]);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                Fingerprints[j] = Convert.ToBase64String(bytes);
+                j++;
+                irisCaptured = true;
+            }
+        }
+
+    }
 
     private void LoadLeftFourFingerprints(string imagePath)
     {
@@ -874,32 +984,9 @@
 
     }
 
-    private void LoadIris(string imagePath)
-    {
-        irisCaptured = false;
-        string[] files =
-        {
-            "left_iris.png",
-            "right_iris.png"
-    };
+   
 
-        int j = 10;
-        for (int i = 0; i < files.Length; i++)
-        {
-            string path = Path.Combine(imagePath, files[i]);
-
-            if (File.Exists(path))
-            {
-                var bytes = File.ReadAllBytes(path);
-                Fingerprints[j] = Convert.ToBase64String(bytes);
-                j++;
-                irisCaptured = true;
-            }
-        }
-
-    }
-
-    private void LoadSignature(string imagePath)
+    private void LoadSignature2(string imagePath)
     {
         signatureCaptured = false;
         string[] files =
@@ -907,6 +994,7 @@
             "signature1.jpg",
             "signature2.jpg"
     };
+
 
         int j = 12;
         for (int i = 0; i < files.Length; i++)
@@ -927,24 +1015,7 @@
         }
 
     }
-    private void LoadFace(string imagePath)
-    {
-        faceCaptured = false;
-        string jsonPath = Path.Combine(imagePath, "face.json");
-
-        if (!File.Exists(jsonPath))
-            return;
-
-        string json = File.ReadAllText(jsonPath);
-
-        var faceData = JsonSerializer.Deserialize<FaceData>(json);
-
-        if (!string.IsNullOrWhiteSpace(faceData?.FaceImage))
-        {
-            Fingerprints[14] = faceData.FaceImage; // already Base64
-            faceCaptured = true;
-        }
-    }
+  
 
     private void LoadFace_bak(string imagePath)
     {
