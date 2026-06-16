@@ -179,23 +179,52 @@ public class FaceCaptureHcService
 
             byte[] bytes = Convert.FromBase64String(base64Image);
 
-            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(bytes);
+            using var originalImage = SixLabors.ImageSharp.Image.Load<Rgba32>(bytes);
 
-            int w = 320;
-            int h = 320;
+            int originalWidth = originalImage.Width;
+            int originalHeight = originalImage.Height;
 
-            image.Mutate(x => x.Resize(w, h));
+            const int modelSize = 320;
 
-            // -----------------------------
-            // Create input tensor (CHW)
-            // -----------------------------
-            var input = new DenseTensor<float>(new[] { 1, 3, h, w });
+            // Resize while preserving aspect ratio
+            float scale = Math.Min(
+                (float)modelSize / originalWidth,
+                (float)modelSize / originalHeight);
 
-            for (int y = 0; y < h; y++)
+            int resizedWidth = (int)(originalWidth * scale);
+            int resizedHeight = (int)(originalHeight * scale);
+
+            using var resizedImage = originalImage.Clone();
+
+            resizedImage.Mutate(x =>
+                x.Resize(resizedWidth, resizedHeight));
+
+            // Create padded image
+            using var modelImage = new Image<Rgba32>(
+                modelSize,
+                modelSize,
+                new Rgba32(0, 0, 0));
+
+            int offsetX = (modelSize - resizedWidth) / 2;
+            int offsetY = (modelSize - resizedHeight) / 2;
+
+            modelImage.Mutate(ctx =>
             {
-                for (int x = 0; x < w; x++)
+                ctx.DrawImage(
+                    resizedImage,
+                    new SixLabors.ImageSharp.Point(offsetX, offsetY),
+                    1f);
+            });
+
+            // Create ONNX input tensor
+            var input = new DenseTensor<float>(
+                new[] { 1, 3, modelSize, modelSize });
+
+            for (int y = 0; y < modelSize; y++)
+            {
+                for (int x = 0; x < modelSize; x++)
                 {
-                    var p = image[x, y];
+                    var p = modelImage[x, y];
 
                     input[0, 0, y, x] = p.R / 255f;
                     input[0, 1, y, x] = p.G / 255f;
@@ -203,51 +232,65 @@ public class FaceCaptureHcService
                 }
             }
 
-            // -----------------------------
-            // Run ONNX model
-            // -----------------------------
-            var inputName = _session.InputMetadata.Keys.First();
+            // Run ONNX
+            string inputName = _session.InputMetadata.Keys.First();
 
             using var results = _session.Run(
-                new[] { NamedOnnxValue.CreateFromTensor(inputName, input) }
-            );
+                new[]
+                {
+                NamedOnnxValue.CreateFromTensor(inputName, input)
+                });
 
-            var maskData = results.First().AsTensor<float>().ToArray();
+            var maskData = results.First()
+                                  .AsTensor<float>()
+                                  .ToArray();
 
-            // -----------------------------
-            // Build mask
-            // -----------------------------
-            using var mask = new Image<L8>(w, h);
+            // Create mask
+            using var mask320 = new Image<L8>(modelSize, modelSize);
 
             for (int i = 0; i < maskData.Length; i++)
             {
-                byte val = (byte)(Math.Clamp(maskData[i], 0, 1) * 255);
-                mask[i % w, i / w] = new L8(val);
+                byte value = (byte)(Math.Clamp(maskData[i], 0f, 1f) * 255);
+
+                mask320[i % modelSize, i / modelSize] = new L8(value);
             }
 
-            // -----------------------------
-            // Apply white background
-            // -----------------------------
-            using var output = new Image<Rgba32>(w, h, new Rgba32(255, 255, 255));
-
-            for (int y = 0; y < h; y++)
+            // Remove padding
+            using var croppedMask = mask320.Clone(ctx =>
             {
-                for (int x = 0; x < w; x++)
+                ctx.Crop(new SixLabors.ImageSharp.Rectangle(
+                    offsetX,
+                    offsetY,
+                    resizedWidth,
+                    resizedHeight));
+            });
+
+            // Resize mask back to original size
+            croppedMask.Mutate(x =>
+                x.Resize(originalWidth, originalHeight));
+
+            // Create output with white background
+            using var output = new Image<Rgba32>(
+                originalWidth,
+                originalHeight,
+                new Rgba32(255, 255, 255));
+
+            for (int y = 0; y < originalHeight; y++)
+            {
+                for (int x = 0; x < originalWidth; x++)
                 {
-                    float alpha = mask[x, y].PackedValue / 255f;
-                    var src = image[x, y];
+                    float alpha = croppedMask[x, y].PackedValue / 255f;
+
+                    var src = originalImage[x, y];
 
                     output[x, y] = new Rgba32(
                         (byte)(src.R * alpha + 255 * (1 - alpha)),
                         (byte)(src.G * alpha + 255 * (1 - alpha)),
-                        (byte)(src.B * alpha + 255 * (1 - alpha))
-                    );
+                        (byte)(src.B * alpha + 255 * (1 - alpha)),
+                        255);
                 }
             }
 
-            // -----------------------------
-            // Convert back to Base64
-            // -----------------------------
             using var ms = new MemoryStream();
             output.SaveAsPng(ms);
 
