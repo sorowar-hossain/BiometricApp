@@ -25,32 +25,44 @@
             }
         </div>
         <div class="new_regis_btn">
-            <button class="btn back-btn" @onclick="GoBack">
-                <i class="bi bi-arrow-left-circle-fill me-1"></i>
-                Back
-            </button>
+            @if(IsShowBackBtn)
+            {
+                <button class="btn back-btn" @onclick="GoBack">
+                    <i class="bi bi-arrow-left-circle-fill me-1"></i>
+                    Back
+                </button>
 
-            <button class="btn"
-                    type="button"
-                    @onclick="ClearAll">
-                <i class="bi bi-person-plus"></i>
-                New Registration
-            </button>
-            <button class="btn"
-                    type="button"
-                    @onclick="GoToDetailsPage">
-                <i class="bi bi-journal-text"></i>
-                Details
-            </button>
-            <button class="btn"
-                    type="button"
-                    @onclick="GoToSavePage">
-                    
-                <i class="bi bi-database-fill"></i>
-                Save to DB
-            </button>
+            }
+            @if (IsShowDtlsBtn)
+            {
+                <button class="btn"
+                          type="button"
+                          @onclick="ClearAll">
+                    <i class="bi bi-person-plus"></i>
+                    New Registration
+                </button>
+                <button class="btn"
+                        type="button"
+                        @onclick="GoToDetailsPage">
+                    <i class="bi bi-journal-text"></i>
+                    Details
+                </button>
+                
+            }
 
-           
+            @if (IsShowDbSycBtn)
+            {
+                <button class="btn"
+                        type="button"
+                        @onclick="GoToSavePage">
+
+                    <i class="bi bi-database-fill"></i>
+                    Save to DB
+                </button>
+            }
+         
+               
+            
             <button class="btn"
                     type="button"
                     @onclick="GoToLogout">
@@ -335,6 +347,11 @@
     private string personUniqueId;
     private bool IsShowDetails = false;
     private bool IsShowDBSyn = false;
+    private bool IsShowBackBtn = false;
+    private bool IsShowDtlsBtn = true;
+    private bool IsShowDbSycBtn = true;
+
+
     protected override async Task OnInitializedAsync()
     {
         // Get current user
@@ -424,6 +441,9 @@
     {
         IsShowDBSyn = true;
         IsShowDetails = false;
+        IsShowBackBtn = true;
+        IsShowDbSycBtn = false;
+        IsShowDtlsBtn = false;
         StateHasChanged();
         // NavigationManager.NavigateTo("/save-to-database");
     }
@@ -431,6 +451,9 @@
     {
         IsShowDetails = true;
         IsShowDBSyn = false;
+        IsShowBackBtn = true;
+        IsShowDbSycBtn = false;
+        IsShowDtlsBtn = false;
         StateHasChanged();
         // NavigationManager.NavigateTo($"/detail-review");
     }
@@ -442,6 +465,9 @@
     {
         IsShowDetails = false;
         IsShowDBSyn = false;
+        IsShowBackBtn = false;
+        IsShowDtlsBtn = true;
+        IsShowDbSycBtn = true;
         StateHasChanged();
     }
 }
