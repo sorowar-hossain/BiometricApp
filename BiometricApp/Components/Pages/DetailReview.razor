@@ -14,16 +14,14 @@
     <div class="card shadow-sm">
 
         <!-- HEADER -->
-        <div class="card-header text-center header-title">
-            Data Capturing System
-        </div>
+        
 
         <div class="card-body">
 
-            <h5 class="text-primary fw-bold">Detail Review</h5>
+           
             <small class="text-muted">Carefully check all your personal information shown on the screen</small>
             <!-- Member Selection -->
-            <div class="member-select">
+           @*  <div class="member-select">
                 <label>Select Member</label>
                 <select class="form-control" @bind="selectedMemberId">
                     <option value="">-- Select Member --</option>
@@ -32,7 +30,7 @@
                         <option value="@item.PersonUniqueId">@item.FullName</option>
                     }
                 </select>
-            </div>
+            </div> *@
 
             <div class="row mt-4">
 
@@ -241,14 +239,15 @@
 
                     </div>
                     <div class="action-buttons">
-                        <button class="btn btn-warning back-btn" @onclick="GoBack">
-                            <i class="bi bi-arrow-left-circle-fill"></i>
+                       @*  <button class="btn back-btn" @onclick="GoBack">
+                            <i class="bi bi-arrow-left-circle-fill me-1"></i>
                             Back
-                        </button>
+                        </button> *@
 
-                        <div class="info-row d-flex justify-content-end mt-3">
-                            <button class="btn btn-primary px-4" @onclick="PrintInfo">Print</button>
-                        </div>
+                        <button class="btn print-btn px-4" @onclick="PrintInfo">
+                            <i class="bi bi-printer-fill me-1"></i>
+                            Print
+                        </button>
                     </div>
                 </div>
 
@@ -549,6 +548,28 @@
         margin-top: 20px;
         width: 100%;
     }
+
+    .back-btn {
+        background-color: #6C757D;
+        border-color: #6C757D;
+        color: white;
+    }
+
+        .back-btn:hover {
+            background-color: #5A6268;
+            border-color: #545B62;
+        }
+
+    .print-btn {
+        background-color: #0D6EFD;
+        border-color: #0D6EFD;
+        color: white;
+    }
+
+        .print-btn:hover {
+            background-color: #0B5ED7;
+            border-color: #0A58CA;
+        }
 </style>
 
 @code {
@@ -570,6 +591,7 @@
 
     string? previewImage;
     bool isPreviewVisible = false;
+    
 
     void ShowPreview(int index)
     {
@@ -598,7 +620,7 @@
     protected override async Task OnInitializedAsync()
     {
         members = await LocalStorageService.GetMembersForDropdownAsync();
-        selectedMemberId = SessionService.User.PersonUniqueId;
+        //selectedMemberId = SessionService.User.PersonUniqueId;
         printer = new IMDPrinter();
         StateHasChanged();
     }

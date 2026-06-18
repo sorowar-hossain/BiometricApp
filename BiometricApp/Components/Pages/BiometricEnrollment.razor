@@ -25,6 +25,11 @@
             }
         </div>
         <div class="new_regis_btn">
+            <button class="btn back-btn" @onclick="GoBack">
+                <i class="bi bi-arrow-left-circle-fill me-1"></i>
+                Back
+            </button>
+
             <button class="btn"
                     type="button"
                     @onclick="ClearAll">
@@ -58,81 +63,121 @@
     <!-- MAIN CONTENT -->
 
     <div class="container-fluid">
-
-        <!-- DEMOGRAPHIC -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="module-card">
-                    <div class="module-header">
-                        <i class="bi bi-person-vcard"></i>
-                        Demographic Data
-                    </div>
-                    <div class="module-body">
-                        <Registration OnActionMessage="ShowMessage" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- FACE -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="module-card">
-                    <div class="module-header">
-                        <i class="bi bi-camera"></i>
-                        <h5>Face Capture</h5>
-                    </div>
-                    <div class="module-body">
-                        <Face OnActionMessage="ShowMessage" />
+        @if (!IsShowDetails && !IsShowDBSyn)
+        {
+            <!-- DEMOGRAPHIC -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <i class="bi bi-person-vcard"></i>
+                            Demographic Data
+                        </div>
+                        <div class="module-body">
+                            <Registration OnActionMessage="ShowMessage" />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- FINGERPRINT -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="module-card">
-                    <div class="module-header">
-                        <i class="bi bi-fingerprint"></i>
-                        Fingerprint Capture
-                    </div>
-                    <div class="module-body">
-                        <Finger OnActionMessage="ShowMessage" />
+            <!-- FACE -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <i class="bi bi-camera"></i>
+                            <h5>Face Capture</h5>
+                        </div>
+                        <div class="module-body">
+                            <Face OnActionMessage="ShowMessage" />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- IRIS -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="module-card">
-                    <div class="module-header">
-                        <i class="bi bi-eye"></i>
-                        Iris Capture
-                    </div>
-                    <div class="module-body">
-                        <Iris OnActionMessage="ShowMessage" />
+            <!-- FINGERPRINT -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <i class="bi bi-fingerprint"></i>
+                            Fingerprint Capture
+                        </div>
+                        <div class="module-body">
+                            <Finger OnActionMessage="ShowMessage" />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- SIGNATURE -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="module-card">
-                    <div class="module-header">
-                        <i class="bi bi-pen"></i>
-                        Signature Capture
-                    </div>
-                    <div class="module-body">
-                        <Signature OnActionMessage="ShowMessage" />
+            <!-- IRIS -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <i class="bi bi-eye"></i>
+                            Iris Capture
+                        </div>
+                        <div class="module-body">
+                            <Iris OnActionMessage="ShowMessage" />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <!-- SIGNATURE -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <i class="bi bi-pen"></i>
+                            Signature Capture
+                        </div>
+                        <div class="module-body">
+                            <Signature OnActionMessage="ShowMessage" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+     
+        <!-- Details -->
+        @if (IsShowDetails)
+        {
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <i class="bi bi-clipboard-check"></i>
+                            <h5>Detail Review</h5>
+                        </div>
+                        <div class="module-body">
+                            <DetailReview />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        <!-- Save to db -->
+        @if (IsShowDBSyn)
+        {
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="module-card">
+                        <div class="module-header">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <h5>Data Synchronize</h5>
+                        </div>
+                        <div class="module-body">
+                            <DataExport />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+      
 
     </div>
 
@@ -288,6 +333,8 @@
     public string message = "";
     private bool isVisible;
     private string personUniqueId;
+    private bool IsShowDetails = false;
+    private bool IsShowDBSyn = false;
     protected override async Task OnInitializedAsync()
     {
         // Get current user
@@ -301,7 +348,7 @@
 
         StateHasChanged();
     }
-  
+
 
     private void ReceivePersonId(string id)
     {
@@ -366,21 +413,35 @@
 
         return id;
     }
-    
+
     private void GoToLogout()
     {
+        IsShowDetails = false;
+        IsShowDBSyn = false;
         NavigationManager.NavigateTo("/");
     }
     private void GoToSavePage()
     {
-        NavigationManager.NavigateTo("/save-to-database");
+        IsShowDBSyn = true;
+        IsShowDetails = false;
+        StateHasChanged();
+        // NavigationManager.NavigateTo("/save-to-database");
     }
     private void GoToDetailsPage()
     {
-        NavigationManager.NavigateTo($"/detail-review");
+        IsShowDetails = true;
+        IsShowDBSyn = false;
+        StateHasChanged();
+        // NavigationManager.NavigateTo($"/detail-review");
     }
     private void TestPrinter()
     {
         NavigationManager.NavigateTo("/printer-test");
+    }
+    private void GoBack()
+    {
+        IsShowDetails = false;
+        IsShowDBSyn = false;
+        StateHasChanged();
     }
 }
