@@ -154,7 +154,7 @@
     private string loginMessage = "We're so excited to see you login";
     private UserLoginResponse res = new();
     private bool isExpired;
-    private readonly string _timeFile = Path.Combine(AppContext.BaseDirectory, "system_time.dat");
+    private readonly string _timeFile = Path.Combine(@"C:\Biometric_APP_Master\win10-x64", "system_time.dat");
     private readonly DateTime startDate = new(2026, 6, 16);
     private readonly DateTime expiredDate = new(2026, 7, 15);
 
