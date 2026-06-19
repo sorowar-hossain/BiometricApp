@@ -40,11 +40,11 @@
                 <div class="col-md-6">
                     <div class="section-box">
 
-                        <h6 class="section-title">Biometrics</h6>
+                     
 
                         <!-- FACE -->
                         <div class="mb-3 text-center">
-                            <label class="biometric-label d-block text-start">Face</label>
+                            <label class="biometric-label d-block text-start label-css">Face</label>
                             @for (int i = 14; i < 15; i++)
                             {
                                 <div class="photo-wrapper">
@@ -61,7 +61,7 @@
 
                         <!-- IRIS -->
                         <div class="mb-3">
-                            <label class="biometric-label">Iris</label>
+                            <label class="biometric-label label-css">Iris</label>
                             <div class="iris-container">
                                  @for (int i = 10; i < 12; i++)
                                 {
@@ -84,7 +84,7 @@
 
                         <!-- FINGERPRINTS -->
                         <div class="mb-3">
-                            <label class="biometric-label">Fingerprints</label>
+                            <label class="biometric-label label-css">Fingerprints</label>
 
                             <!-- Hands Layout -->
                             <div class="hands">
@@ -168,7 +168,7 @@
 
                         <!-- SIGNATURES -->
                         <div class="mb-3">
-                            <label class="biometric-label">Signatures</label>
+                            <label class="biometric-label label-css">Signatures</label>
                             <div class="signature-container">
                                 @for (int i = 12; i < 13; i++)
                                 {
@@ -193,47 +193,47 @@
                 <div class="col-md-6">
                     <div class="section-box">
 
-                        <h6 class="section-title">Personal Information</h6>
+                        <h4 class="section-title">Personal Information</h4>
 
                         <div class="info-row">
-                            <label>Full Name</label>
+                            <label class="label-css">Full Name</label>
                             <input class="form-control" value="@Model.FirstName @Model.LastName" readonly />
                         </div>
                         <div class="info-row">
-                            <label>Father Name</label>
+                            <label class="label-css">Father Name</label>
                             <input class="form-control" value="@Model.FatherName" readonly />
                         </div>
                         <div class="info-row">
-                            <label>Mother Name</label>
+                            <label class="label-css">Mother Name</label>
                             <input class="form-control" value="@Model.MotherName" readonly />
                         </div>
 
                         <div class="info-row">
-                            <label>Date of Birth</label>
+                            <label class="label-css">Date of Birth</label>
                             <input class="form-control"
                                    value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))"
                                    readonly />
                         </div>
 
                         <div class="info-row">
-                            <label>Date of Expiry</label>
+                            <label class="label-css">Date of Expiry</label>
                             <input class="form-control"
                                    value="@(Model.ExpiryDate?.ToString("yyyy-MM-dd"))"
                                    readonly />
                         </div>
 
                         <div class="info-row">
-                            <label>Gender</label>
+                            <label class="label-css">Gender</label>
                             <input class="form-control" value="@Model.Gender" readonly />
                         </div>
 
                         <div class="info-row">
-                            <label>Marital Status</label>
+                            <label class="label-css">Marital Status</label>
                             <input class="form-control" value="@Model.MaritalStatus" readonly />
                         </div>
 
                         <div class="info-row">
-                            <label>Address</label>
+                            <label class="label-css">Address</label>
                             <textarea class="form-control" rows="3" readonly>@Model.Address</textarea>
                         </div>
 
@@ -270,7 +270,7 @@
     {
         <div class="preview-overlay" @onclick="ClosePreview">
             <div class="preview-box" @onclick:stopPropagation>
-                <img src="@($"data:image/bmp;base64,{previewImage}")" />
+                <img src="@(previewImage)" />
                 <button class="btn btn-danger mt-2" @onclick="ClosePreview">Close</button>
             </div>
         </div>
@@ -441,7 +441,7 @@
     /* PHOTO */
     .photo-wrapper {
         width: 100%;
-        height: 180px;
+        height: 300px;
         border: 1px solid #ccc;
         display: flex;
         align-items: center;
@@ -452,7 +452,7 @@
     .photo-box {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
     }
 
     /* IRIS */
@@ -471,7 +471,7 @@
 
     .signature-box {
         flex: 1;
-        height: 100px;
+        height: 200px;
         border: 1px solid #ddd;
         display: flex;
         flex-direction: column;
@@ -512,6 +512,9 @@
         color: white;
     }
 
+    .label-css{
+        font-size:18px;
+    }
     @* preview *@
 
     .preview-overlay {
@@ -667,7 +670,7 @@
         sb.AppendLine("        Demo Purpose        ");
         sb.AppendLine("================================");
         sb.AppendLine("Token ID : " + selectedMemberId);
-        sb.AppendLine("Office: Kaliganj Service Center");
+
         sb.AppendLine("Date  : " + DateTime.Now.ToString("dd-MMM-yyyy HH:mm"));
         sb.AppendLine("--------------------------------");
 
