@@ -37,7 +37,12 @@
                 <li>Click "Login" to access your account.</li>
             </ul>
         </div>
-        <button type="submit" disabled="@(isExpired)">Login</button>
+        @{
+            if (!isExpired)
+            {
+                <button type="submit">Login</button>
+            }
+        }
     </EditForm>
 
   @*   <a href="#" class="forgot-password">Forgot Password?</a> *@
@@ -148,27 +153,95 @@
     private LoginModel loginModel = new();
     private string loginMessage = "We're so excited to see you login";
     private UserLoginResponse res = new();
-    private bool isExpired = false;
-    private DateTime expiredDate = new DateTime(2026, 7, 15);
-    private DateTime startDate = new DateTime(2026, 6, 16);
-    private DateTime sysDate = DateTime.Now;
-   
-    protected override async Task OnInitializedAsync()
-    {
-      
-        if (sysDate.Date < startDate.Date)
-        {
-            isExpired = true;
-            loginMessage = @"A problem has been identified with the device.
-                    Please contact the development team for further assistance";
-        }
-        else if (sysDate.Date > expiredDate.Date)
-        {
-            isExpired = true;
-            loginMessage = "You can login now please contact with authority";
-        }
+    private bool isExpired;
+    private readonly string _timeFile = Path.Combine(AppContext.BaseDirectory, "system_time.dat");
+    private readonly DateTime startDate = new(2026, 6, 16);
+    private readonly DateTime expiredDate = new(2026, 7, 15);
 
+    private System.Timers.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        CheckExpiry();
+
+        _timer = new System.Timers.Timer(10000);
+        _timer.AutoReset = true;
+        _timer.Elapsed += (_, _) => InvokeAsync(CheckExpiry);
+
+        _timer.Start();
+    }
+
+    private void CheckExpiry()
+    {
+        var now = DateTime.Now;
+
+        var times = ReadLastTwoTimes();
+
+        // First run
+        if (times == null || times.Count == 0)
+        {
+            SaveCurrentTime(now);
+        }
+        else
+        {
+            // Get last two records
+            var last = times.Last();
+            var secondLast = times.Count > 1 ? times[^2] : last;
+
+            // 🔥 TIME JUMP DETECTION
+            var diff = last - secondLast;
+            if (last.Date != secondLast.Date)
+            {
+                if (diff.TotalMinutes > 1500 || diff.TotalMinutes < 0) // too fast jump forward
+                {
+                    isExpired = true;
+                    loginMessage = "A problem has been identified with the device. Please contact the development team for further assistance";
+                }
+            }
+            else
+            {
+                SaveCurrentTime(now);
+            }
+            // Expiry check
+            if (now.Date < startDate.Date || now.Date > expiredDate.Date)
+            {
+                isExpired = true;
+                loginMessage = "A problem has been identified with the device. Please contact the development team for further assistance";
+            }
+        }
         StateHasChanged();
+    }
+    private void SaveCurrentTime(DateTime now)
+    {
+        try
+        {
+            File.AppendAllText(_timeFile, now.ToString("O") + Environment.NewLine); // ISO format
+        }
+        catch
+        {
+            // optional: log error
+        }
+    }
+    private List<DateTime> ReadLastTwoTimes()
+    {
+        if (!File.Exists(_timeFile))
+            return new List<DateTime>();
+
+        var lines = File.ReadAllLines(_timeFile);
+
+        return lines
+            .Where(x => DateTime.TryParse(x, out _))
+            .Select(DateTime.Parse)
+            .ToList();
+    }
+    public void Dispose()
+    {
+        if (_timer != null)
+        {
+            _timer.Stop();
+            _timer.Dispose();
+            _timer = null;
+        }
     }
     private async Task HandleLogin()
     {
