@@ -8,9 +8,7 @@
 <div class="iris-wrapper">
 
     <!-- Header -->
-    <div class="header-bar">
-        Data Capturing System
-    </div>
+   
 
     <!-- Content -->
     <div class="content-area">
@@ -21,35 +19,35 @@
             <!-- LEFT PART -->
             <div class="form-left">
                 <div class="form-group">
-                    <label>Organization Name</label>
+                    <label class="label-custom">Organization Name</label>
                     <input @bind="user.OrganizationName"  readonly class="form-control" />
                 </div>
 
                 <div class="form-group">
-                    <label>Organization Code</label>
+                    <label class="label-custom">Organization Code</label>
                     <input @bind="user.OrganizationCode" readonly class="form-control" />
                 </div>
 
 
                 <div class="form-group checkbox-group">
                     <input type="checkbox" @bind="user.IsActive" id="activeUser" />
-                    <label for="activeUser">Active</label>
+                    <label for="activeUser" class="label-custom">Active</label>
                 </div>
             </div>
 
             <!-- RIGHT PART -->
             <div class="form-right">
                 <div class="form-group">
-                    <label>Username</label>
+                    <label class="label-custom">Username</label>
                     <input @bind="user.Username" class="form-control" />
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
+                    <label class="label-custom">Password</label>
                     <input type="password" @bind="password" class="form-control" />
                 </div>
 
                 <div class="form-group">
-                    <label>Role</label>
+                    <label class="label-custom">Role</label>
                     <select @bind="user.Role" class="form-control">
                         <option value="">---Select Role---</option>
                         <option value="Administrator">Administrator</option>
@@ -64,8 +62,14 @@
 
         <!-- Buttons -->
         <div class="button-section">
-            <button class="btn btn-success" @onclick="SaveUser">Save</button>
-            <button class="btn btn-secondary" @onclick="ResetForm">Reset</button>
+            <button type="submit" class="btn btn-success px-4 save-btn" @onclick="SaveUser">
+                <i class="bi bi-check2-circle me-1"></i>Save
+            </button>
+
+            <button type="button" class="btn btn-warning fs-5" @onclick="ResetForm">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                Reset
+            </button>
         </div>
 
         @if (!string.IsNullOrEmpty(message))
@@ -198,7 +202,8 @@
     private SaveUserResult res = new();
     private string password;
     private string message;
-
+    [Parameter]
+    public EventCallback<string> OnActionMessage { get; set; }
     protected override async Task OnInitializedAsync()
     {
         user = new() { IsActive = true, OrganizationName = AppSettings.OrganizationName, OrganizationCode = AppSettings.OrganizationCode };
@@ -232,6 +237,7 @@
             {
                 message = res.Message;
                 ResetAll("User saved successfully ✅");
+                await OnActionMessage.InvokeAsync(message);
             }
             else
             {
